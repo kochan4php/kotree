@@ -2,24 +2,7 @@ import Layout from "@/layouts/index";
 
 const App = () => (
   <Layout>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
-    <h1>Banh Halo</h1>
+    <img src="/vite.svg" alt="avatar" width="100px" />
   </Layout>
 );
 
