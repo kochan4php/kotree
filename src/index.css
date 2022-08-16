@@ -17,6 +17,6 @@
   }
 
   body {
-    @apply bg-slate-900 !text-white;
+    @apply bg-slate-900 !text-white overflow-hidden selection:bg-pink-400 selection:text-pink-800;
   }
 }

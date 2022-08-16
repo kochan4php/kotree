@@ -4,17 +4,20 @@
  */
 
 const Profile = () => (
-  <div className="flex flex-col items-center gap-8">
+  <div className="flex flex-col items-center gap-3">
     <div className="avatar online">
-      <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+      <div className="w-[124px] rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
         <img
-          src="/asuka.jpg"
+          src="/asuka.webp"
           alt="avatar"
           className="object-cover object-center"
         />
       </div>
     </div>
-    <h1 className="text-2xl font-bold">Deo Subarno</h1>
+    <h1 className="text-3xl font-bold text-center mt-2">Deo Subarno</h1>
+    <p className="text-lg font-medium text-center">
+      Junior Software Engineer | Laravel Developer
+    </p>
   </div>
 );
 

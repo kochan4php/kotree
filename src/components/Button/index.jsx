@@ -6,7 +6,7 @@
 import PropTypes from "prop-types";
 import { RenderIfTrue, RenderIfFalse } from "@/utils";
 
-const Button = ({ text, btncolor = "bg-gray-900", icon, ...another }) => (
+const Button = ({ text, btncolor, icon, ...another }) => (
   <button
     className={`btn ${btncolor} btn-block transition-all duration-300 outline-transparent rounded-full text-lg capitalize !text-white ${
       icon ? "flex gap-2 items-center" : ""
