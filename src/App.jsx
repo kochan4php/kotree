@@ -1,32 +1,5 @@
-import { BsGithub, BsInstagram, BsWhatsapp, BsLinkedin } from "react-icons/bs";
 import { Button } from "@/components";
-
-const LinkButton = [
-  {
-    text: "Github",
-    path: "https://github.com/kochan4php",
-    btncolor: "bg-[#313131]",
-    Icon: BsGithub,
-  },
-  {
-    text: "Instagram",
-    path: "https://instagram.com/kochan.php",
-    btncolor: "bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500",
-    Icon: BsInstagram,
-  },
-  {
-    text: "WhatsApp",
-    path: "https://wa.me/08988928260",
-    btncolor: "bg-[#28B13D]",
-    Icon: BsWhatsapp,
-  },
-  {
-    text: "LinkedIn",
-    path: "https://wa.me/08988928260",
-    btncolor: "bg-[rgb(0,115,177)]",
-    Icon: BsLinkedin,
-  },
-];
+import Socmed from "@/data/socmed";
 
 const App = () => (
   <div className="w-full md:max-w-5xl mx-auto min-h-screen flex flex-col items-center justify-center px-3 md:px-0">
@@ -44,7 +17,7 @@ const App = () => (
         <h1 className="text-2xl font-bold">Deo Subarno</h1>
       </div>
       <div className="flex flex-col gap-5">
-        {LinkButton.map(({ text, path, btncolor, Icon }, idx) => (
+        {Socmed.map(({ text, path, btncolor, Icon }, idx) => (
           <Button
             key={idx}
             text={text}
