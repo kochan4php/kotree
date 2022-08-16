@@ -27,7 +27,7 @@ const Socmed = [
   },
   {
     text: "LinkedIn",
-    path: "https://wa.me/08988928260",
+    path: "https://www.linkedin.com/in/aphrodeo-subarno/",
     btncolor:
       "hover:brightness-125 bg-[rgb(0,115,177)] hover:bg-[rgb(0,115,177)]",
     Icon: BsLinkedin,
