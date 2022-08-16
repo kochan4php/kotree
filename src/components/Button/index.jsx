@@ -3,7 +3,7 @@ import { RenderIfTrue, RenderIfFalse } from "@/utils";
 
 const Button = ({ text, btncolor = "bg-gray-900", icon, ...another }) => (
   <button
-    className={`btn ${btncolor} btn-block rounded-full text-lg capitalize !text-white ${
+    className={`btn ${btncolor} btn-block transition-all duration-300 outline-transparent rounded-full text-lg capitalize !text-white ${
       icon ? "flex gap-2 items-center" : ""
     }`}
     {...another}
