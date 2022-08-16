@@ -1,3 +1,8 @@
+/**
+ * © Copyright by Deo Subarno (Kochan.php | kochan4php)
+ * Don't edit this code!
+ */
+
 import { BsGithub, BsInstagram, BsWhatsapp, BsLinkedin } from "react-icons/bs";
 
 const Socmed = [
@@ -16,7 +21,7 @@ const Socmed = [
   },
   {
     text: "WhatsApp",
-    path: "https://wa.me/08988928260",
+    path: "https://wa.me/+628988928260",
     btncolor: "hover:brightness-125 bg-[#28B13D] hover:bg-[#28B13D]",
     Icon: BsWhatsapp,
   },
