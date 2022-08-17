@@ -15,9 +15,7 @@ const Profile = () => (
       </div>
     </div>
     <h1 className="text-3xl font-bold text-center mt-2">Deo Subarno</h1>
-    <p className="text-lg font-medium text-center">
-      Junior Software Engineer | Laravel Developer
-    </p>
+    <p className="text-lg font-medium text-center">Junior Laravel Developer</p>
   </div>
 );
 

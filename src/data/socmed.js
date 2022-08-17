@@ -4,6 +4,7 @@
  */
 
 import { BsGithub, BsInstagram, BsWhatsapp, BsLinkedin } from "react-icons/bs";
+import { MdWork } from "react-icons/md";
 
 const Socmed = [
   {
@@ -31,6 +32,13 @@ const Socmed = [
     btncolor:
       "hover:brightness-90 bg-[rgb(0,115,177)] hover:bg-[rgb(0,115,177)]",
     Icon: BsLinkedin,
+  },
+  {
+    text: "Portfolio",
+    path: "/",
+    btncolor:
+      "hover:brightness-90 bg-gradient-to-r from-[#f77062] to-[#fe5196]",
+    Icon: MdWork,
   },
 ];
 

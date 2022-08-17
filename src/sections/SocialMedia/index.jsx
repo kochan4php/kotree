@@ -12,7 +12,7 @@ const SocialMedia = () => (
       <Button
         key={idx}
         text={text}
-        icon={Icon ? <Icon size={23} /> : false}
+        icon={Icon ? <Icon size={22} /> : false}
         btncolor={btncolor ?? null}
         onClick={() => window.open(path, "_blank")}
       />
