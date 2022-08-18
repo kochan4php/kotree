@@ -5,6 +5,7 @@ const Footer = () => (
       <a
         href="https://github.com/kochan4php"
         className="transition-all duration-300 hover:text-sky-500"
+        target="_blank"
       >
         Kochan.php
       </a>
