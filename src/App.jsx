@@ -10,11 +10,7 @@ const App = () => (
     <div className="text-white justify-around min-h-screen flex gap-6 flex-col w-full py-6">
       <Fade left>
         <Profile />
-      </Fade>
-      <Fade right>
         <SocialMedia />
-      </Fade>
-      <Fade left>
         <Footer />
       </Fade>
     </div>
