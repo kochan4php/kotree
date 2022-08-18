@@ -8,7 +8,7 @@ const Profile = () => (
     <div className="avatar online">
       <div className="w-[124px] rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
         <img
-          src="/asuka.webp"
+          src="https://avatars.githubusercontent.com/kochan4php"
           alt="avatar"
           className="object-cover object-center"
         />
