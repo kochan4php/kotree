@@ -5,5 +5,6 @@
 
 import Profile from "@/sections/Profile";
 import SocialMedia from "@/sections/SocialMedia";
+import Footer from "@/sections/Footer";
 
-export { Profile, SocialMedia };
+export { Profile, SocialMedia, Footer };
