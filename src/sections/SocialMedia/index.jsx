@@ -7,7 +7,7 @@ import { Button } from "@/components";
 import Socmed from "@/data/socmed";
 
 const SocialMedia = () => (
-  <div className="flex flex-col gap-5">
+  <div className="flex flex-col gap-4">
     {Socmed.map(({ text, path, btncolor, Icon }, idx) => (
       <Button
         key={idx}
