@@ -8,7 +8,7 @@ import { RenderIfTrue, RenderIfFalse } from "@/utils";
 
 const Button = ({ text, btncolor, icon, ...another }) => (
   <button
-    className={`btn ${btncolor} btn-block transition-all duration-300 outline-transparent rounded-none outline-none text-lg capitalize !text-white ${
+    className={`btn ${btncolor} btn-block transition-all duration-300 outline-transparent rounded-full sm:rounded-none outline-none text-lg capitalize !text-white ${
       icon ? "flex gap-2 items-center" : ""
     }`}
     {...another}

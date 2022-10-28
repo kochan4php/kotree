@@ -5,7 +5,7 @@
 
 const Profile = () => (
   <div className="flex flex-col items-center gap-3">
-    <div className="avatar online">
+    <div className="avatar">
       <div className="w-[124px] rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
         <img
           src="https://avatars.githubusercontent.com/kochan4php"
@@ -15,7 +15,7 @@ const Profile = () => (
       </div>
     </div>
     <h1 className="text-3xl font-bold text-center mt-2">Deo Subarno</h1>
-    <p className="text-lg font-medium text-center">Junior Web Developer</p>
+    <p className="text-lg font-medium text-center">Laravel Backend Developer</p>
   </div>
 );
 
