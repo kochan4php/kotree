@@ -3,6 +3,8 @@
  * Don't edit this code!
  */
 
+import { FaLaravel } from "react-icons/fa";
+
 const Profile = () => (
   <div className="flex flex-col items-center gap-3">
     <div className="avatar">
@@ -14,8 +16,13 @@ const Profile = () => (
         />
       </div>
     </div>
-    <h1 className="text-3xl font-bold text-center mt-2">Deo Subarno</h1>
-    <p className="text-lg font-medium text-center">Laravel Backend Developer</p>
+    <h1 className="text-3xl font-bold text-center mt-3">Deo Subarno</h1>
+    <p className="text-md mt-2 font-medium text-center bg-red-500 py-1 px-2 rounded-2xl flex gap-2 items-center">
+      <span>
+        <FaLaravel size={20} />
+      </span>
+      <span>Laravel Backend Developer</span>
+    </p>
   </div>
 );
 
