@@ -10,16 +10,16 @@ import { FaDev } from 'react-icons/fa';
 
 const Socmed = [
     {
-        text: 'Github',
-        path: 'https://github.com/kochan4php',
-        btncolor: 'hover:brightness-90 bg-[#3D4451] hover:bg-[#3D4451]',
-        Icon: BsGithub,
-    },
-    {
         text: 'Gitlab',
         path: 'https://gitlab.com/aprodeosubarno',
         btncolor: 'hover:brightness-90 bg-gradient-to-r from-[#E24329] via-[#FC6D26] to-[#FCA326]',
         Icon: SiGitlab,
+    },
+    {
+        text: 'Github',
+        path: 'https://github.com/kochan4php',
+        btncolor: 'hover:brightness-90 bg-[#3D4451] hover:bg-[#3D4451]',
+        Icon: BsGithub,
     },
     {
         text: 'Dev',
