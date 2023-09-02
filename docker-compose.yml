@@ -7,7 +7,7 @@ services:
         restart: always
         build:
             context: ./
-            dockerfile: ./dockerfiles/Dockerfile.dev
+            dockerfile: ./dockerfiles/Dockerfile.prod
         ports:
             - 3000:3000
         deploy:
