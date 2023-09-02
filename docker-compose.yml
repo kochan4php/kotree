@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+    client-app:
+        container_name: client-app
+        image: kotree:latest
+        restart: always
+        build:
+            context: ./
+            dockerfile: ./dockerfiles/Dockerfile.dev
+        ports:
+            - 3000:3000
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 256M
