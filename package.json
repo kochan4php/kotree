@@ -9,7 +9,9 @@
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
         "prepare": "husky install",
-        "serve": "serve -s dist -p 3000"
+        "serve": "serve -s dist -p 3000",
+        "docker:up": "pnpm docker:down && docker compose up -d",
+        "docker:down": "docker compose down"
     },
     "dependencies": {
         "@emotion/react": "^11.11.1",
