@@ -11,7 +11,9 @@
         "prepare": "husky install",
         "serve": "serve -s dist -p 3000",
         "docker:up": "pnpm docker:down && docker compose up -d",
-        "docker:down": "docker compose down"
+        "docker:down": "docker compose down",
+        "prettier:check": "prettier --check .",
+        "prettier:fix": "prettier --write ."
     },
     "dependencies": {
         "@emotion/react": "^11.11.1",
