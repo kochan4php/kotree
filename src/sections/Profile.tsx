@@ -14,11 +14,11 @@ export default function Profile() {
                 </div>
             </div>
             <h1 className="text-3xl font-bold text-center mt-3">Deo Subarno</h1>
-            <p className="text-md mt-2 font-medium text-center bg-slate-500 py-1 px-2 rounded-2xl flex gap-2 items-center">
+            <p className="text-md mt-2 font-medium text-center bg-gray-600 py-1 px-2 rounded-2xl flex gap-2 items-center">
                 <span>
                     <BiServer size={20} />
                 </span>
-                <span>Junior Backend Engineer</span>
+                <span>Backend Engineer</span>
             </p>
         </div>
     );
