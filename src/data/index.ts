@@ -28,11 +28,6 @@ const Socmed = [
         Icon: FaDev,
     },
     {
-        text: 'Showwcase',
-        path: 'https://kochan4php.showwcase.com/',
-        btncolor: 'hover:brightness-90 bg-[#4f46e5] hover:bg-[#6366f1]',
-    },
-    {
         text: 'LinkedIn',
         path: 'https://www.linkedin.com/in/aphrodeo-subarno/',
         btncolor: 'hover:brightness-90 bg-[rgb(0,115,177)] hover:bg-[rgb(0,115,177)]',
