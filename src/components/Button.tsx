@@ -8,7 +8,7 @@ import { ButtonProps } from '../interfaces';
 export default function Button({ text, btncolor, icon, ...another }: ButtonProps) {
     return (
         <button
-            className={`btn ${btncolor} btn-block transition-all duration-300 outline-transparent rounded-md outline-none text-xl capitalize !text-white ${
+            className={`btn ${btncolor} btn-block transition-all duration-300 outline-transparent rounded-md outline-none text-lg capitalize !text-white ${
                 icon ? 'flex gap-2 items-center' : ''
             }`}
             {...another}
