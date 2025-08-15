@@ -3,11 +3,21 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Briefcase, Check, Code2, Copy, ExternalLink, Github, Globe, Heart, Instagram, Linkedin, MessageCircle } from 'lucide-react';
+import { Briefcase, Check, Code2, Copy, ExternalLink, Github, Gitlab, Globe, Heart, Instagram, Linkedin, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 
-const socialLinks = [
+interface SocialLink {
+  name: string;
+  url: string;
+  icon: any;
+  color: string;
+  hoverColor: string;
+  description: string;
+}
+
+const socialLinks: SocialLink[] = [
   {
     name: 'Gravatar',
     url: 'https://gravatar.com/kochan4php',
@@ -19,7 +29,7 @@ const socialLinks = [
   {
     name: 'GitLab',
     url: 'https://gitlab.com/aprodeosubarno',
-    icon: Code2,
+    icon: Gitlab,
     color: 'from-orange-500 to-red-500',
     hoverColor: 'hover:from-orange-600 hover:to-red-600',
     description: 'DevOps platform',
@@ -75,13 +85,13 @@ const socialLinks = [
 ];
 
 export default function LinktreePage() {
-  const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
+  const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
 
-  const handleLinkClick = (linkName: string) => {
+  const handleLinkClick = (link: SocialLink) => {
     setClickCounts((prev) => ({
       ...prev,
-      [linkName]: (prev[linkName] || 0) + 1,
+      [link.name]: (prev[link.name] || 0) + 1,
     }));
   };
 
@@ -96,7 +106,7 @@ export default function LinktreePage() {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 md:mt-2">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-pink-400/20 to-orange-600/20 rounded-full blur-3xl"></div>
@@ -108,18 +118,15 @@ export default function LinktreePage() {
             <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-600 p-1">
               <Image src="https://avatars.githubusercontent.com/kochan4php" alt="Deo Subarno" className="rounded-full object-cover" priority width={120} height={120} />
             </div>
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white/20 flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-            </div>
           </div>
 
           <div className="relative flex flex-col items-center">
             <span className="text-3xl font-bold text-white">Deo Subarno</span>
-            <span className="absolute top-1/2 -translate-y-1/2 text-sm font-bold text-white">a.k.a</span>
+            <span className="absolute top-1/2 -translate-y-1/2 text-base font-bold text-white">a.k.a</span>
             <span className="text-3xl font-bold text-white mt-8">Kochan</span>
           </div>
 
-          <Badge className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white border-0 mb-4 animate-gradient-slow w-full text-base">
+          <Badge className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white border-0 mb-4 animate-gradient-slow text-sm md:text-base mx-auto">
             <Code2 className="w-4 h-4 mr-2" />
             Software and Game Developer
           </Badge>
@@ -153,27 +160,27 @@ export default function LinktreePage() {
               style={{
                 animationDelay: `${index * 100}ms`,
               }}>
-              <Button
-                className={`w-full h-16 bg-gradient-to-r ${link.color} text-white border-0 rounded-lg transition-all duration-300 group-hover:shadow-lg relative overflow-hidden animate-gradient`}
-                onClick={() => handleLinkClick(link.name)}>
-                {/* Animated background effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              <Link href={link.url} onClick={() => handleLinkClick(link)} target="_blank">
+                <Button
+                  className={`w-full h-16 bg-gradient-to-r ${link.color} text-white border-0 rounded-lg transition-all duration-300 group-hover:shadow-lg relative overflow-hidden animate-gradient`}>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
 
-                <div className="flex items-center justify-between w-full relative z-10">
-                  <div className="flex items-center">
-                    <link.icon className="w-6 h-6 mr-4" />
-                    <div className="text-left">
-                      <div className="font-semibold text-lg">{link.name}</div>
-                      <div className="text-sm text-white/80">{link.description}</div>
+                  <div className="flex items-center justify-between w-full relative z-10">
+                    <div className="flex items-center">
+                      <link.icon className="w-6 h-6 mr-4" />
+                      <div className="text-left">
+                        <div className="font-semibold text-lg">{link.name}</div>
+                        <div className="text-sm text-white/80">{link.description}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {clickCounts[link.name] && <Badge className="bg-white/20 text-white text-xs">{clickCounts[link.name]} clicks</Badge>}
+                      <ExternalLink className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    {clickCounts[link.name] && <Badge className="bg-white/20 text-white text-xs">{clickCounts[link.name]} clicks</Badge>}
-                    <ExternalLink className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </div>
-              </Button>
+                </Button>
+              </Link>
             </Card>
           ))}
         </div>
@@ -194,7 +201,7 @@ export default function LinktreePage() {
           </div>
         </Card>
 
-        <div className="text-center mt-8 text-white/60 text-sm">
+        <div className="text-center mt-8 text-white/60 text-sm mb-2">
           <p>&copy; Copyright 2022 &#8211; {new Date().getFullYear()} Deo Subarno</p>
           <p className="mt-2">Made with ❤️ Built with Next.js & Tailwind CSS</p>
         </div>
