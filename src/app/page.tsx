@@ -124,7 +124,11 @@ export default function LinktreePage() {
             Software and Game Developer
           </Badge>
 
-          <p className="text-white mb-6 leading-relaxed">Passionate about building scalable systems and web applications. Let&rsquo;s connect and create something amazing together! 🚀</p>
+          <p className="text-white mb-3 text-base leading-loose">Passionate about building scalable systems and web applications. Let&rsquo;s connect and create something amazing together! 🚀</p>
+
+          <p className="text-white font-semibold base text-center italic mb-6">
+            "Pria sigma itu waifunya <span className="font-bold animate-pulse">Madoka Yuzuhara</span>"
+          </p>
 
           <Button onClick={copyProfileUrl} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 transition-all duration-300">
             {copied ? (
