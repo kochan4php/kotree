@@ -1,8 +1,0 @@
-node_modules
-.husky
-dist
-.dockerignore
-.editorconfig
-.gitignore
-*.yml
-*.yaml
