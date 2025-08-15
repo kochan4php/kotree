@@ -103,7 +103,7 @@ export default function LinktreePage() {
       </div>
 
       <div className="relative max-w-lg mx-auto">
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20 p-8 mb-8 text-center">
+        <Card className="bg-white/10 border-white/20 p-8 mb-8 text-center">
           <div className="relative">
             <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-600 p-1">
               <Image src="https://avatars.githubusercontent.com/kochan4php" alt="Deo Subarno" className="rounded-full object-cover" priority width={120} height={120} />
@@ -178,7 +178,7 @@ export default function LinktreePage() {
           ))}
         </div>
 
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20 p-6 mt-8">
+        <Card className="bg-white/10 border-white/20 p-6 mt-8">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-white">{Object.values(clickCounts).reduce((a, b) => a + b, 0)}</div>
