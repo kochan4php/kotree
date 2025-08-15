@@ -149,7 +149,7 @@ export default function LinktreePage() {
           {socialLinks.map((link, index) => (
             <Card
               key={link.name}
-              className="group bg-white/10 backdrop-blur-lg border-white/20 p-0 overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
+              className="group bg-white/10 border-white/20 p-0 overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
               style={{
                 animationDelay: `${index * 100}ms`,
               }}>
