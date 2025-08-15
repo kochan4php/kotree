@@ -4,7 +4,7 @@ import { LinkCounter } from '@/interfaces';
 
 export async function GET() {
   try {
-    const dbPath = path.join(process.cwd(), 'data/database.db');
+    const dbPath = path.join(process.cwd(), 'public/data/database.db');
     const db = new sqlite.DatabaseSync(dbPath);
     const prepareSelect = db.prepare(`SELECT name, count FROM link_counters`);
     const data: LinkCounter = JSON.parse(JSON.stringify(prepareSelect.all()));

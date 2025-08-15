@@ -4,7 +4,7 @@ import { LinkCounter } from '@/interfaces';
 
 export async function POST(request: Request) {
   try {
-    const dbPath = path.join(process.cwd(), 'data/database.db');
+    const dbPath = path.join(process.cwd(), 'public/data/database.db');
 
     const db = new sqlite.DatabaseSync(dbPath);
     db.exec(`CREATE TABLE IF NOT EXISTS link_counters (id integer PRIMARY KEY AUTOINCREMENT UNIQUE, name text UNIQUE, count integer)`);
