@@ -1,21 +1,14 @@
 'use client';
 
+import CopyProfileButton from '@/components/copy-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Briefcase, Check, Code2, Copy, ExternalLink, Github, Gitlab, Globe, Heart, Instagram, Linkedin, MessageCircle } from 'lucide-react';
+import { SocialLink } from '@/interfaces';
+import { Briefcase, Code2, ExternalLink, Github, Gitlab, Globe, Heart, Instagram, Linkedin, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-
-interface SocialLink {
-  name: string;
-  url: string;
-  icon: any;
-  color: string;
-  hoverColor: string;
-  description: string;
-}
 
 const socialLinks: SocialLink[] = [
   {
@@ -85,7 +78,6 @@ const socialLinks: SocialLink[] = [
 ];
 
 export default function LinktreePage() {
-  const [copied, setCopied] = useState(false);
   const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
 
   const handleLinkClick = (link: SocialLink) => {
@@ -93,16 +85,16 @@ export default function LinktreePage() {
       ...prev,
       [link.name]: (prev[link.name] || 0) + 1,
     }));
-  };
 
-  const copyProfileUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy URL:', JSON.stringify(err));
-    }
+    const linkName = link.name.toLowerCase();
+
+    fetch('/api/click-link-counter', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: linkName,
+        count: linkName === socialLinks.find((link) => link.name.toLowerCase() === linkName)?.name.toLowerCase() && 1,
+      }),
+    });
   };
 
   return (
@@ -137,19 +129,7 @@ export default function LinktreePage() {
             &rdquo;Pria sigma itu waifunya <span className="font-bold animate-pulse">Madoka Yuzuhara</span>&rdquo;
           </p>
 
-          <Button onClick={copyProfileUrl} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 transition-all duration-300">
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 mr-2" />
-                Share Profile
-              </>
-            )}
-          </Button>
+          <CopyProfileButton />
         </Card>
 
         <div className="space-y-4">
