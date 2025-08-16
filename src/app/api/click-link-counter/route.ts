@@ -1,6 +1,5 @@
 import clientPromise from '@/connections/mongodb';
 import { LinkCounter } from '@/interfaces';
-import fs from 'fs';
 
 export async function POST(request: Request) {
   try {
