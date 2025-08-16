@@ -1,10 +1,11 @@
-import fs from 'fs';
-import path from 'path';
+import clientPromise from '@/connections/mongodb';
 
 export async function GET() {
   try {
-    const dbPath = path.join(process.cwd(), 'data/db.json');
-    const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    const client = await clientPromise;
+    const db = client.db('kotreedb');
+    const collection = db.collection('link_counter');
+    const data = await collection.find().toArray();
 
     return new Response(JSON.stringify({ message: 'Success', data }), { status: 200 });
   } catch (error) {
