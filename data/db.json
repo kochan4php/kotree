@@ -1,0 +1,34 @@
+[
+  {
+    "name": "instagram",
+    "count": 3
+  },
+  {
+    "name": "github",
+    "count": 3
+  },
+  {
+    "name": "gitlab",
+    "count": 7
+  },
+  {
+    "name": "linkedin",
+    "count": 1
+  },
+  {
+    "name": "whatsapp",
+    "count": 1
+  },
+  {
+    "name": "dev.to",
+    "count": 2
+  },
+  {
+    "name": "portfolio",
+    "count": 1
+  },
+  {
+    "name": "gravatar",
+    "count": 3
+  }
+]

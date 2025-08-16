@@ -1,101 +1,14 @@
-'use client';
+import CardProfile from '@/components/card-profile';
+import Footer from '@/components/footer';
+import SocialMediaBtn from '@/components/social-media-btn';
+import { LinkCounter } from '@/interfaces';
+import { headers } from 'next/headers';
 
-import CopyProfileButton from '@/components/copy-button';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { SocialLink } from '@/interfaces';
-import { Briefcase, Code2, ExternalLink, Github, Gitlab, Globe, Heart, Instagram, Linkedin, MessageCircle } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState } from 'react';
-
-const socialLinks: SocialLink[] = [
-  {
-    name: 'Gravatar',
-    url: 'https://gravatar.com/kochan4php',
-    icon: Globe,
-    color: 'from-blue-500 to-blue-600',
-    hoverColor: 'hover:from-blue-600 hover:to-blue-700',
-    description: 'Global avatar service',
-  },
-  {
-    name: 'GitLab',
-    url: 'https://gitlab.com/aprodeosubarno',
-    icon: Gitlab,
-    color: 'from-orange-500 to-red-500',
-    hoverColor: 'hover:from-orange-600 hover:to-red-600',
-    description: 'DevOps platform',
-  },
-  {
-    name: 'GitHub',
-    url: 'https://github.com/kochan4php',
-    icon: Github,
-    color: 'from-gray-700 to-gray-900',
-    hoverColor: 'hover:from-gray-800 hover:to-black',
-    description: 'Code repositories',
-  },
-  {
-    name: 'Dev.to',
-    url: 'https://dev.to/aphrodeosubarno',
-    icon: Code2,
-    color: 'from-red-500 to-pink-500',
-    hoverColor: 'hover:from-red-600 hover:to-pink-600',
-    description: 'Developer community',
-  },
-  {
-    name: 'LinkedIn',
-    url: 'https://www.linkedin.com/in/aphrodeo-subarno',
-    icon: Linkedin,
-    color: 'from-blue-600 to-blue-700',
-    hoverColor: 'hover:from-blue-700 hover:to-blue-800',
-    description: 'Professional network',
-  },
-  {
-    name: 'Portfolio',
-    url: '/',
-    icon: Briefcase,
-    color: 'from-purple-500 to-pink-500',
-    hoverColor: 'hover:from-purple-600 hover:to-pink-600',
-    description: 'My work showcase',
-  },
-  {
-    name: 'WhatsApp',
-    url: 'https://wa.me/+628988928260',
-    icon: MessageCircle,
-    color: 'from-green-500 to-green-600',
-    hoverColor: 'hover:from-green-600 hover:to-green-700',
-    description: 'Direct messaging',
-  },
-  {
-    name: 'Instagram',
-    url: 'https://instagram.com/deo_sbrn',
-    icon: Instagram,
-    color: 'from-purple-600 via-pink-500 to-orange-400',
-    hoverColor: 'hover:from-purple-700 hover:via-pink-600 hover:to-orange-500',
-    description: 'Visual stories',
-  },
-];
-
-export default function LinktreePage() {
-  const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
-
-  const handleLinkClick = (link: SocialLink) => {
-    setClickCounts((prev) => ({
-      ...prev,
-      [link.name]: (prev[link.name] || 0) + 1,
-    }));
-
-    const linkName = link.name.toLowerCase();
-
-    fetch('/api/click-link-counter', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: linkName,
-        count: linkName === socialLinks.find((link) => link.name.toLowerCase() === linkName)?.name.toLowerCase() && 1,
-      }),
-    });
-  };
+export default async function LinktreePage() {
+  const host = (await headers()).get('host');
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const response = await fetch(`${protocol}://${host}/api/link-clicked-count`);
+  const data: LinkCounter[] = (await response.json()).data;
 
   return (
     <div className="min-h-screen p-4 md:mt-2">
@@ -105,86 +18,9 @@ export default function LinktreePage() {
       </div>
 
       <div className="relative max-w-lg mx-auto">
-        <Card className="bg-white/10 border-white/20 p-8 mb-8 text-center">
-          <div className="relative">
-            <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-600 p-1">
-              <Image src="https://avatars.githubusercontent.com/kochan4php" alt="Deo Subarno" className="rounded-full object-cover" priority width={120} height={120} />
-            </div>
-          </div>
-
-          <div className="relative flex flex-col items-center">
-            <span className="text-3xl font-bold text-white">Deo Subarno</span>
-            <span className="absolute top-1/2 -translate-y-1/2 text-base font-bold text-white">a.k.a</span>
-            <span className="text-3xl font-bold text-white mt-8">Kochan</span>
-          </div>
-
-          <Badge className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white border-0 mb-4 animate-gradient-slow text-sm md:text-base mx-auto">
-            <Code2 className="w-4 h-4 mr-2" />
-            Software and Game Developer
-          </Badge>
-
-          <p className="text-white mb-3 text-base leading-loose">Passionate about building scalable systems and web applications. Let&rsquo;s connect and create something amazing together! 🚀</p>
-
-          <p className="text-white font-semibold base text-center italic mb-6">
-            &rdquo;Pria sigma itu waifunya <span className="font-bold animate-pulse">Madoka Yuzuhara</span>&rdquo;
-          </p>
-
-          <CopyProfileButton />
-        </Card>
-
-        <div className="space-y-4">
-          {socialLinks.map((link, index) => (
-            <Card
-              key={link.name}
-              className="group bg-white/10 border-white/20 p-0 overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
-              style={{
-                animationDelay: `${index * 100}ms`,
-              }}>
-              <Link href={link.url} onClick={() => handleLinkClick(link)} target="_blank">
-                <Button
-                  className={`w-full h-16 bg-gradient-to-r ${link.color} text-white border-0 rounded-lg transition-all duration-300 group-hover:shadow-lg relative overflow-hidden animate-gradient`}>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-
-                  <div className="flex items-center justify-between w-full relative z-10">
-                    <div className="flex items-center">
-                      <link.icon className="w-6 h-6 mr-4" />
-                      <div className="text-left">
-                        <div className="font-semibold text-lg">{link.name}</div>
-                        <div className="text-sm text-white/80">{link.description}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      {clickCounts[link.name] && <Badge className="bg-white/20 text-white text-xs">{clickCounts[link.name]} clicks</Badge>}
-                      <ExternalLink className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </div>
-                </Button>
-              </Link>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="bg-white/10 border-white/20 p-6 mt-8">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-white">{Object.values(clickCounts).reduce((a, b) => a + b, 0)}</div>
-              <div className="text-white/60 text-sm">Total Clicks</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-white">{socialLinks.length}</div>
-              <div className="text-white/60 text-sm">Links</div>
-            </div>
-            <div className="flex items-center justify-center">
-              <Heart className="w-6 h-6 text-red-400 animate-pulse" />
-            </div>
-          </div>
-        </Card>
-
-        <div className="text-center mt-8 text-white/60 text-sm mb-2">
-          <p>&copy; Copyright 2022 &#8211; {new Date().getFullYear()} Deo Subarno</p>
-          <p className="mt-2">Made with ❤️ Built with Next.js & Tailwind CSS</p>
-        </div>
+        <CardProfile />
+        <SocialMediaBtn linkCounter={data} />
+        <Footer />
       </div>
     </div>
   );
