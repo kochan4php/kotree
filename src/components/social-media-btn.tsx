@@ -76,9 +76,6 @@ const socialLinks: SocialLink[] = [
 ];
 
 export default function SocialMediaBtn({ linkCounter }: { linkCounter: LinkCounter[] }) {
-  const [counter, setCounter] = useState(0); // for trigger re-render purpose
-  const [linkCounterState, setLinkCounterState] = useState<LinkCounter[]>(linkCounter);
-
   const handleLinkClick = (link: SocialLink) => {
     const linkName = link.name.toLowerCase();
     fetch('/api/click-link-counter', {
@@ -88,23 +85,13 @@ export default function SocialMediaBtn({ linkCounter }: { linkCounter: LinkCount
         count: linkName === socialLinks.find((link) => link.name.toLowerCase() === linkName)?.name.toLowerCase() && 1,
       }),
     });
-
-    setCounter((prev) => prev + 1);
   };
-
-  useEffect(() => {
-    const response = fetch('/api/link-clicked-count');
-    response
-      .then((res) => res.json())
-      .then((data) => setLinkCounterState(data.data))
-      .catch((error) => console.error(JSON.stringify(error)));
-  }, [counter]);
 
   return (
     <>
       <div className="space-y-4">
         {socialLinks.map((link: SocialLink, index) => {
-          const findLinkCounter = linkCounterState.find((item) => item.name === link.name.toLowerCase());
+          const findLinkCounter = linkCounter.find((item) => item.name === link.name.toLowerCase());
 
           return (
             <Card
@@ -142,7 +129,7 @@ export default function SocialMediaBtn({ linkCounter }: { linkCounter: LinkCount
       <Card className="bg-white/10 border-white/20 p-6 mt-8">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-2xl font-bold text-white">{linkCounterState.reduce((total, item) => total + item.count, 0)}</div>
+            <div className="text-2xl font-bold text-white">{linkCounter.reduce((total, item) => total + item.count, 0)}</div>
             <div className="text-white/60 text-sm">Total Clicks</div>
           </div>
           <div>
