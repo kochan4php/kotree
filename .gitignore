@@ -45,3 +45,4 @@ package-lock.json
 # .gitignore
 /public/sw.js
 /public/workbox-*.js
+certificates
