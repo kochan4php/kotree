@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 export default function CardProfile() {
   return (
-    <Card className="bg-white/10 border-white/20 p-8 mb-8 text-center">
+    <Card className="bg-white/10 border-white/20 p-8 mb-8 text-center shadow-2xl">
       <div className="relative">
         <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-600 p-1">
           <Image src="https://avatars.githubusercontent.com/kochan4php" alt="Deo Subarno" className="rounded-full object-cover" priority width={120} height={120} />

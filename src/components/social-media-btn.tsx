@@ -29,7 +29,7 @@ export default function SocialMediaBtn({ linkCounter }: { linkCounter: LinkCount
           return (
             <Card
               key={link.name}
-              className="group bg-white/10 border-white/20 p-0 overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
+              className="group shadow-2xl bg-white/10 border-white/20 p-0 overflow-hidden hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
               style={{
                 animationDelay: `${index * 100}ms`,
               }}>
@@ -59,7 +59,7 @@ export default function SocialMediaBtn({ linkCounter }: { linkCounter: LinkCount
         })}
       </div>
 
-      <Card className="bg-white/10 border-white/20 p-6 mt-8">
+      <Card className="bg-white/10 border-white/20 p-6 mt-8 shadow-2xl">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-2xl font-bold text-white">{linkCounter.reduce((total, item) => total + item.count, 0)}</div>

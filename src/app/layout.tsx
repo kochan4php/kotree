@@ -1,7 +1,7 @@
+import { socialLinks } from '@/data/social-links';
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
-import { socialLinks } from '@/data/social-links';
 
 export const dynamic = 'force-dynamic';
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
