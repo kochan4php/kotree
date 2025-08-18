@@ -4,8 +4,8 @@
   "description": "Check out all my social media links in one place — let’s connect and share inspiration!",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#ff7ba3",
+  "theme_color": "#ff7ba3",
   "icons": [
     {
       "src": "icons/icon-48x48.png",
