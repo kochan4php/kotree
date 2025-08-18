@@ -2,12 +2,10 @@ import CardProfile from '@/components/card-profile';
 import Footer from '@/components/footer';
 import SocialMediaBtn from '@/components/social-media-btn';
 import { LinkCounter } from '@/interfaces';
-import { headers } from 'next/headers';
 
 export default async function LinktreePage() {
-  const host = (await headers()).get('host');
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const response = await fetch(`${protocol}://${host}/api/link-clicked-count`);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const response = await fetch(`${baseUrl}/api/link-clicked-count`);
   const data: LinkCounter[] = (await response.json()).data;
 
   return (
