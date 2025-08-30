@@ -46,3 +46,5 @@ package-lock.json
 /public/sw.js
 /public/workbox-*.js
 certificates
+
+/.idea
