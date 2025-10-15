@@ -1,6 +1,6 @@
 {
   "name": "kotree",
-  "version": "1.0.1-stable",
+  "version": "1.0.2-stable",
   "private": true,
   "scripts": {
     "dev": "next dev --experimental-https",
