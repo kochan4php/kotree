@@ -6,7 +6,11 @@ const withPWA = nextPWA({
   skipWaiting: true,
 });
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    root: process.cwd(),
+  },
   reactStrictMode: true,
   images: {
     remotePatterns: [
