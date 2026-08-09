@@ -2,6 +2,7 @@
   "name": "kotree",
   "version": "2.0.0-lts",
   "private": true,
+  "packageManager": "pnpm@11.18.0",
   "scripts": {
     "dev": "next dev --experimental-https",
     "build": "next build",
@@ -19,6 +20,7 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.13",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
