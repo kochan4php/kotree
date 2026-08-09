@@ -1,33 +1,33 @@
 import CopyProfileButton from '@/components/copy-button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { profile } from '@/data/profile';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
 
 export default function CardProfile() {
   return (
-    <Card className="bg-white/10 border-white/20 p-8 mb-8 text-center shadow-2xl">
-      <div className="relative">
-        <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-600 p-1">
-          <Image src="https://avatars.githubusercontent.com/kochan4php" alt="Deo Subarno" className="rounded-full object-cover" priority width={120} height={120} />
+    <Card className="mb-8 text-center gap-3">
+      <div className="relative w-fit mx-auto mb-4">
+        <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
+        <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-accent to-[#e05a47] p-[3px] shadow-lg shadow-accent/20">
+          <Image src={profile.avatarUrl} alt={profile.name} className="rounded-full object-cover" priority width={96} height={96} />
         </div>
       </div>
 
-      <div className="relative flex flex-col items-center">
-        <span className="text-3xl font-bold text-white">Deo Subarno</span>
-        <span className="absolute top-1/2 -translate-y-1/2 text-base font-bold text-white">a.k.a</span>
-        <span className="text-3xl font-bold text-white mt-8">Kochan</span>
-      </div>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
+      <p className="text-base text-muted-foreground">{profile.handle}</p>
 
-      <Badge className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white border-0 mb-4 animate-gradient-slow text-sm md:text-base mx-auto">
-        <Code2 className="w-4 h-4 mr-2" />
-        Software and Game Developer
-      </Badge>
+      <span className="inline-flex items-center justify-center gap-1 bg-accent/15 text-accent border border-accent/30 rounded-full px-3 py-1 text-base w-fit mx-auto">
+        <Code2 className="w-4 h-4" />
+        {profile.role}
+      </span>
 
-      <p className="text-white mb-3 text-base leading-loose">Passionate about building scalable systems and web applications. Let&rsquo;s connect and create something amazing together! 🚀</p>
+      <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
 
-      <p className="text-white font-semibold base text-center italic mb-6">
-        &rdquo;Pria sigma itu waifunya <span className="font-bold animate-pulse">Madoka Yuzuhara</span>&rdquo;
+      <div className="w-16 h-px bg-border/80 my-4 mx-auto"></div>
+
+      <p className="text-foreground/90 text-lg italic leading-snug">
+        &rdquo;{profile.quote} <span className="font-bold text-accent">{profile.quoteHighlight}</span>&rdquo;
       </p>
 
       <CopyProfileButton />

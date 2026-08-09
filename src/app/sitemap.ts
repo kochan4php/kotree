@@ -1,15 +1,9 @@
-// app/sitemap.ts
-import { MetadataRoute } from 'next';
-
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+import type { MetadataRoute } from 'next';
+import { site } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    {
-      url: baseUrl + '/',
-      lastModified: new Date().toISOString().split('T')[0],
-      changeFrequency: 'monthly',
-      priority: 1,
-    },
+    { url: site.baseUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
+    { url: `${site.baseUrl}/changelog`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
   ];
 }

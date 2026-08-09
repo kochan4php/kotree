@@ -1,16 +1,5 @@
-import nextPWA from 'next-pwa';
-
-const withPWA = nextPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {
-    root: process.cwd(),
-  },
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -20,6 +9,20 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+        ],
+      },
+    ];
+  },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

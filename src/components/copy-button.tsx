@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 
@@ -18,18 +17,21 @@ export default function CopyProfileButton() {
   };
 
   return (
-    <Button onClick={copyProfileUrl} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 transition-all duration-300">
+    <button
+      type="button"
+      onClick={copyProfileUrl}
+      className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/20 text-foreground px-6 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
       {copied ? (
         <>
-          <Check className="w-4 h-4 mr-2" />
+          <Check className="w-4 h-4" />
           Copied!
         </>
       ) : (
         <>
-          <Copy className="w-4 h-4 mr-2" />
+          <Copy className="w-4 h-4" />
           Share Profile
         </>
       )}
-    </Button>
+    </button>
   );
 }

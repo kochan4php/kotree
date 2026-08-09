@@ -1,31 +1,56 @@
-"use client"
+import Background from '@/components/background';
+
+function Skeleton({ className }: { className: string }) {
+  return <div className={`bg-muted/40 animate-pulse rounded ${className}`} aria-hidden="true" />;
+}
 
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/60 rounded-full blur-md animate-pulse"></div>
-        <div
-          className="absolute top-40 right-20 w-24 h-24 bg-purple-500/60 rounded-full blur-md animate-pulse delay-1000"></div>
-        <div
-          className="absolute bottom-32 left-1/4 w-40 h-40 bg-pink-500/60 rounded-full blur-md animate-pulse delay-2000"></div>
-        <div
-          className="absolute bottom-20 right-1/3 w-28 h-28 bg-cyan-500/60 rounded-full blur-md animate-pulse delay-3000"></div>
-      </div>
-
-      <div className="relative z-10 max-w-md w-full">
-        <div className="bg-white/10 rounded-3xl p-8 border border-white/20 shadow-2xl text-center">
-          <div
-            className="flex flex-col items-center justify-center text-center">
-            <div
-              aria-hidden="true"
-              className="h-16 w-16 rounded-full border-4 border-foreground/20 border-t-primary animate-spin"
-            />
-            <p className="mt-4 text-lg font-medium text-foreground/80">Loading...</p>
+    <main className="min-h-screen p-4 md:mt-2">
+      <Background />
+      <div className="relative max-w-lg mx-auto">
+        <div className="glass-card border rounded-2xl p-6 mb-8 text-center flex flex-col gap-3">
+          <div className="relative w-fit mx-auto mb-4">
+            <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl" />
+            <Skeleton className="w-24 h-24 rounded-full" />
           </div>
-          <span className="sr-only">Loading profile…</span>
+
+          <Skeleton className="h-8 w-48 mx-auto" />
+          <Skeleton className="h-4 w-24 mx-auto" />
+          <Skeleton className="h-8 w-56 mx-auto rounded-full" />
+          <Skeleton className="h-5 w-full max-w-sm mx-auto" />
+          <div className="w-16 h-px bg-border/80 my-4 mx-auto" />
+          <Skeleton className="h-5 w-72 mx-auto" />
+          <Skeleton className="h-10 w-40 mx-auto rounded-xl mt-2" />
         </div>
+
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="glass-card border rounded-2xl p-0 overflow-hidden">
+              <div className="flex items-center gap-4 p-4">
+                <Skeleton className="w-11 h-11 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="glass-card border rounded-2xl p-6 mt-6">
+          <div className="grid grid-cols-3 divide-x divide-border/60 text-center">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <Skeleton className="h-7 w-12" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <span className="sr-only">Loading...</span>
       </div>
-    </div>
-  )
+    </main>
+  );
 }

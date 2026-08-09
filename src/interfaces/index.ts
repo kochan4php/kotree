@@ -1,12 +1,10 @@
-import { LucideProps } from 'lucide-react';
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
+import { ComponentType } from 'react';
 
 export interface SocialLink {
   name: string;
   url: string;
-  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
+  icon: ComponentType<{ className?: string }>;
   color: string;
-  hoverColor: string;
   description: string;
 }
 
