@@ -73,12 +73,13 @@ export default function VoiceCommand() {
       recognition.onerror = (event: any) => {
         setIsListening(false);
         console.error('Speech recognition error', event.error);
+        
         if (event.error === 'not-allowed') {
-          toast.error("Akses mikrofon ditolak oleh sistem pengenalan suara.");
+          toast.error("Akses mikrofon ditolak oleh browser/OS (Cek pengaturan privasi OS kamu).");
         } else if (event.error === 'network') {
-          toast.error("Koneksi gagal. API suara butuh internet aktif.");
+          toast.error("Gagal! (Biasanya karena pakai Brave/Chromium yang memblokir Google Speech API).");
         } else if (event.error === 'no-speech') {
-          toast.error("Tidak ada suara yang terdengar.");
+          toast.error("Tidak ada suara yang terdengar. Coba lagi.");
         } else {
           toast.error(`Error suara: ${event.error}`);
         }
@@ -88,7 +89,12 @@ export default function VoiceCommand() {
         setIsListening(false);
       };
 
-      recognition.start();
+      try {
+        recognition.start();
+      } catch (err: any) {
+        setIsListening(false);
+        toast.error("Mesin suara sudah berjalan atau error internal.");
+      }
     } catch (err: any) {
       setIsListening(false);
       toast.error(`Gagal memulai engine suara: ${err.message}`);

@@ -27,37 +27,57 @@ export default function GeoLockedQuest() {
 
   const handleCheckLocation = () => {
     if (!('geolocation' in navigator)) {
-      toast.error("GPS tidak didukung di browser ini.");
+      toast.error("GPS tidak didukung. Mencoba deteksi IP...");
+      fallbackToIP();
       return;
     }
 
     toast.info("Meminta izin GPS...");
+    
+    // Set a manual timeout to fallback faster
+    const timeoutId = setTimeout(() => {
+      fallbackToIP();
+    }, 5000);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const dist = getDistanceFromLatLonInM(
-          position.coords.latitude,
-          position.coords.longitude,
-          TARGET_LAT,
-          TARGET_LNG
-        );
-        setDistance(dist);
-        if (dist <= ALLOWED_RADIUS) {
-          setUnlocked(true);
-          toast.success("QUEST UNLOCKED! Welcome to Monas.");
-        } else {
-          toast.error("Gagal! Kamu masih terlalu jauh dari target.");
-        }
+        clearTimeout(timeoutId);
+        checkDistance(position.coords.latitude, position.coords.longitude);
       },
       (err) => {
-        console.warn('Geolocation error:', err);
-        let errorMsg = err.message;
-        if (err.code === 1) errorMsg = "Akses lokasi ditolak.";
-        if (err.code === 2) errorMsg = "Sinyal GPS tidak ditemukan.";
-        if (err.code === 3) errorMsg = "Pencarian lokasi timeout.";
-        toast.error(`GPS Error: ${errorMsg}`);
+        clearTimeout(timeoutId);
+        console.warn('Geolocation error, falling back to IP:', err);
+        fallbackToIP();
       },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 10000 }
     );
+  };
+
+  const checkDistance = (lat: number, lon: number) => {
+    const dist = getDistanceFromLatLonInM(lat, lon, TARGET_LAT, TARGET_LNG);
+    setDistance(dist);
+    if (dist <= ALLOWED_RADIUS) {
+      setUnlocked(true);
+      toast.success("QUEST UNLOCKED! Welcome to Monas.");
+    } else {
+      toast.error(`Gagal! Jarakmu ${dist.toFixed(0)} meter dari target.`);
+    }
+  };
+
+  const fallbackToIP = async () => {
+    toast.info("Mencoba melacak via alamat IP...");
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      if (data && data.latitude && data.longitude) {
+        toast.success(`Lokasi IP terdeteksi: ${data.city}`);
+        checkDistance(data.latitude, data.longitude);
+      } else {
+        toast.error("Gagal mendeteksi lokasi via IP.");
+      }
+    } catch (e) {
+      toast.error("Gagal mengakses server lokasi IP.");
+    }
   };
 
   return (
