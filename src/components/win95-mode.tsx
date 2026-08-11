@@ -216,13 +216,14 @@ export default function Win95Mode() {
         return (
           <div key={w.id} 
                onClick={() => bringToFront(w.id)}
-               className="absolute bg-[#c0c0c0] border-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_#000] flex flex-col transition-all duration-300 ease-in-out origin-bottom"
+               className="absolute bg-[#c0c0c0] border-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_#000] flex flex-col origin-bottom"
                style={{ 
                  left: w.x, 
                  top: w.y, 
                  zIndex: w.zIndex, 
                  width: w.width, 
                  height: w.height,
+                 transition: 'width 0.2s ease-in-out, height 0.2s ease-in-out, transform 0.2s ease-in-out, opacity 0.2s ease-in-out',
                  ...minimizeStyle 
                }}>
             {/* Title Bar */}
