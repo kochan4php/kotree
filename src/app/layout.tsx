@@ -37,7 +37,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-          <MultiplayerCursors />
           {children}
           <Toaster position="bottom-center" theme="system" richColors />
           <PwaInstallPrompt />
