@@ -16,6 +16,10 @@ import WasmEngine from '@/components/wasm-engine';
 import SelfDestruct from '@/components/self-destruct';
 import Win95Mode from '@/components/win95-mode';
 import WebBluetooth from '@/components/web-bluetooth';
+import ArchitectMode from '@/components/architect-mode';
+import BossFight from '@/components/boss-fight';
+import DoomMode from '@/components/doom-mode';
+import MultiplayerCursors from '@/components/multiplayer-cursors';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -33,6 +37,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
+          <MultiplayerCursors />
           {children}
           <Toaster position="bottom-center" theme="system" richColors />
           <PwaInstallPrompt />
@@ -45,6 +50,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <SelfDestruct />
           <Win95Mode />
           <WebBluetooth />
+          <ArchitectMode />
+          <BossFight />
+          <DoomMode />
           </I18nProvider>
         </ThemeProvider>
       </body>

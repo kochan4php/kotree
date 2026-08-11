@@ -33,29 +33,11 @@ export default function KonamiCode() {
       
       if (isMatch && inputSequence.length === KONAMI_CODE.length) {
         setActivated(true);
-        toast.success("🎮 GOD MODE ACTIVATED 🎮", {
-          description: "Welcome, developer.",
-          duration: 5000,
-        });
+        toast.success("⚠️ WARNING: BOSS FIGHT INITIATED ⚠️");
         
-        // Trigger a funky visual effect on the body
-        document.documentElement.style.setProperty('filter', 'hue-rotate(90deg) contrast(1.2)');
+        window.dispatchEvent(new CustomEvent('ACTIVATE_BOSS_FIGHT'));
         
-        // Play an aggressive old-school beep
-        try {
-          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const oscillator = audioCtx.createOscillator();
-          oscillator.type = 'square';
-          oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
-          oscillator.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.3);
-          oscillator.connect(audioCtx.destination);
-          oscillator.start();
-          oscillator.stop(audioCtx.currentTime + 0.3);
-        } catch(err) {}
-
-        // Reset after 10 seconds
         setTimeout(() => {
-          document.documentElement.style.removeProperty('filter');
           setActivated(false);
           inputSequence = [];
         }, 10000);

@@ -10,7 +10,7 @@ const RESPONSES: Record<string, string> = {
   'contact': "Reach out to me on LinkedIn or GitHub (links are on the profile above!).",
   'sudo': "Nice try. This incident will be reported.",
   'clear': "",
-  'help': "Available commands: whoami, skills, contact, clear, sudo, win95",
+  'help': "Available commands: whoami, skills, contact, clear, sudo, win95, doom",
 };
 
 export default function AITerminal() {
@@ -38,6 +38,9 @@ export default function AITerminal() {
     if (cmd === 'win95') {
       window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));
       response = "Booting Windows 95...";
+    } else if (cmd === 'doom') {
+      window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
+      response = "IDDQD. Initializing DOOM Engine...";
     } else if (cmd === 'clear') {
       setHistory([]);
       setInput('');
