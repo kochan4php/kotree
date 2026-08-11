@@ -13,6 +13,9 @@ import GhostCursor from '@/components/ghost-cursor';
 import AITerminal from '@/components/ai-terminal';
 import PwaSyncManager from '@/components/pwa-sync-manager';
 import WasmEngine from '@/components/wasm-engine';
+import SelfDestruct from '@/components/self-destruct';
+import Win95Mode from '@/components/win95-mode';
+import WebBluetooth from '@/components/web-bluetooth';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -39,6 +42,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AITerminal />
           <PwaRegister />
           <WasmEngine />
+          <SelfDestruct />
+          <Win95Mode />
+          <WebBluetooth />
           </I18nProvider>
         </ThemeProvider>
       </body>

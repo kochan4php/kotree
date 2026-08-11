@@ -10,7 +10,7 @@ const RESPONSES: Record<string, string> = {
   'contact': "Reach out to me on LinkedIn or GitHub (links are on the profile above!).",
   'sudo': "Nice try. This incident will be reported.",
   'clear': "",
-  'help': "Available commands: whoami, skills, contact, clear, help",
+  'help': "Available commands: whoami, skills, contact, clear, sudo, win95",
 };
 
 export default function AITerminal() {
@@ -33,17 +33,23 @@ export default function AITerminal() {
     const cmd = input.trim().toLowerCase();
     if (!cmd) return;
 
-    if (cmd === 'clear') {
+    let response = RESPONSES[cmd];
+
+    if (cmd === 'win95') {
+      window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));
+      response = "Booting Windows 95...";
+    } else if (cmd === 'clear') {
       setHistory([]);
       setInput('');
       return;
+    } else if (!response) {
+      response = `Command not found: ${cmd}. Type 'help' for available commands.`;
     }
 
     setHistory((prev) => [...prev, { type: 'user', text: `> ${input}` }]);
     
     // Simulate AI thinking delay
     setTimeout(() => {
-      const response = RESPONSES[cmd] || `Command not found: ${cmd}. Type 'help' for available commands.`;
       setHistory((prev) => [...prev, { type: 'bot', text: response }]);
     }, 400);
 
