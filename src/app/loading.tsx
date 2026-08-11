@@ -24,6 +24,11 @@ export default function Loading() {
           <Skeleton className="h-10 w-40 mx-auto rounded-lg mt-2" />
         </div>
 
+        {/* Crypto Tip Jar Skeleton */}
+        <div className="w-full flex items-center justify-center mb-6">
+          <Skeleton className="h-10 w-48 rounded-full" />
+        </div>
+
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="solid-card border rounded-lg p-0 overflow-hidden">
