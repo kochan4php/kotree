@@ -74,12 +74,12 @@ export default function ProfileActions() {
 
       {showQR && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-modal-backdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby="qr-modal-title"
         >
-          <div className="relative solid-card border border-border/80 rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col items-center text-center">
+          <div className="relative solid-card border border-border/80 rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-modal-content flex flex-col items-center text-center">
             <button
               onClick={() => setShowQR(false)}
               aria-label="Close modal"

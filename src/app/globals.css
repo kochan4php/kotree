@@ -89,3 +89,33 @@
     linear-gradient(to bottom, color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px);
   background-size: 2rem 2rem;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Custom Animations */
+@keyframes modal-backdrop {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(4px); }
+}
+
+@keyframes modal-content {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-content {
+  animation: modal-content 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
