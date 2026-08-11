@@ -12,15 +12,16 @@ interface SocialLinkItemProps {
   link: SocialLink;
   clickCount: number;
   index: number;
+  token?: string;
 }
 
-export default function SocialLinkItem({ link, clickCount, index }: SocialLinkItemProps) {
+export default function SocialLinkItem({ link, clickCount, index, token }: SocialLinkItemProps) {
   const { playFeedback } = useSensory();
   const [isClicking, setIsClicking] = useState(false);
 
   const handleClick = async () => {
     playFeedback();
-    trackLinkClick(link.name); // Fire and forget with offline support
+    trackLinkClick(link.name, token); // Fire and forget with offline support
     setIsClicking(true);
     setTimeout(() => setIsClicking(false), 200);
   };

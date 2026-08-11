@@ -1,6 +1,6 @@
 import { get, set } from 'idb-keyval';
 
-export async function trackLinkClick(name: string): Promise<void> {
+export async function trackLinkClick(name: string, token?: string): Promise<void> {
   try {
     if (!navigator.onLine) {
       throw new Error('Offline');
@@ -8,7 +8,7 @@ export async function trackLinkClick(name: string): Promise<void> {
     await fetch('/api/click-link-counter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.toLowerCase(), count: 1 }),
+      body: JSON.stringify({ name: name.toLowerCase(), count: 1, _token: token }),
       keepalive: true,
     });
   } catch (error) {

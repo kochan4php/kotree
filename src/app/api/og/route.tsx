@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { profile } from '@/data/profile';
 import { site } from '@/lib/site';
+import { getLinkCounts } from '@/connections/mongodb';
 
 export async function GET(request: Request) {
   try {
@@ -8,6 +9,11 @@ export async function GET(request: Request) {
     const hasName = searchParams.has('name');
     const name = hasName ? searchParams.get('name')?.slice(0, 50) : profile.name;
     const title = searchParams.get('title') || site.title;
+
+    // Fetch live stats!
+    const linkCounts = await getLinkCounts().catch(() => []);
+    const totalClicks = linkCounts.reduce((acc, curr) => acc + (curr.count || 0), 0);
+    const clickText = totalClicks > 0 ? `${totalClicks.toLocaleString()} Clicks Generated` : title;
 
     return new ImageResponse(
       (
@@ -56,7 +62,7 @@ export async function GET(request: Request) {
               maxWidth: '80%',
             }}
           >
-            {title}
+            {clickText}
           </div>
           
           <div

@@ -2,7 +2,7 @@ import { after } from 'next/server';
 import { incrementLinkCount } from '@/connections/mongodb';
 import { socialLinks } from '@/data/social-links';
 import { isRateLimited } from '@/lib/rate-limit';
-import { guardOrigin } from '@/lib/security';
+import { guardOrigin, validateToken } from '@/lib/security';
 
 const MAX_BODY_BYTES = 10_000;
 const MAX_COUNT = 100;
@@ -17,15 +17,26 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json()) as { name?: unknown; count?: unknown };
+    const body = (await request.json()) as { name?: unknown; count?: unknown; _token?: string; _honeypot?: boolean };
+
+    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1';
+
+    // Honeypot trap
+    if (body._honeypot) {
+      isRateLimited(`banned:${ip}`); // Add to rate limit permanently (or max hits immediately)
+      return new Response('Go away bot', { status: 403 });
+    }
+
+    // CSRF Token validation
+    if (!validateToken(body._token)) {
+      return new Response('Invalid CSRF Token', { status: 403 });
+    }
 
     const name = typeof body.name === 'string' ? body.name.toLowerCase() : '';
     const isKnownLink = socialLinks.some((link) => link.name.toLowerCase() === name);
     if (!isKnownLink) {
       return new Response('Invalid name', { status: 400 });
     }
-
-    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1';
     
     if (isRateLimited(`click-counter:${name}:${ip}`)) {
       return new Response('Too Many Requests', { status: 429 });
