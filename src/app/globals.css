@@ -65,6 +65,11 @@
   --ring: #ff7c47;
 }
 
+/* Enable native View Transitions API in Chrome 126+ */
+@view-transition {
+  navigation: auto;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50 selection:bg-accent selection:text-accent-foreground;
