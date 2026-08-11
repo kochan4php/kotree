@@ -114,10 +114,10 @@ export default function AITerminal() {
 
   return (
     <>
-      {/* Floating Toggle Button */}
+      {/* Dock Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 p-3 bg-accent text-accent-foreground rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer"
+        className={`p-3 rounded-xl transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent text-accent-foreground shadow-inner shadow-black/50' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent'}`}
         aria-label="Open AI Terminal"
       >
         {isOpen ? <X className="w-6 h-6" /> : <TerminalIcon className="w-6 h-6" />}
@@ -125,8 +125,8 @@ export default function AITerminal() {
 
       {/* Terminal Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-20 w-80 sm:w-96 z-50 animate-in slide-in-from-right-8 fade-in duration-300">
-          <Card className="bg-black/80 backdrop-blur-xl border border-accent/30 text-green-400 font-mono text-xs shadow-2xl shadow-accent/20 overflow-hidden rounded-xl">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[95vw] max-w-lg z-[100] animate-in slide-in-from-bottom-8 fade-in duration-300">
+          <Card className="bg-[#0a0a0a]/95 backdrop-blur-2xl border border-accent/40 text-green-400 font-mono text-sm shadow-[0_0_40px_rgba(255,106,51,0.15)] overflow-hidden rounded-2xl">
             {/* Window Controls Header */}
             <div className="bg-muted/30 px-4 py-3 flex items-center gap-2 border-b border-accent/20 cursor-move">
               <div className="flex gap-1.5">
@@ -137,7 +137,7 @@ export default function AITerminal() {
               <span className="text-white/50 text-[10px] font-sans mx-auto -ml-8 flex-1 text-center font-medium tracking-wider uppercase">root@kochan:~</span>
             </div>
             
-            <div className="h-72 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-accent/30 hover:scrollbar-thumb-accent/60">
+            <div className="h-64 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-accent/30 hover:scrollbar-thumb-accent/60">
               {history.map((line, i) => (
                 <div key={i} className={line.type === 'user' ? 'text-blue-300 font-semibold drop-shadow-sm' : 'text-green-400 drop-shadow-sm'}>
                   {line.text}

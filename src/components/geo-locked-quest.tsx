@@ -81,28 +81,30 @@ export default function GeoLockedQuest() {
   };
 
   return (
-    <div className="w-full mt-12 mb-8 p-4 border border-dashed border-destructive/50 rounded-lg bg-destructive/10 text-center relative overflow-hidden group">
-      <h3 className="font-bold text-destructive mb-2">🔒 GEO-LOCKED QUEST</h3>
+    <div className="w-full h-full p-4 border border-accent/20 rounded-2xl bg-black/40 backdrop-blur-md text-center relative overflow-hidden group flex flex-col justify-center items-center shadow-lg shadow-black/20">
+      <h3 className="font-bold text-sm text-accent mb-1 flex items-center justify-center gap-1">
+        <span className="text-[10px]">📍</span> GEO-QUEST
+      </h3>
       {distance === null ? (
-        <div className="flex flex-col items-center gap-2 mt-4">
-          <p className="text-xs text-muted-foreground">Verifikasi lokasi fisikmu untuk membuka link rahasia.</p>
+        <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
+          <p className="text-[10px] text-white/50 mb-3 px-2 leading-tight">Verify physical location to unlock.</p>
           <button 
             onClick={handleCheckLocation}
-            className="px-4 py-2 bg-destructive text-destructive-foreground font-bold rounded hover:opacity-90 transition-opacity"
+            className="w-full px-3 py-2 bg-accent/10 border border-accent/30 text-accent font-semibold rounded-xl hover:bg-accent/20 active:scale-95 transition-all text-xs cursor-pointer"
           >
-            Cek Lokasi GPS
+            Check GPS
           </button>
         </div>
       ) : unlocked ? (
-        <a href="https://github.com/kochan4php/kotree" target="_blank" rel="noreferrer" className="block p-2 bg-destructive text-destructive-foreground font-bold rounded animate-pulse mt-4">
-          ENTER THE SANCTUARY
+        <a href="https://github.com/kochan4php/kotree" target="_blank" rel="noreferrer" className="block w-full p-2 bg-green-500/20 border border-green-500/50 text-green-400 text-xs font-bold rounded-xl animate-pulse mt-2 cursor-pointer">
+          ENTER SANCTUARY
         </a>
       ) : (
-        <>
-          <p className="text-xs mb-1">Jarakmu dari Monas:</p>
-          <p className="font-mono text-xl text-destructive font-bold">{distance.toFixed(0)} meter</p>
-          <p className="text-xs mt-2 text-muted-foreground">Kamu harus berada di bawah {ALLOWED_RADIUS} meter untuk membuka link ini.</p>
-        </>
+        <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
+          <p className="text-[10px] text-white/50 mb-1">Distance to Monas:</p>
+          <p className="font-mono text-lg text-accent font-bold">{distance.toFixed(0)}m</p>
+          <p className="text-[9px] mt-1 text-white/40">Must be {'<'} {ALLOWED_RADIUS}m</p>
+        </div>
       )}
     </div>
   );

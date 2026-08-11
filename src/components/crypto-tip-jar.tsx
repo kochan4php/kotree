@@ -62,23 +62,25 @@ export default function CryptoTipJar() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center mb-6">
+    <div className="w-full h-full p-4 border border-purple-500/20 rounded-2xl bg-black/40 backdrop-blur-md text-center flex flex-col items-center justify-center shadow-lg shadow-black/20">
+      <h3 className="font-bold text-sm text-purple-400 mb-3 flex items-center justify-center gap-1 uppercase tracking-wider">
+        <Wallet className="w-3.5 h-3.5" /> Web3
+      </h3>
       {!isConnected ? (
         <button
           onClick={handleConnect}
           disabled={isConnecting}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 transition-all active:scale-95"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all active:scale-95 cursor-pointer"
         >
-          <Wallet className="w-4 h-4" />
-          {isConnecting ? 'Connecting...' : 'Connect Web3 Wallet'}
+          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
         </button>
       ) : (
         <button
           onClick={handleTip}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 transition-all active:scale-95"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 transition-all active:scale-95 cursor-pointer"
         >
           <Bitcoin className="w-4 h-4" />
-          Send 0.001 ETH Tip
+          Tip 0.001 ETH
         </button>
       )}
     </div>
