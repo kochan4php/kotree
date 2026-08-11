@@ -50,9 +50,13 @@ export default function GeoLockedQuest() {
       },
       (err) => {
         console.warn('Geolocation error:', err);
-        toast.error(`Akses GPS ditolak atau gagal: ${err.message}`);
+        let errorMsg = err.message;
+        if (err.code === 1) errorMsg = "Akses lokasi ditolak.";
+        if (err.code === 2) errorMsg = "Sinyal GPS tidak ditemukan.";
+        if (err.code === 3) errorMsg = "Pencarian lokasi timeout.";
+        toast.error(`GPS Error: ${errorMsg}`);
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
     );
   };
 
