@@ -45,7 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {/* Top Status Bar & Tools */}
           <div className="fixed top-3 left-3 right-3 z-50 flex items-center justify-between p-1">
             <WasmEngine />
-            <div className="flex items-center gap-1 p-1 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full shadow-lg shadow-accent/5">
+            <div className="flex items-center gap-1 p-1 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full shadow-sm">
               <AITerminal />
               <VoiceCommand />
               <WebBluetooth />

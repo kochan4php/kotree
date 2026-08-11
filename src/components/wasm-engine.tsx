@@ -42,7 +42,7 @@ export default function WasmEngine() {
 
   return (
     <div className="flex items-center gap-2 pointer-events-none">
-      <div className="flex items-center justify-center w-10 h-10 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full shadow-lg shadow-accent/5">
+      <div className="flex items-center justify-center w-10 h-10 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full shadow-sm">
         <span className="text-xs font-mono text-accent font-bold tracking-tighter">{'<k/>'}</span>
       </div>
     </div>

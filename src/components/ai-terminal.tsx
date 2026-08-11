@@ -123,7 +123,7 @@ export default function AITerminal() {
       {/* Dock Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-9 h-9 rounded-full transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent text-accent-foreground shadow-inner shadow-black/50' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent'}`}
+        className={`w-9 h-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent text-accent-foreground shadow-inner shadow-black/50' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent'}`}
         aria-label="Open AI Terminal"
       >
         {isOpen ? <X className="w-4 h-4" /> : <TerminalIcon className="w-4 h-4" />}
