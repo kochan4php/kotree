@@ -16,7 +16,6 @@ import WasmEngine from '@/components/wasm-engine';
 import SelfDestruct from '@/components/self-destruct';
 import Win95Mode from '@/components/win95-mode';
 import WebBluetooth from '@/components/web-bluetooth';
-import ArchitectMode from '@/components/architect-mode';
 import BossFight from '@/components/boss-fight';
 import DoomMode from '@/components/doom-mode';
 import MultiplayerCursors from '@/components/multiplayer-cursors';
@@ -50,7 +49,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <SelfDestruct />
           <Win95Mode />
           <WebBluetooth />
-          <ArchitectMode />
           <BossFight />
           <DoomMode />
           </I18nProvider>

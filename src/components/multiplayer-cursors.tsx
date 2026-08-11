@@ -77,6 +77,8 @@ export default function MultiplayerCursors() {
     return () => cancelAnimationFrame(animationId);
   }, []);
 
+  return null;
+  /*
   return (
     <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
       {cursors.map(c => (
@@ -85,7 +87,6 @@ export default function MultiplayerCursors() {
           className="absolute transition-transform duration-75"
           style={{ transform: `translate(${c.x}px, ${c.y}px)` }}
         >
-          {/* Cursor SVG */}
           <svg width="24" height="36" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: `drop-shadow(2px 2px 2px rgba(0,0,0,0.5))` }}>
             <path d="M5.65376 2.15376L22.2589 18.7589C22.6841 19.1841 22.3831 19.9116 21.7821 19.9116H13.5C13.2239 19.9116 13 20.1354 13 20.4116V33.153C13 33.7226 12.3377 34.0326 11.9079 33.6617L1.47273 24.6548C1.17392 24.3969 1 24.0191 1 23.6267V2.86082C1 2.22754 1.76569 1.91007 2.21323 2.35761L5.65376 2.15376Z" fill={c.color} stroke="white" strokeWidth="2" strokeLinejoin="round"/>
           </svg>
@@ -99,4 +100,5 @@ export default function MultiplayerCursors() {
       ))}
     </div>
   );
+  */
 }

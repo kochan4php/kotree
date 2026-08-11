@@ -4,13 +4,17 @@ import { useState, useRef, useEffect } from 'react';
 import { Terminal as TerminalIcon, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
+import { socialLinks } from '@/data/social-links';
+import { profile } from '@/data/profile';
+
 const RESPONSES: Record<string, string> = {
   'whoami': "I am Deo Subarno (Kochan). I write code, I make games, and I exist on the internet.",
   'skills': "TypeScript, C#, HTML/CSS, Deno, React, Unity. (Frontend, Backend, Game Dev & Tools)",
   'contact': "Reach out to me on LinkedIn or GitHub (links are on the profile above!).",
   'sudo': "Nice try. This incident will be reported.",
+  'ls': "To see all links, type 'ls'. To open one, type 'open <name>'.",
   'clear': "",
-  'help': "Available commands: whoami, skills, contact, clear, sudo, win95, doom",
+  'help': "Available commands: whoami, skills, contact, clear, sudo, win95, doom, ls, open",
 };
 
 export default function AITerminal() {
@@ -21,6 +25,17 @@ export default function AITerminal() {
   ]);
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '`' || e.key === '~') {
+        e.preventDefault();
+        setIsOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (bottomRef.current) {
@@ -41,6 +56,17 @@ export default function AITerminal() {
     } else if (cmd === 'doom') {
       window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
       response = "IDDQD. Initializing DOOM Engine...";
+    } else if (cmd === 'ls') {
+      response = socialLinks.map(l => `- ${l.name.toLowerCase()} (url)`).join('\n');
+    } else if (cmd.startsWith('open ')) {
+      const target = cmd.replace('open ', '').trim();
+      const link = socialLinks.find(l => l.name.toLowerCase() === target);
+      if (link) {
+        response = `Opening ${link.name}...`;
+        window.open(link.url, '_blank');
+      } else {
+        response = `Error: Link '${target}' not found.`;
+      }
     } else if (cmd === 'clear') {
       setHistory([]);
       setInput('');
