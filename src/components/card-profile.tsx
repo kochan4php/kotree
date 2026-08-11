@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 export default function CardProfile() {
   return (
-    <Card className="mb-8 text-center gap-3">
+    <Card className="mb-6 text-center gap-3">
       <div className="relative w-fit mx-auto mb-4">
         <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
         <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-accent to-[#e05a47] p-[3px] shadow-lg shadow-accent/20">
