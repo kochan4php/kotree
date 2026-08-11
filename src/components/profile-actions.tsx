@@ -7,9 +7,11 @@ import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSensory } from '@/hooks/use-sensory';
 
-export default function ProfileActions() {
-  const [showQR, setShowQR] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+interface ProfileActionsProps {
+  onToggleQR?: () => void;
+}
+
+export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
   const { setTheme, theme } = useTheme();
@@ -79,8 +81,7 @@ export default function ProfileActions() {
         <button 
           onClick={() => {
             playFeedback();
-            setShowQR(true);
-            setIsClosing(false);
+            if (onToggleQR) onToggleQR();
           }}
           onMouseEnter={playHoverFeedback}
           className="p-2.5 rounded-full border border-border bg-background text-foreground transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-95 shadow-sm"
@@ -89,35 +90,6 @@ export default function ProfileActions() {
           <QrCode className="w-4 h-4" />
         </button>
       </div>
-
-      {showQR && (
-        <div 
-          className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md ${isClosing ? 'animate-out fade-out duration-300' : 'animate-in fade-in duration-300'}`}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="qr-modal-title"
-        >
-          <div className={`relative solid-card border border-border/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center ${isClosing ? 'animate-out zoom-out-95 slide-out-to-bottom-8 duration-300' : 'animate-in zoom-in-95 slide-in-from-bottom-8 duration-500'}`}>
-            <button
-              onClick={() => {
-                setIsClosing(true);
-                setTimeout(() => setShowQR(false), 300);
-              }}
-              aria-label="Close modal"
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-red-500/20 text-white hover:text-red-500 transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" aria-hidden="true" />
-            </button>
-            <h3 id="qr-modal-title" className="text-xl font-bold mb-6 text-foreground">Scan QR Code</h3>
-            <div className="bg-white p-4 rounded-xl shadow-inner ring-4 ring-white/10">
-              <QRCode value={url} size={200} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
-            </div>
-            <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
-              Point your camera at the QR code to open this profile on another device.
-            </p>
-          </div>
-        </div>
-      )}
     </>
   );
 }
