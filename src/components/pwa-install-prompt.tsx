@@ -63,29 +63,32 @@ export default function PwaInstallPrompt() {
   if (!isInstallable || dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-50 px-4 animate-in slide-in-from-bottom-8 duration-700 ease-out flex justify-center">
-      <Card className="w-full max-w-sm flex items-center justify-between p-4 bg-background/95 backdrop-blur-md shadow-2xl border-accent/40 rounded-2xl gap-4">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-foreground">Add Kotree to Home Screen</p>
-          <p className="text-xs text-muted-foreground truncate">Get the app-like experience</p>
+    <div className="fixed top-4 left-0 right-0 z-[100] px-4 animate-in slide-in-from-top-8 fade-in duration-500 ease-out flex justify-center pointer-events-none">
+      <div className="w-full max-w-sm flex items-center justify-between p-3 bg-black/80 backdrop-blur-xl shadow-2xl border border-accent/40 rounded-full gap-3 pointer-events-auto">
+        <div className="flex-1 min-w-0 pl-2">
+          <p className="font-bold text-sm text-white flex items-center gap-2">
+            Kotree App <span className="bg-accent text-accent-foreground text-[10px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-bold">New</span>
+          </p>
+          <p className="text-xs text-white/60 truncate mt-0.5">Install for offline access</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 pr-1">
           <button 
             onClick={handleInstall}
-            className="flex items-center justify-center bg-accent text-accent-foreground rounded-full p-2 hover:bg-accent/90 transition-colors"
+            className="flex items-center justify-center bg-accent text-accent-foreground font-semibold rounded-full px-4 py-1.5 hover:scale-105 active:scale-95 transition-all text-xs cursor-pointer shadow-lg shadow-accent/20"
             aria-label="Install App"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5 mr-1.5" />
+            Install
           </button>
           <button 
             onClick={handleDismiss}
-            className="flex items-center justify-center bg-muted text-muted-foreground rounded-full p-2 hover:bg-muted/80 transition-colors"
+            className="flex items-center justify-center text-white/50 bg-white/10 rounded-full p-1.5 hover:bg-white/20 hover:text-white transition-all cursor-pointer active:scale-95"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

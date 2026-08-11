@@ -117,7 +117,7 @@ export default function AITerminal() {
       {/* Floating Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 p-3 bg-accent text-accent-foreground rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all"
+        className="fixed bottom-6 right-6 z-50 p-3 bg-accent text-accent-foreground rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer"
         aria-label="Open AI Terminal"
       >
         {isOpen ? <X className="w-6 h-6" /> : <TerminalIcon className="w-6 h-6" />}
@@ -125,28 +125,35 @@ export default function AITerminal() {
 
       {/* Terminal Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-80 sm:w-96 z-50 animate-in slide-in-from-bottom-8 fade-in duration-300">
-          <Card className="bg-black/90 border border-accent/40 backdrop-blur-md text-green-400 font-mono text-xs shadow-2xl shadow-accent/20 overflow-hidden">
-            <div className="bg-muted/20 px-3 py-2 flex items-center justify-between border-b border-accent/20">
-              <span className="text-white/70 font-sans text-xs">root@kochan:~</span>
+        <div className="fixed bottom-6 right-20 w-80 sm:w-96 z-50 animate-in slide-in-from-right-8 fade-in duration-300">
+          <Card className="bg-black/80 backdrop-blur-xl border border-accent/30 text-green-400 font-mono text-xs shadow-2xl shadow-accent/20 overflow-hidden rounded-xl">
+            {/* Window Controls Header */}
+            <div className="bg-muted/30 px-4 py-3 flex items-center gap-2 border-b border-accent/20 cursor-move">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer hover:bg-red-500" onClick={() => setIsOpen(false)} />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <span className="text-white/50 text-[10px] font-sans mx-auto -ml-8 flex-1 text-center font-medium tracking-wider uppercase">root@kochan:~</span>
             </div>
             
-            <div className="h-64 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-accent/20">
+            <div className="h-72 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-accent/30 hover:scrollbar-thumb-accent/60">
               {history.map((line, i) => (
-                <div key={i} className={line.type === 'user' ? 'text-white' : 'text-green-400'}>
+                <div key={i} className={line.type === 'user' ? 'text-blue-300 font-semibold drop-shadow-sm' : 'text-green-400 drop-shadow-sm'}>
                   {line.text}
                 </div>
               ))}
               <div ref={bottomRef} />
             </div>
 
-            <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-accent/20 flex gap-2">
-              <span className="text-accent">~%</span>
+            <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-accent/20 flex gap-3 bg-black/40 items-center">
+              <span className="text-accent font-bold">~%</span>
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0"
+                className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder:text-muted-foreground/30 font-medium cursor-text"
+                placeholder="Ask me anything..."
                 autoFocus
                 spellCheck={false}
               />

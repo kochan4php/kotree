@@ -41,9 +41,16 @@ export default function WasmEngine() {
   }, []);
 
   return (
-    <div className="fixed bottom-2 left-2 z-50 text-[10px] font-mono text-green-500/50 pointer-events-none">
-      <div>{wasmStatus}</div>
-      {calculation && <div>Crypto-Math (420+69) via WASM: {calculation}</div>}
+    <div className="fixed bottom-4 left-4 z-50 pointer-events-none flex flex-col items-start gap-1">
+      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-accent/20 px-3 py-1.5 rounded-full shadow-lg">
+        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        <span className="text-[10px] font-mono text-green-400 font-medium tracking-wide uppercase">{wasmStatus}</span>
+      </div>
+      {calculation && (
+        <div className="bg-black/40 backdrop-blur-md border border-accent/20 px-3 py-1.5 rounded-full shadow-lg">
+          <span className="text-[10px] font-mono text-white/70">WASM CALC (420+69): {calculation}</span>
+        </div>
+      )}
     </div>
   );
 }

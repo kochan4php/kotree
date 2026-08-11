@@ -27,18 +27,15 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
 export { metadata };
 
-import { I18nProvider } from '@/contexts/i18n-context';
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${geist.variable} antialiased transition-colors duration-500`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <I18nProvider>
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
           {children}
           <Toaster position="bottom-center" theme="system" richColors />
           <PwaInstallPrompt />
@@ -55,7 +52,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <DoomMode />
           <VoiceCommand />
           <InfiniteMirror />
-          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

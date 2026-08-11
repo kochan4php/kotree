@@ -78,6 +78,15 @@
     background: var(--background);
     @apply text-foreground;
   }
+  button, a, [role="button"] {
+    @apply cursor-pointer;
+  }
+  input, textarea {
+    @apply cursor-text;
+  }
+  input[type="submit"], input[type="button"], input[type="reset"] {
+    @apply cursor-pointer;
+  }
 }
 
 @layer utilities {

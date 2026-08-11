@@ -17,8 +17,11 @@ export default function LinktreePage() {
       <Background />
       <div className="relative max-w-lg mx-auto">
         <CardProfile />
-        <CryptoTipJar />
-        <GeoLockedQuest />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">
+          <CryptoTipJar />
+          <GeoLockedQuest />
+        </div>
+        
         <Suspense fallback={<LinksSkeleton />}>
           <LinksSection />
         </Suspense>

@@ -5,13 +5,11 @@ import { ethers } from 'ethers';
 import { toast } from 'sonner';
 import { Bitcoin, Wallet } from 'lucide-react';
 import { useSensory } from '@/hooks/use-sensory';
-import { useI18n } from '@/contexts/i18n-context';
 
 export default function CryptoTipJar() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const { playFeedback } = useSensory();
-  const { t } = useI18n();
 
   const handleConnect = async () => {
     playFeedback();

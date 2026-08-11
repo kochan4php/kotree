@@ -6,14 +6,14 @@ import { profile } from '@/data/profile';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
 import Tilt from 'react-parallax-tilt';
-import { useI18n } from '@/contexts/i18n-context';
 import dynamic from 'next/dynamic';
 
-const Avatar3D = dynamic(() => import('./avatar-3d'), { ssr: false });
+const Avatar3D = dynamic(() => import('./avatar-3d'), { 
+  ssr: false,
+  loading: () => <div className="w-24 h-24 rounded-full bg-accent/20 animate-pulse border-2 border-accent/10" />
+});
 
 export default function CardProfile() {
-  const { t } = useI18n();
-
   return (
     <Tilt
       glareEnable={true}
@@ -37,12 +37,12 @@ export default function CardProfile() {
       <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
       <p className="text-base text-muted-foreground">{profile.handle}</p>
 
-      <span className="inline-flex items-center justify-center gap-1 bg-accent/15 text-accent border border-accent/30 rounded-full px-3 py-1 text-base w-fit mx-auto">
+      <span className="inline-flex items-center justify-center gap-1 bg-accent/15 text-accent border border-accent/30 rounded-full px-3 py-1 text-base w-fit mx-auto cursor-pointer">
         <Code2 className="w-4 h-4" />
-        {t('profile.role')}
+        {profile.role}
       </span>
 
-      <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{t('profile.description')}</p>
+      <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
 
       <div className="w-16 h-px bg-border/80 my-4 mx-auto"></div>
 

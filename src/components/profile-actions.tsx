@@ -1,12 +1,11 @@
 'use client';
 
-import { Share2, QrCode, X, Check, Moon, Sun, Languages } from 'lucide-react';
+import { Share2, QrCode, X, Check, Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSensory } from '@/hooks/use-sensory';
-import { useI18n } from '@/contexts/i18n-context';
 
 export default function ProfileActions() {
   const [showQR, setShowQR] = useState(false);
@@ -14,7 +13,6 @@ export default function ProfileActions() {
   const [url, setUrl] = useState('');
   const { setTheme, theme } = useTheme();
   const { playFeedback, playHoverFeedback } = useSensory();
-  const { t, language, setLanguage } = useI18n();
 
   useEffect(() => {
     setTimeout(() => setUrl(window.location.href), 0);
@@ -42,7 +40,7 @@ export default function ProfileActions() {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast.success(t('actions.copied'));
+      toast.success('Link copied');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Failed to copy link');
@@ -57,19 +55,6 @@ export default function ProfileActions() {
           type="button"
           onClick={() => {
             playFeedback();
-            setLanguage(language === 'en' ? 'id' : 'en');
-          }}
-          onMouseEnter={playHoverFeedback}
-          aria-label="Toggle language"
-          title={language === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
-          className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          <Languages className="h-4 w-4" aria-hidden="true" />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            playFeedback();
             setTheme(theme === 'light' ? 'dark' : 'light');
           }}
           onMouseEnter={playHoverFeedback}
@@ -79,37 +64,36 @@ export default function ProfileActions() {
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" aria-hidden="true" />
         </button>
 
-        <button
-          type="button"
+        <button 
           onClick={handleShare}
           onMouseEnter={playHoverFeedback}
-          aria-label={copied ? "Link copied" : "Share profile"}
-          className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 text-foreground px-5 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
-          {copied ? t('actions.copied') : t('actions.share')}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-all active:scale-95 shadow-sm shadow-accent/20 cursor-pointer"
+        >
+          <Share2 className="w-4 h-4" />
+          Share Profile
         </button>
 
-        <button
-          type="button"
+        <button 
           onClick={() => {
             playFeedback();
             setShowQR(true);
           }}
           onMouseEnter={playHoverFeedback}
+          className="flex items-center justify-center p-2.5 rounded-xl border border-border bg-background text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all active:scale-95 cursor-pointer"
           aria-label="Show QR Code"
-          className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          <QrCode className="w-4 h-4" aria-hidden="true" />
+        >
+          <QrCode className="w-5 h-5" />
         </button>
       </div>
 
       {showQR && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-modal-backdrop"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
           role="dialog"
           aria-modal="true"
           aria-labelledby="qr-modal-title"
         >
-          <div className="relative solid-card border border-border/80 rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-modal-content flex flex-col items-center text-center">
+          <div className="relative solid-card border border-border/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 flex flex-col items-center text-center">
             <button
               onClick={() => setShowQR(false)}
               aria-label="Close modal"

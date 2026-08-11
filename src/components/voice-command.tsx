@@ -128,7 +128,7 @@ export default function VoiceCommand() {
       <button 
         onClick={handleListen}
         disabled={isListening}
-        className={`fixed bottom-20 right-6 z-50 p-3 rounded-full shadow-lg transition-all ${isListening ? 'bg-red-500 animate-pulse text-white' : 'bg-accent text-accent-foreground hover:scale-110 active:scale-95'}`}
+        className={`fixed bottom-[80px] right-6 z-50 p-3 rounded-full shadow-lg transition-all cursor-pointer ${isListening ? 'bg-red-500 animate-pulse text-white' : 'bg-accent text-accent-foreground hover:scale-110 active:scale-95'}`}
         aria-label="Voice Command"
       >
         {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
