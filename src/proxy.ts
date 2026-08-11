@@ -19,11 +19,35 @@ export function proxy(request: NextRequest) {
   }
 
   // 2. Add security headers dynamically if needed
-  const response = NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data: https:;
+    font-src 'self' data:;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+    connect-src 'self' https: wss:;
+    worker-src 'self' blob:;
+  `.replace(/\s{2,}/g, ' ').trim();
+
+  requestHeaders.set('Content-Security-Policy', cspHeader);
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  response.headers.set('Content-Security-Policy', cspHeader);
+
   return response;
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };
