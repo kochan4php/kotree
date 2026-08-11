@@ -31,6 +31,8 @@ export default function Win95Mode() {
   // Dragging state
   const draggingId = useRef<string | null>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
+  const dragPos = useRef({ x: 0, y: 0 });
+  const windowRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
     const handleActivate = () => {
@@ -55,23 +57,36 @@ export default function Win95Mode() {
     const handlePointerMove = (e: PointerEvent) => {
       if (!draggingId.current) return;
       
-      setWindows(prev => prev.map(w => {
-        if (w.id === draggingId.current && !w.isMaximized) {
-          return {
-            ...w,
-            x: e.clientX - dragOffset.current.x,
-            y: e.clientY - dragOffset.current.y
-          };
-        }
-        return w;
-      }));
+      const el = windowRefs.current[draggingId.current];
+      if (el) {
+        // Calculate new pos
+        const newX = e.clientX - dragOffset.current.x;
+        const newY = e.clientY - dragOffset.current.y;
+        
+        // Mutate DOM directly to bypass React render cycle for 120fps smooth drag
+        el.style.left = `${newX}px`;
+        el.style.top = `${newY}px`;
+        
+        // Save to ref to update state on drop
+        dragPos.current = { x: newX, y: newY };
+      }
     };
 
     const handlePointerUp = () => {
       if (draggingId.current) {
+        const id = draggingId.current;
+        const finalX = dragPos.current.x;
+        const finalY = dragPos.current.y;
+        
         draggingId.current = null;
-        // Trigger a subtle re-render to reset transitions
-        setWindows(prev => [...prev]); 
+        
+        // Sync final position back to React state
+        setWindows(prev => prev.map(w => {
+          if (w.id === id) {
+            return { ...w, x: finalX, y: finalY };
+          }
+          return w;
+        }));
       }
     };
 
@@ -164,6 +179,7 @@ export default function Win95Mode() {
         x: e.clientX - w.x,
         y: e.clientY - w.y
       };
+      dragPos.current = { x: w.x, y: w.y };
     }
   };
 
@@ -225,6 +241,7 @@ export default function Win95Mode() {
 
         return (
           <div key={w.id} 
+               ref={(el) => { windowRefs.current[w.id] = el; }}
                onClick={() => bringToFront(w.id)}
                className="absolute bg-[#c0c0c0] border-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_#000] flex flex-col origin-bottom"
                style={{ 
