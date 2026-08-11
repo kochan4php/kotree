@@ -15,20 +15,56 @@ export default function VoiceCommand() {
     }
   }, []);
 
+  const processCommand = (transcript: string) => {
+    const text = transcript.toLowerCase();
+    toast.success(`Kamu bilang/mikir: "${text}"`);
+    
+    let found = false;
+    socialLinks.forEach(link => {
+      if (text.includes(link.name.toLowerCase())) {
+        window.open(link.url, '_blank');
+        found = true;
+      }
+    });
+
+    if (!found) {
+      if (text.includes('doom')) {
+        window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
+      } else if (text.includes('windows') || text.includes('win95')) {
+        window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));
+      } else if (text.includes('kaca') || text.includes('mirror')) {
+        window.dispatchEvent(new CustomEvent('ACTIVATE_MIRROR'));
+      } else {
+        toast.error("Perintah tidak dikenali.");
+      }
+    }
+  };
+
+  const handleTelepathyFallback = () => {
+    setIsListening(false);
+    setTimeout(() => {
+      const command = window.prompt("Mikrofon diblokir/rusak! Gunakan mode Telepati 🧠\nKetik perintahmu di sini (misal: github, doom, win95):");
+      if (command) {
+        processCommand(command);
+      }
+    }, 500);
+  };
+
   const handleListen = async () => {
     if (!supported) {
-      toast.error("Browser doesn't support Web Speech API");
+      handleTelepathyFallback();
       return;
     }
 
     if (isListening) return;
 
     try {
-      // Meminta izin mikrofon hanya sebagai pancingan
+      // Meminta izin mikrofon
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
     } catch (err: any) {
-      toast.error(`Izin mikrofon gagal: ${err.message || 'diblokir'}`);
+      toast.error(`Izin mikrofon gagal: ${err.message}`);
+      handleTelepathyFallback();
       return;
     }
 
@@ -36,7 +72,7 @@ export default function VoiceCommand() {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
-      recognition.lang = 'id-ID'; // Supports Indonesian too
+      recognition.lang = 'id-ID'; 
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
 
@@ -46,42 +82,21 @@ export default function VoiceCommand() {
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        toast.success(`Kamu bilang: "${transcript}"`);
-        
-        let found = false;
-        socialLinks.forEach(link => {
-          if (transcript.includes(link.name.toLowerCase())) {
-            window.open(link.url, '_blank');
-            found = true;
-          }
-        });
-
-        if (!found) {
-          if (transcript.includes('doom')) {
-            window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
-          } else if (transcript.includes('windows') || transcript.includes('win95')) {
-            window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));
-          } else if (transcript.includes('kaca') || transcript.includes('mirror')) {
-            window.dispatchEvent(new CustomEvent('ACTIVATE_MIRROR'));
-          } else {
-            toast.error("Perintah tidak dikenali.");
-          }
-        }
+        const transcript = event.results[0][0].transcript;
+        processCommand(transcript);
       };
 
       recognition.onerror = (event: any) => {
         setIsListening(false);
         console.error('Speech recognition error', event.error);
-        
-        if (event.error === 'not-allowed') {
-          toast.error("Akses mikrofon ditolak oleh browser/OS (Cek pengaturan privasi OS kamu).");
-        } else if (event.error === 'network') {
-          toast.error("Gagal! (Biasanya karena pakai Brave/Chromium yang memblokir Google Speech API).");
+        if (event.error === 'not-allowed' || event.error === 'network') {
+          toast.error("Browser memblokir API Suara.");
+          handleTelepathyFallback();
         } else if (event.error === 'no-speech') {
           toast.error("Tidak ada suara yang terdengar. Coba lagi.");
         } else {
           toast.error(`Error suara: ${event.error}`);
+          handleTelepathyFallback();
         }
       };
 
@@ -93,15 +108,17 @@ export default function VoiceCommand() {
         recognition.start();
       } catch (err: any) {
         setIsListening(false);
-        toast.error("Mesin suara sudah berjalan atau error internal.");
+        handleTelepathyFallback();
       }
     } catch (err: any) {
       setIsListening(false);
-      toast.error(`Gagal memulai engine suara: ${err.message}`);
+      handleTelepathyFallback();
     }
   };
 
-  if (!supported) return null;
+  if (!supported) {
+    // We still render the button so they can use Telepathy mode
+  }
 
   return (
     <button 
