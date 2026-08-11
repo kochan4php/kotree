@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import SocialLinkItem from '@/components/social-link-item';
 import { socialLinks } from '@/data/social-links';
+import { trackLinkClick, syncOfflineClicks } from '@/lib/track-click';
 import { LinkCounter } from '@/interfaces';
 
 interface SocialLinkListProps {
@@ -16,7 +17,14 @@ export default function SocialLinkList({ linkCounts, token }: SocialLinkListProp
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
+    // Sync any pending offline clicks when component mounts
+    syncOfflineClicks(token);
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input or textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
       if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         setIsSearching(true);
