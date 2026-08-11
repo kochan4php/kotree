@@ -6,8 +6,11 @@ import { profile } from '@/data/profile';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
 import Tilt from 'react-parallax-tilt';
+import { useI18n } from '@/contexts/i18n-context';
 
 export default function CardProfile() {
+  const { t } = useI18n();
+
   return (
     <Tilt
       glareEnable={true}
@@ -20,7 +23,7 @@ export default function CardProfile() {
       transitionSpeed={2500}
       className="mb-6"
     >
-      <Card className="text-center gap-3 shadow-2xl transition-all duration-300">
+      <Card className="text-center gap-3 shadow-2xl transition-all duration-300 p-6">
       <div className="relative w-fit mx-auto mb-4">
         <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
         <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-accent to-[#e05a47] p-[3px] shadow-lg shadow-accent/20">
@@ -42,10 +45,10 @@ export default function CardProfile() {
 
       <span className="inline-flex items-center justify-center gap-1 bg-accent/15 text-accent border border-accent/30 rounded-full px-3 py-1 text-base w-fit mx-auto">
         <Code2 className="w-4 h-4" />
-        {profile.role}
+        {t('profile.role')}
       </span>
 
-      <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
+      <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{t('profile.description')}</p>
 
       <div className="w-16 h-px bg-border/80 my-4 mx-auto"></div>
 

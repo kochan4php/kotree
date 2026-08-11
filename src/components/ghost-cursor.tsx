@@ -12,6 +12,9 @@ export default function GhostCursor() {
   useEffect(() => {
     // Only run on desktop/larger screens to avoid mobile mess
     if (window.innerWidth < 768) return;
+    
+    // Respect user's motion preferences
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;

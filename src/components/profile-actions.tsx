@@ -1,11 +1,12 @@
 'use client';
 
-import { Share2, QrCode, X, Check, Moon, Sun } from 'lucide-react';
+import { Share2, QrCode, X, Check, Moon, Sun, Languages } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSensory } from '@/hooks/use-sensory';
+import { useI18n } from '@/contexts/i18n-context';
 
 export default function ProfileActions() {
   const [showQR, setShowQR] = useState(false);
@@ -13,6 +14,7 @@ export default function ProfileActions() {
   const [url, setUrl] = useState('');
   const { setTheme, theme } = useTheme();
   const { playFeedback } = useSensory();
+  const { t, language, setLanguage } = useI18n();
 
   useEffect(() => {
     setTimeout(() => setUrl(window.location.href), 0);
@@ -40,7 +42,7 @@ export default function ProfileActions() {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast.success('Link copied to clipboard!');
+      toast.success(t('actions.copied'));
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Failed to copy link');
@@ -51,6 +53,18 @@ export default function ProfileActions() {
   return (
     <>
       <div className="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            playFeedback();
+            setLanguage(language === 'en' ? 'id' : 'en');
+          }}
+          aria-label="Toggle language"
+          title={language === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
+          className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
+          <Languages className="h-4 w-4" aria-hidden="true" />
+        </button>
+
         <button
           type="button"
           onClick={() => {
@@ -69,7 +83,7 @@ export default function ProfileActions() {
           aria-label={copied ? "Link copied" : "Share profile"}
           className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 text-foreground px-5 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
           {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
-          {copied ? 'Copied!' : 'Share Profile'}
+          {copied ? t('actions.copied') : t('actions.share')}
         </button>
 
         <button
