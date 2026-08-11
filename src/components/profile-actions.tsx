@@ -13,7 +13,7 @@ export default function ProfileActions() {
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
   const { setTheme, theme } = useTheme();
-  const { playFeedback } = useSensory();
+  const { playFeedback, playHoverFeedback } = useSensory();
   const { t, language, setLanguage } = useI18n();
 
   useEffect(() => {
@@ -59,6 +59,7 @@ export default function ProfileActions() {
             playFeedback();
             setLanguage(language === 'en' ? 'id' : 'en');
           }}
+          onMouseEnter={playHoverFeedback}
           aria-label="Toggle language"
           title={language === 'en' ? 'Switch to Indonesian' : 'Switch to English'}
           className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
@@ -71,6 +72,7 @@ export default function ProfileActions() {
             playFeedback();
             setTheme(theme === 'light' ? 'dark' : 'light');
           }}
+          onMouseEnter={playHoverFeedback}
           aria-label="Toggle theme"
           className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" aria-hidden="true" />
@@ -80,6 +82,7 @@ export default function ProfileActions() {
         <button
           type="button"
           onClick={handleShare}
+          onMouseEnter={playHoverFeedback}
           aria-label={copied ? "Link copied" : "Share profile"}
           className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 text-foreground px-5 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
           {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
@@ -92,6 +95,7 @@ export default function ProfileActions() {
             playFeedback();
             setShowQR(true);
           }}
+          onMouseEnter={playHoverFeedback}
           aria-label="Show QR Code"
           className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
           <QrCode className="w-4 h-4" aria-hidden="true" />

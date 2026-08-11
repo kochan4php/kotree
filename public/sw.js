@@ -1,66 +1,53 @@
-const CACHE_NAME = 'kotree-v3';
-const PRECACHE_URLS = [
+const CACHE_NAME = 'kotree-offline-cache-v1';
+
+const ASSETS_TO_CACHE = [
   '/',
-  '/changelog',
   '/manifest.json',
-  '/icon.svg',
   '/favicon.ico',
-  '/apple-touch-icon.png',
-  '/madoka-yuzuhara.jpg',
+  '/icon.svg',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      );
+    })
   );
+  self.clients.claim();
 });
 
-// Runtime strategy: stale-while-revalidate for static assets,
-// network-first with offline fallback for page navigations.
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  if (request.method !== 'GET') return;
-
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() =>
-          caches
-            .match(request)
-            .then((cached) => cached || caches.match('/'))
-        )
-    );
-    return;
-  }
-
+  if (event.request.method !== 'GET') return;
+  
+  // Stale-while-revalidate strategy
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cached = await cache.match(request);
-      const network = fetch(request)
-        .then((response) => {
-          if (response.ok) cache.put(request, response.clone());
-          return response;
-        })
-        .catch(() => cached);
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse.ok) {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Return offline fallback if network fails and no cache exists
+        return cachedResponse;
+      });
 
-      return cached || network;
+      return cachedResponse || fetchPromise;
     })
   );
 });

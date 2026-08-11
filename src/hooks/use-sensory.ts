@@ -44,5 +44,30 @@ export function useSensory() {
     triggerSound();
   }, [triggerHaptic, triggerSound]);
 
-  return { playFeedback, triggerHaptic, triggerSound };
+  const playHoverFeedback = useCallback(() => {
+    if (typeof window !== 'undefined' && window.AudioContext) {
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        // A very subtle high pitch "tick"
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); 
+        
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); // Very quiet
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.05);
+      } catch (e) {
+        // Ignore audio errors
+      }
+    }
+  }, []);
+
+  return { playFeedback, playHoverFeedback, triggerHaptic, triggerSound };
 }

@@ -16,7 +16,7 @@ interface SocialLinkItemProps {
 }
 
 export default function SocialLinkItem({ link, clickCount, index, token }: SocialLinkItemProps) {
-  const { playFeedback } = useSensory();
+  const { playFeedback, playHoverFeedback } = useSensory();
   const [isClicking, setIsClicking] = useState(false);
 
   const handleClick = async () => {
@@ -31,7 +31,7 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
       className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
       style={{ animationDelay: `${100 + index * 100}ms`, animationDuration: '500ms' }}
     >
-      <Card className="group p-0 overflow-hidden transition-all duration-300 hover:border-accent/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/10 active:scale-[0.99] active:translate-y-0">
+      <Card onMouseEnter={playHoverFeedback} className="group p-0 overflow-hidden transition-all duration-300 hover:border-accent/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/10 active:scale-[0.99] active:translate-y-0">
       <Link href={link.url} onClick={handleClick} target="_blank" aria-label={`Open ${link.name}`}>
         <div className="flex items-center gap-4 p-4">
           <span
