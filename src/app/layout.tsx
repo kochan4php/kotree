@@ -42,14 +42,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <PwaSyncManager />
           <KonamiCode />
           <GhostCursor />
-          {/* Developer Dock */}
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1.5 bg-black/40 backdrop-blur-2xl border border-accent/20 rounded-2xl shadow-2xl shadow-accent/10 animate-in slide-in-from-bottom-8 duration-500">
-            <AITerminal />
-            <VoiceCommand />
-            <WebBluetooth />
+          {/* Top Status Bar & Tools */}
+          <div className="fixed top-2 left-2 right-2 z-50 flex items-center justify-between p-1">
+            <WasmEngine />
+            <div className="flex items-center gap-1 p-1 bg-background/40 backdrop-blur-2xl border border-border/40 rounded-full shadow-lg">
+              <AITerminal />
+              <VoiceCommand />
+              <WebBluetooth />
+            </div>
           </div>
+
           <PwaRegister />
-          <WasmEngine />
           <SelfDestruct />
           <Win95Mode />
           <BossFight />

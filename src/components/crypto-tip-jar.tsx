@@ -62,12 +62,12 @@ export default function CryptoTipJar() {
   };
 
   return (
-    <div className="w-full h-full p-4 border border-purple-500/20 rounded-2xl bg-black/40 backdrop-blur-md text-center flex flex-col items-center justify-center shadow-lg shadow-black/20">
+    <div className="w-full h-full p-4 border border-border bg-card text-card-foreground rounded-2xl text-center flex flex-col items-center justify-center shadow-sm">
       <h3 className="font-bold text-sm text-purple-400 mb-1 flex items-center justify-center gap-1 uppercase tracking-wider">
         <Wallet className="w-3.5 h-3.5" /> Web3
       </h3>
       <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-        <p className="text-[10px] text-white/50 mb-3 px-2 leading-tight">Connect wallet to send crypto tips.</p>
+        <p className="text-[10px] text-muted-foreground mb-3 px-2 leading-tight">Connect wallet to send crypto tips.</p>
         {!isConnected ? (
         <button
           onClick={handleConnect}

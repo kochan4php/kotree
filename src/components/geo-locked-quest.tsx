@@ -81,13 +81,13 @@ export default function GeoLockedQuest() {
   };
 
   return (
-    <div className="w-full h-full p-4 border border-accent/20 rounded-2xl bg-black/40 backdrop-blur-md text-center relative overflow-hidden group flex flex-col justify-center items-center shadow-lg shadow-black/20">
+    <div className="w-full h-full p-4 border border-border bg-card text-card-foreground rounded-2xl text-center relative overflow-hidden group flex flex-col justify-center items-center shadow-sm">
       <h3 className="font-bold text-sm text-accent mb-1 flex items-center justify-center gap-1">
         <span className="text-[10px]">📍</span> GEO-QUEST
       </h3>
       {distance === null ? (
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-          <p className="text-[10px] text-white/50 mb-3 px-2 leading-tight">Verify physical location to unlock.</p>
+          <p className="text-[10px] text-muted-foreground mb-3 px-2 leading-tight">Verify physical location to unlock.</p>
           <button 
             onClick={handleCheckLocation}
             className="w-full px-3 py-2 bg-accent/10 border border-accent/30 text-accent font-semibold rounded-xl hover:bg-accent/20 active:scale-95 transition-all text-xs cursor-pointer"
@@ -101,9 +101,9 @@ export default function GeoLockedQuest() {
         </a>
       ) : (
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-          <p className="text-[10px] text-white/50 mb-1">Distance to Monas:</p>
+          <p className="text-[10px] text-muted-foreground mb-1">Distance to Monas:</p>
           <p className="font-mono text-lg text-accent font-bold">{distance.toFixed(0)}m</p>
-          <p className="text-[9px] mt-1 text-white/40">Must be {'<'} {ALLOWED_RADIUS}m</p>
+          <p className="text-[9px] mt-1 text-muted-foreground/70">Must be {'<'} {ALLOWED_RADIUS}m</p>
         </div>
       )}
     </div>

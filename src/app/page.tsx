@@ -13,7 +13,7 @@ export const revalidate = 30;
 
 export default function LinktreePage() {
   return (
-    <main className="min-h-screen p-4 pb-40 md:mt-2 relative">
+    <main className="min-h-screen p-4 pt-16 md:mt-2 relative">
       <Background />
       <div className="relative max-w-lg mx-auto">
         <CardProfile />

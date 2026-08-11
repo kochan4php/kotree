@@ -41,14 +41,14 @@ export default function WasmEngine() {
   }, []);
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 pointer-events-none flex flex-col items-start gap-1">
-      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-accent/20 px-3 py-1.5 rounded-full shadow-lg">
-        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-        <span className="text-[10px] font-mono text-green-400 font-medium tracking-wide uppercase">{wasmStatus}</span>
+    <div className="flex items-center gap-2 pointer-events-none">
+      <div className="flex items-center gap-1.5 bg-background/40 backdrop-blur-md border border-accent/20 px-2 py-1 rounded-full shadow-sm">
+        <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+        <span className="text-[8px] font-mono text-green-400 font-medium tracking-wide uppercase">{wasmStatus.replace('WebAssembly Native Engine: ', '')}</span>
       </div>
       {calculation && (
-        <div className="bg-black/40 backdrop-blur-md border border-accent/20 px-3 py-1.5 rounded-full shadow-lg">
-          <span className="text-[10px] font-mono text-white/70">WASM CALC (420+69): {calculation}</span>
+        <div className="hidden sm:flex bg-background/40 backdrop-blur-md border border-accent/20 px-2 py-1 rounded-full shadow-sm">
+          <span className="text-[8px] font-mono text-foreground/70">WASM: {calculation}</span>
         </div>
       )}
     </div>

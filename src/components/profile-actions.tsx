@@ -51,7 +51,7 @@ export default function ProfileActions() {
 
   return (
     <>
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-2 mt-4">
         <button
           type="button"
           onClick={() => {
@@ -60,21 +60,20 @@ export default function ProfileActions() {
           }}
           onMouseEnter={playHoverFeedback}
           aria-label="Toggle theme"
-          className="flex-1 cursor-pointer flex flex-col gap-1 items-center justify-center rounded-2xl border border-border bg-background text-foreground py-3 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          <div className="relative w-5 h-5">
-            <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" aria-hidden="true" />
-            <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" aria-hidden="true" />
+          className="p-2.5 rounded-full border border-border bg-background text-foreground transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-95 shadow-sm">
+          <div className="relative w-4 h-4">
+            <Sun className="absolute inset-0 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute inset-0 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Theme</span>
         </button>
 
         <button 
           onClick={handleShare}
           onMouseEnter={playHoverFeedback}
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-all active:scale-[0.98] shadow-sm shadow-accent/20 cursor-pointer"
+          className="p-2.5 rounded-full border border-accent bg-accent/10 text-accent transition-all duration-300 hover:bg-accent hover:text-accent-foreground active:scale-95 shadow-sm"
+          aria-label="Share Profile"
         >
-          {copied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Share</span>
+          {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
         </button>
 
         <button 
@@ -84,11 +83,10 @@ export default function ProfileActions() {
             setIsClosing(false);
           }}
           onMouseEnter={playHoverFeedback}
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border border-border bg-background text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all active:scale-[0.98] cursor-pointer"
+          className="p-2.5 rounded-full border border-border bg-background text-foreground transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-95 shadow-sm"
           aria-label="Show QR Code"
         >
-          <QrCode className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">QR Code</span>
+          <QrCode className="w-4 h-4" />
         </button>
       </div>
 

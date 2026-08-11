@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { profile } from '@/data/profile';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Tilt from 'react-parallax-tilt';
 import dynamic from 'next/dynamic';
 
@@ -14,15 +15,25 @@ const Avatar3D = dynamic(() => import('./avatar-3d'), {
 });
 
 export default function CardProfile() {
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const checkScreen = () => setIsDesktop(window.innerWidth >= 768);
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
   return (
     <Tilt
-      glareEnable={true}
+      tiltEnable={isDesktop}
+      glareEnable={isDesktop}
       glareMaxOpacity={0.15}
       glareColor="#ff6a33"
       glarePosition="all"
-      tiltMaxAngleX={5}
-      tiltMaxAngleY={5}
-      scale={1.02}
+      tiltMaxAngleX={isDesktop ? 5 : 0}
+      tiltMaxAngleY={isDesktop ? 5 : 0}
+      scale={isDesktop ? 1.02 : 1}
       transitionSpeed={2500}
       className="mb-6"
     >
