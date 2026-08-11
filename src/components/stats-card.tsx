@@ -15,28 +15,23 @@ interface StatsCardProps {
 export default function StatsCard({ linkCounts }: StatsCardProps) {
   const serverTotal = linkCounts.reduce((total, item) => total + item.count, 0);
   
-  // Hydrate perfectly with server data
-  const [displayTotal, setDisplayTotal] = useState(serverTotal);
+  // Synchronously calculate highest known count to avoid UI flicker
+  const [displayTotal, setDisplayTotal] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('kotree-total-clicks');
+        const optimisticCount = stored ? parseInt(stored, 10) : 0;
+        return Math.max(serverTotal, optimisticCount, optimisticTotalClicks.current);
+      } catch (e) {}
+    }
+    return serverTotal;
+  });
 
-  // Sync with sessionStorage on mount to recover state after hard refresh
+  // Sync if server sends a newer count via Next.js navigation later
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem('kotree-total-clicks');
-      const optimisticCount = stored ? parseInt(stored, 10) : 0;
-
-      if (optimisticCount > optimisticTotalClicks.current) {
-        optimisticTotalClicks.current = optimisticCount;
-      }
-
-      if (serverTotal > optimisticCount) {
-        sessionStorage.setItem('kotree-total-clicks', serverTotal.toString());
-      }
-
-      const highest = Math.max(serverTotal, optimisticCount, optimisticTotalClicks.current);
-      if (highest > displayTotal) {
-        setTimeout(() => setDisplayTotal(highest), 0);
-      }
-    } catch (e) {}
+    if (serverTotal > displayTotal) {
+      setDisplayTotal(serverTotal);
+    }
   }, [serverTotal, displayTotal]);
 
   useEffect(() => {
@@ -55,7 +50,7 @@ export default function StatsCard({ linkCounts }: StatsCardProps) {
     return () => {
       window.removeEventListener('kotree:link-clicked', handleLinkClick as EventListener);
     };
-  }, [serverTotal]);
+  }, []);
 
   return (
     <Card className="mt-6">
@@ -74,7 +69,9 @@ export default function StatsCard({ linkCounts }: StatsCardProps) {
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div>
-      <div className="text-2xl font-bold text-foreground tabular-nums">{value}</div>
+      <div suppressHydrationWarning className="text-2xl font-bold text-foreground tabular-nums">
+        {value}
+      </div>
       <div className="text-muted-foreground text-sm mt-1">{label}</div>
     </div>
   );

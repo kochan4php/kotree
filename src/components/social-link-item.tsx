@@ -5,6 +5,7 @@ import { SocialLink } from '@/interfaces';
 import { trackLinkClick } from '@/lib/track-click';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 const optimisticClickMap = new Map<string, number>();
@@ -15,33 +16,24 @@ interface SocialLinkItemProps {
 }
 
 export default function SocialLinkItem({ link, clickCount }: SocialLinkItemProps) {
-  // Start with server's count to guarantee perfect hydration
-  const [displayCount, setDisplayCount] = useState(clickCount);
-
-  // After mount, safely sync with sessionStorage to recover clicks after a hard refresh
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(`kotree-click-${link.name}`);
-      const optimisticCount = stored ? parseInt(stored, 10) : 0;
-      
-      if (optimisticCount > (optimisticClickMap.get(link.name) || 0)) {
-        optimisticClickMap.set(link.name, optimisticCount);
-      }
-      
-      if (clickCount > optimisticCount) {
-        sessionStorage.setItem(`kotree-click-${link.name}`, clickCount.toString());
-      }
-
-      const highest = Math.max(clickCount, optimisticCount, optimisticClickMap.get(link.name) || 0);
-      if (highest > displayCount) {
-        // Use setTimeout to bypass aggressive linter (react-hooks/set-state-in-effect) 
-        // and avoid cascading synchronous renders during commit phase
-        setTimeout(() => setDisplayCount(highest), 0);
-      }
-    } catch (e) {
-      // Ignore sessionStorage access errors
+  // Synchronously calculate highest known count to avoid initial UI flicker
+  const [displayCount, setDisplayCount] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem(`kotree-click-${link.name}`);
+        const optimisticCount = stored ? parseInt(stored, 10) : 0;
+        return Math.max(clickCount, optimisticCount, optimisticClickMap.get(link.name) || 0);
+      } catch (e) {}
     }
-  }, [clickCount, link.name, displayCount]);
+    return clickCount;
+  });
+
+  // Sync if server sends a newer count via Next.js navigation later
+  useEffect(() => {
+    if (clickCount > displayCount) {
+      setDisplayCount(clickCount);
+    }
+  }, [clickCount, displayCount]);
 
   const handleClick = () => {
     const newCount = displayCount + 1;
@@ -71,11 +63,15 @@ export default function SocialLinkItem({ link, clickCount }: SocialLinkItemProps
             <div className="text-sm text-muted-foreground truncate">{link.description}</div>
           </div>
 
-          {displayCount > 0 && (
-            <span className="inline-flex items-center justify-center shrink-0 rounded-full bg-accent/10 text-accent border border-accent/25 px-2 py-0.5 text-xs">
-              {displayCount} clicks
-            </span>
-          )}
+          <span
+            suppressHydrationWarning
+            className={cn(
+              'items-center justify-center shrink-0 rounded-full bg-accent/10 text-accent border border-accent/25 px-2 py-0.5 text-xs',
+              displayCount > 0 ? 'inline-flex' : 'hidden'
+            )}>
+            {displayCount > 0 ? `${displayCount} clicks` : ''}
+          </span>
+          
           <ExternalLink className="w-4 h-4 text-muted-foreground opacity-60 group-hover:text-accent group-hover:opacity-100 transition-all duration-300" />
         </div>
       </Link>
