@@ -46,29 +46,37 @@ export default function ProfileActions() {
         <button
           type="button"
           onClick={handleShare}
+          aria-label={copied ? "Link copied" : "Share profile"}
           className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 text-foreground px-5 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+          {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
           {copied ? 'Copied!' : 'Share Profile'}
         </button>
 
         <button
           type="button"
           onClick={() => setShowQR(true)}
+          aria-label="Show QR Code"
           className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          <QrCode className="w-4 h-4" />
+          <QrCode className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 
       {showQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="qr-modal-title"
+        >
           <div className="relative solid-card border border-border/80 rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col items-center text-center">
             <button
               onClick={() => setShowQR(false)}
+              aria-label="Close modal"
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
-            <h3 className="text-xl font-bold mb-6 text-foreground">Scan QR Code</h3>
+            <h3 id="qr-modal-title" className="text-xl font-bold mb-6 text-foreground">Scan QR Code</h3>
             <div className="bg-white p-4 rounded-lg shadow-inner">
               <QRCode value={url} size={200} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
             </div>

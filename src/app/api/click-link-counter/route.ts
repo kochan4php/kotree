@@ -1,3 +1,4 @@
+import { after } from 'next/server';
 import { incrementLinkCount } from '@/connections/mongodb';
 import { socialLinks } from '@/data/social-links';
 import { isRateLimited } from '@/lib/rate-limit';
@@ -33,7 +34,16 @@ export async function POST(request: Request) {
     const count =
       typeof body.count === 'number' && Number.isFinite(body.count) ? Math.min(MAX_COUNT, Math.max(0, Math.floor(body.count))) : 1;
 
-    await incrementLinkCount(name, count);
+    // Use Next.js after() to defer the DB write until after the response is sent
+    // This makes the API incredibly fast for the user.
+    after(async () => {
+      try {
+        await incrementLinkCount(name, count);
+      } catch (err) {
+        console.error('Failed to increment link count in background:', err);
+      }
+    });
+
     return new Response(JSON.stringify({ message: 'Success' }), { status: 200 });
   } catch {
     return new Response('Internal Server Error', { status: 500 });

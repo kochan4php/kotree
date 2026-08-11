@@ -14,12 +14,12 @@ interface SocialLinkItemProps {
 export default function SocialLinkItem({ link, clickCount }: SocialLinkItemProps) {
   return (
     <Card className="group p-0 overflow-hidden transition-all duration-300 hover:border-accent/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/10 active:scale-[0.99] active:translate-y-0">
-      <Link href={link.url} onClick={() => trackLinkClick(link.name)} target="_blank">
+      <Link href={link.url} onClick={() => trackLinkClick(link.name)} target="_blank" aria-label={`Open ${link.name}`}>
         <div className="flex items-center gap-4 p-4">
           <span
             className="w-11 h-11 shrink-0 rounded-lg bg-muted/60 border border-border/80 flex items-center justify-center transition-colors duration-300 group-hover:border-accent/40 group-hover:bg-accent/10"
             style={{ color: link.color }}>
-            <link.icon className="w-5 h-5" />
+            <link.icon className="w-5 h-5" aria-hidden="true" />
           </span>
 
           <div className="min-w-0 flex-1 text-left">
@@ -30,12 +30,13 @@ export default function SocialLinkItem({ link, clickCount }: SocialLinkItemProps
           {clickCount > 0 && (
             <span
               className="inline-flex items-center justify-center shrink-0 rounded-full bg-accent/10 text-accent border border-accent/25 px-2 py-0.5 text-xs"
+              aria-label={`${clickCount} clicks`}
             >
               {clickCount} clicks
             </span>
           )}
           
-          <ExternalLink className="w-4 h-4 text-muted-foreground opacity-60 group-hover:text-accent group-hover:opacity-100 transition-all duration-300" />
+          <ExternalLink className="w-4 h-4 text-muted-foreground opacity-60 group-hover:text-accent group-hover:opacity-100 transition-all duration-300" aria-hidden="true" />
         </div>
       </Link>
     </Card>
