@@ -1,11 +1,32 @@
 import { MongoClient } from 'mongodb';
 import { LinkCounter } from '@/interfaces';
 
-const client = new MongoClient(process.env.MONGODB_URL || 'mongodb://localhost:27017');
-const clientPromise = client.connect();
+const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017';
+let client: MongoClient;
+let clientPromise: Promise<MongoClient> | null = null;
+
+function getClientPromise(): Promise<MongoClient> {
+  if (process.env.NODE_ENV === 'development') {
+    const globalWithMongo = global as typeof globalThis & {
+      _mongoClientPromise?: Promise<MongoClient>;
+    };
+
+    if (!globalWithMongo._mongoClientPromise) {
+      client = new MongoClient(uri);
+      globalWithMongo._mongoClientPromise = client.connect();
+    }
+    return globalWithMongo._mongoClientPromise;
+  } else {
+    if (!clientPromise) {
+      client = new MongoClient(uri);
+      clientPromise = client.connect();
+    }
+    return clientPromise;
+  }
+}
 
 const linkCounterCollection = () =>
-  clientPromise.then((client) => client.db('kotreedb').collection<LinkCounter>('link_counter'));
+  getClientPromise().then((client) => client.db('kotreedb').collection<LinkCounter>('link_counter'));
 
 export async function getLinkCounts(): Promise<LinkCounter[]> {
   const collection = await linkCounterCollection();
