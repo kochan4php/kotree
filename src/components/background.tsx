@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 // @ts-ignore
@@ -8,8 +8,20 @@ import * as random from 'maath/random/dist/maath-random.esm';
 
 function Stars(props: any) {
   const ref = useRef<any>(null);
-  // Create a sphere of random particles
-  const sphere = random.inSphere(new Float32Array(5000), { radius: 1.5 });
+  // Create a sphere of random particles, fallback to zeros if maath fails
+  const [sphere] = useState(() => {
+    try {
+      const positions = new Float32Array(5000);
+      random.inSphere(positions, { radius: 1.5 });
+      // Sanity check for NaN
+      for (let i = 0; i < positions.length; i++) {
+        if (isNaN(positions[i])) positions[i] = 0;
+      }
+      return positions;
+    } catch {
+      return new Float32Array(5000).fill(0);
+    }
+  });
 
   useFrame((state, delta) => {
     // Respect reduced motion
