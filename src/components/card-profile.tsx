@@ -44,7 +44,7 @@ export default function CardProfile() {
       <div className={`relative transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
         
         {/* Front */}
-        <Card className="text-center shadow-2xl transition-all duration-300 p-6 backface-hidden">
+        <Card className={`text-center transition-all duration-300 p-6 backface-hidden ${isFlipped ? 'shadow-none' : 'shadow-2xl'}`}>
           <div className="relative w-fit mx-auto mb-4">
             <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
             <div className="relative flex justify-center">
@@ -74,7 +74,7 @@ export default function CardProfile() {
         </Card>
 
         {/* Back */}
-        <Card className="absolute inset-0 text-center shadow-2xl p-6 backface-hidden rotate-y-180 flex flex-col items-center justify-center">
+        <Card className={`absolute inset-0 text-center p-6 backface-hidden rotate-y-180 flex flex-col items-center justify-center transition-all duration-300 ${isFlipped ? 'shadow-2xl' : 'shadow-none'}`}>
           <button
             onClick={() => setIsFlipped(false)}
             aria-label="Close QR"

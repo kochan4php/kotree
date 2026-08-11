@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Terminal as TerminalIcon, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -25,6 +26,11 @@ export default function AITerminal() {
   ]);
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -117,15 +123,15 @@ export default function AITerminal() {
       {/* Dock Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-2 rounded-full transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent text-accent-foreground shadow-inner shadow-black/50' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent'}`}
+        className={`w-9 h-9 rounded-full transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent text-accent-foreground shadow-inner shadow-black/50' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent'}`}
         aria-label="Open AI Terminal"
       >
         {isOpen ? <X className="w-4 h-4" /> : <TerminalIcon className="w-4 h-4" />}
       </button>
 
       {/* Terminal Window */}
-      {isOpen && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[95vw] max-w-lg z-[100] animate-in slide-in-from-bottom-8 fade-in duration-300">
+      {isOpen && mounted && createPortal(
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[95vw] max-w-lg z-[100] animate-in slide-in-from-top-8 fade-in duration-300">
           <Card className="bg-[#050505]/95 backdrop-blur-3xl border border-green-500/30 text-green-500 font-mono text-sm shadow-[0_0_50px_rgba(34,197,94,0.2)] overflow-hidden rounded-2xl relative">
             <div className="absolute inset-0 pointer-events-none scanlines opacity-50 mix-blend-overlay"></div>
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-10"></div>
@@ -162,7 +168,8 @@ export default function AITerminal() {
               />
             </form>
           </Card>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -32,7 +32,7 @@ export default function WebBluetooth() {
   return (
     <button
       onClick={handleBluetooth}
-      className="p-2 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-blue-500 hover:bg-blue-500/10 hover:text-blue-400 active:scale-95"
+      className="w-9 h-9 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-blue-500 hover:bg-blue-500/10 hover:text-blue-400 active:scale-95"
       title="Connect nearby Bluetooth Device"
     >
       <Bluetooth className="w-4 h-4" />

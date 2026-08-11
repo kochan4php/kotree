@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Mic, MicOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { socialLinks } from '@/data/social-links';
@@ -8,8 +9,10 @@ import { socialLinks } from '@/data/social-links';
 export default function VoiceCommand() {
   const [isListening, setIsListening] = useState(false);
   const [supported, setSupported] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       setSupported(false);
     }
@@ -128,31 +131,36 @@ export default function VoiceCommand() {
       <button 
         onClick={handleListen}
         disabled={isListening}
-        className={`p-2 rounded-full transition-all cursor-pointer flex items-center justify-center ${isListening ? 'bg-red-500 animate-pulse text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent active:scale-95'}`}
+        className={`w-9 h-9 rounded-full transition-all cursor-pointer flex items-center justify-center ${isListening ? 'bg-red-500 animate-pulse text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent active:scale-95'}`}
         aria-label="Voice Command"
       >
         {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
       </button>
 
-      {isTelepathy && (
-        <div className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={submitTelepathy} className="bg-card p-6 rounded-xl border border-accent shadow-2xl max-w-sm w-full animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold text-accent mb-2">🧠 Mode Telepati</h3>
-            <p className="text-sm text-muted-foreground mb-4">Mikrofon diblokir atau error. Ketikkan saja apa yang ada di pikiranmu (misal: github, doom, win95).</p>
+      {isTelepathy && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={submitTelepathy} className="bg-background/80 backdrop-blur-3xl p-8 rounded-3xl border border-border shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+            <h3 className="text-2xl font-black tracking-tight text-foreground mb-3 flex items-center gap-2">
+              <span>🧠</span> Telepathy Mode
+            </h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Microphone access is unavailable. Please type your thoughts directly into the neural net (e.g. github, win95, doom).
+            </p>
             <input 
               type="text" 
               autoFocus
               value={telepathyInput}
               onChange={(e) => setTelepathyInput(e.target.value)}
-              placeholder="Fokuskan pikiranmu..." 
-              className="w-full bg-background border border-border rounded p-2 text-foreground focus:outline-none focus:border-accent mb-4"
+              placeholder="Focus your thoughts here..." 
+              className="w-full bg-muted/50 border border-border rounded-xl p-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all mb-6"
             />
-            <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setIsTelepathy(false)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Batal</button>
-              <button type="submit" className="px-4 py-2 bg-accent text-accent-foreground font-bold rounded hover:opacity-90">Kirim Pikiran</button>
+            <div className="flex gap-3 justify-end">
+              <button type="button" onClick={() => setIsTelepathy(false)} className="px-6 py-2.5 text-sm font-semibold rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Cancel</button>
+              <button type="submit" className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">Transmit</button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
