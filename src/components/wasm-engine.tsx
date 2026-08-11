@@ -42,15 +42,9 @@ export default function WasmEngine() {
 
   return (
     <div className="flex items-center gap-2 pointer-events-none">
-      <div className="flex items-center gap-1.5 bg-background/40 backdrop-blur-md border border-accent/20 px-2 py-1 rounded-full shadow-sm">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-        <span className="text-[8px] font-mono text-green-400 font-medium tracking-wide uppercase">{wasmStatus.replace('WebAssembly Native Engine: ', '')}</span>
+      <div className="flex items-center justify-center w-8 h-8 bg-accent/20 backdrop-blur-md border border-accent/40 rounded-full shadow-sm">
+        <span className="text-[10px] font-mono text-accent font-bold tracking-tighter">{'<k/>'}</span>
       </div>
-      {calculation && (
-        <div className="hidden sm:flex bg-background/40 backdrop-blur-md border border-accent/20 px-2 py-1 rounded-full shadow-sm">
-          <span className="text-[8px] font-mono text-foreground/70">WASM: {calculation}</span>
-        </div>
-      )}
     </div>
   );
 }
