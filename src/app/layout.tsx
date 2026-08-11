@@ -18,7 +18,8 @@ import Win95Mode from '@/components/win95-mode';
 import WebBluetooth from '@/components/web-bluetooth';
 import BossFight from '@/components/boss-fight';
 import DoomMode from '@/components/doom-mode';
-import MultiplayerCursors from '@/components/multiplayer-cursors';
+import VoiceCommand from '@/components/voice-command';
+import InfiniteMirror from '@/components/infinite-mirror';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -51,6 +52,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <WebBluetooth />
           <BossFight />
           <DoomMode />
+          <VoiceCommand />
+          <InfiniteMirror />
           </I18nProvider>
         </ThemeProvider>
       </body>

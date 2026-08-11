@@ -4,6 +4,7 @@ import Footer from '@/components/footer';
 import LinksSection from '@/components/links-section';
 import LinksSkeleton from '@/components/links-skeleton';
 import CryptoTipJar from '@/components/crypto-tip-jar';
+import GeoLockedQuest from '@/components/geo-locked-quest';
 import { Suspense } from 'react';
 
 export const revalidate = 30;
@@ -15,6 +16,7 @@ export default function LinktreePage() {
       <div className="relative max-w-lg mx-auto">
         <CardProfile />
         <CryptoTipJar />
+        <GeoLockedQuest />
         <Suspense fallback={<LinksSkeleton />}>
           <LinksSection />
         </Suspense>
