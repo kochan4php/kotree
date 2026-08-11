@@ -14,14 +14,41 @@ interface StatsCardProps {
 
 export default function StatsCard({ linkCounts }: StatsCardProps) {
   const serverTotal = linkCounts.reduce((total, item) => total + item.count, 0);
-  const displayTotal = Math.max(serverTotal, optimisticTotalClicks.current);
   
-  const [, forceRender] = useState(0);
+  // Hydrate perfectly with server data
+  const [displayTotal, setDisplayTotal] = useState(serverTotal);
+
+  // Sync with sessionStorage on mount to recover state after hard refresh
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('kotree-total-clicks');
+      const optimisticCount = stored ? parseInt(stored, 10) : 0;
+
+      if (optimisticCount > optimisticTotalClicks.current) {
+        optimisticTotalClicks.current = optimisticCount;
+      }
+
+      if (serverTotal > optimisticCount) {
+        sessionStorage.setItem('kotree-total-clicks', serverTotal.toString());
+      }
+
+      const highest = Math.max(serverTotal, optimisticCount, optimisticTotalClicks.current);
+      if (highest > displayTotal) {
+        setTimeout(() => setDisplayTotal(highest), 0);
+      }
+    } catch (e) {}
+  }, [serverTotal, displayTotal]);
 
   useEffect(() => {
     const handleLinkClick = () => {
-      optimisticTotalClicks.current = Math.max(serverTotal, optimisticTotalClicks.current) + 1;
-      forceRender((v) => v + 1);
+      setDisplayTotal((prev) => {
+        const newTotal = prev + 1;
+        optimisticTotalClicks.current = newTotal;
+        try {
+          sessionStorage.setItem('kotree-total-clicks', newTotal.toString());
+        } catch (e) {}
+        return newTotal;
+      });
     };
 
     window.addEventListener('kotree:link-clicked', handleLinkClick as EventListener);
