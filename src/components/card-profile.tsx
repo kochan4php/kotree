@@ -1,12 +1,26 @@
+'use client';
+
 import ProfileActions from '@/components/profile-actions';
 import { Card } from '@/components/ui/card';
 import { profile } from '@/data/profile';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
+import Tilt from 'react-parallax-tilt';
 
 export default function CardProfile() {
   return (
-    <Card className="mb-6 text-center gap-3">
+    <Tilt
+      glareEnable={true}
+      glareMaxOpacity={0.15}
+      glareColor="#ff6a33"
+      glarePosition="all"
+      tiltMaxAngleX={5}
+      tiltMaxAngleY={5}
+      scale={1.02}
+      transitionSpeed={2500}
+      className="mb-6"
+    >
+      <Card className="text-center gap-3 shadow-2xl transition-all duration-300">
       <div className="relative w-fit mx-auto mb-4">
         <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
         <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-accent to-[#e05a47] p-[3px] shadow-lg shadow-accent/20">
@@ -39,9 +53,10 @@ export default function CardProfile() {
         &rdquo;{profile.quote} <span className="font-bold text-accent">{profile.quoteHighlight}</span>&rdquo;
       </p>
 
-      <div className="mt-2">
+      <div className="mt-2 relative z-20">
         <ProfileActions />
       </div>
     </Card>
+    </Tilt>
   );
 }

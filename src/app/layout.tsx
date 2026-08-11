@@ -7,6 +7,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 
 import { Toaster } from 'sonner';
+import PwaInstallPrompt from '@/components/pwa-install-prompt';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           />
           {children}
           <Toaster position="bottom-center" theme="system" richColors />
+          <PwaInstallPrompt />
           <PwaRegister />
         </ThemeProvider>
       </body>
