@@ -76,10 +76,8 @@
 }
 
 @layer utilities {
-  .glass-card {
-    background: color-mix(in srgb, var(--card) 58%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  .solid-card {
+    background: var(--card);
     border-color: color-mix(in srgb, var(--accent) 22%, transparent);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.25);
   }
@@ -90,12 +88,4 @@
     linear-gradient(to right, color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px),
     linear-gradient(to bottom, color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px);
   background-size: 2rem 2rem;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .glass-card {
-    background: var(--card);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
 }
