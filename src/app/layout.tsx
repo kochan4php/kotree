@@ -12,7 +12,7 @@ import KonamiCode from '@/components/konami-code';
 import GhostCursor from '@/components/ghost-cursor';
 import dynamic from 'next/dynamic';
 
-const AITerminal = dynamic(() => import('@/components/ai-terminal'), { ssr: false });
+const AITerminal = dynamic(() => import('@/components/ai-terminal'));
 import PwaSyncManager from '@/components/pwa-sync-manager';
 import WasmEngine from '@/components/wasm-engine';
 import SelfDestruct from '@/components/self-destruct';

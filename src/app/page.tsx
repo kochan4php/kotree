@@ -6,8 +6,8 @@ import GeoLockedQuest from '@/components/geo-locked-quest';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
-const Background = dynamic(() => import('@/components/background'), { ssr: false });
-const CryptoTipJar = dynamic(() => import('@/components/crypto-tip-jar'), { ssr: false });
+const Background = dynamic(() => import('@/components/background'));
+const CryptoTipJar = dynamic(() => import('@/components/crypto-tip-jar'));
 
 export const revalidate = 30;
 
