@@ -60,7 +60,14 @@ export default function VoiceCommand() {
 
     recognition.onerror = (event: any) => {
       setIsListening(false);
-      toast.error(`Speech error: ${event.error}`);
+      
+      if (event.error === 'not-allowed') {
+        toast.error("Akses mikrofon ditolak! Izinkan di pengaturan browser.");
+      } else if (event.error === 'network') {
+        toast.error("Gagal terhubung ke server pengenalan suara (Browser tidak mendukung atau offline).");
+      } else {
+        toast.error(`Speech error: ${event.error}`);
+      }
     };
 
     recognition.onend = () => {

@@ -25,10 +25,14 @@ export default function GeoLockedQuest() {
   const [distance, setDistance] = useState<number | null>(null);
   const [unlocked, setUnlocked] = useState(false);
 
-  useEffect(() => {
-    if (!('geolocation' in navigator)) return;
+  const handleCheckLocation = () => {
+    if (!('geolocation' in navigator)) {
+      toast.error("GPS tidak didukung di browser ini.");
+      return;
+    }
 
-    const watchId = navigator.geolocation.watchPosition(
+    toast.info("Meminta izin GPS...");
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         const dist = getDistanceFromLatLonInM(
           position.coords.latitude,
@@ -37,27 +41,36 @@ export default function GeoLockedQuest() {
           TARGET_LNG
         );
         setDistance(dist);
-        if (dist <= ALLOWED_RADIUS && !unlocked) {
+        if (dist <= ALLOWED_RADIUS) {
           setUnlocked(true);
           toast.success("QUEST UNLOCKED! Welcome to Monas.");
+        } else {
+          toast.error("Gagal! Kamu masih terlalu jauh dari target.");
         }
       },
       (err) => {
         console.warn('Geolocation error:', err);
+        toast.error(`Akses GPS ditolak atau gagal: ${err.message}`);
       },
       { enableHighAccuracy: true }
     );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [unlocked]);
+  };
 
   return (
-    <div className="w-full mt-4 p-4 border border-dashed border-destructive/50 rounded-lg bg-destructive/10 text-center relative overflow-hidden group">
+    <div className="w-full mt-12 mb-8 p-4 border border-dashed border-destructive/50 rounded-lg bg-destructive/10 text-center relative overflow-hidden group">
       <h3 className="font-bold text-destructive mb-2">🔒 GEO-LOCKED QUEST</h3>
       {distance === null ? (
-        <p className="text-xs text-muted-foreground">Mencari sinyal GPS...</p>
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <p className="text-xs text-muted-foreground">Verifikasi lokasi fisikmu untuk membuka link rahasia.</p>
+          <button 
+            onClick={handleCheckLocation}
+            className="px-4 py-2 bg-destructive text-destructive-foreground font-bold rounded hover:opacity-90 transition-opacity"
+          >
+            Cek Lokasi GPS
+          </button>
+        </div>
       ) : unlocked ? (
-        <a href="https://github.com/kochan4php/kotree" target="_blank" rel="noreferrer" className="block p-2 bg-destructive text-destructive-foreground font-bold rounded animate-pulse">
+        <a href="https://github.com/kochan4php/kotree" target="_blank" rel="noreferrer" className="block p-2 bg-destructive text-destructive-foreground font-bold rounded animate-pulse mt-4">
           ENTER THE SANCTUARY
         </a>
       ) : (
