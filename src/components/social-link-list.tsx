@@ -11,9 +11,9 @@ interface SocialLinkListProps {
 export default function SocialLinkList({ linkCounts }: SocialLinkListProps) {
   return (
     <div className="space-y-3">
-      {socialLinks.map((link) => {
+      {socialLinks.map((link, index) => {
         const clickCount = linkCounts.find((item) => item.name === link.name.toLowerCase())?.count ?? 0;
-        return <SocialLinkItem key={link.name} link={link} clickCount={clickCount} />;
+        return <SocialLinkItem key={link.name} link={link} clickCount={clickCount} index={index} />;
       })}
     </div>
   );

@@ -6,6 +6,8 @@ import './globals.css';
 
 import { ThemeProvider } from '@/components/theme-provider';
 
+import { Toaster } from 'sonner';
+
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
 export { metadata };
@@ -20,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
           {children}
+          <Toaster position="bottom-center" theme="system" richColors />
           <PwaRegister />
         </ThemeProvider>
       </body>

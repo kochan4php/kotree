@@ -4,6 +4,7 @@ import { Share2, QrCode, X, Check, Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 
 export default function ProfileActions() {
   const [showQR, setShowQR] = useState(false);
@@ -36,8 +37,10 @@ export default function ProfileActions() {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      toast.success('Link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
+      toast.error('Failed to copy link');
       console.error('Failed to copy URL:', err);
     }
   };

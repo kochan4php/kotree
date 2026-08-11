@@ -7,19 +7,24 @@ import { ArrowLeft, Home } from 'lucide-react';
 export default function NotFound() {
   return (
     <StateCard>
-      <p className="text-6xl font-bold tracking-tight text-accent mb-4">404</p>
+      <div className="animate-in fade-in zoom-in-95 duration-500 fill-mode-both">
+        <p className="text-6xl font-bold tracking-tight text-accent mb-4 drop-shadow-[0_0_15px_rgba(255,106,51,0.5)]">404</p>
+      </div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">Page Not Found</h1>
+        <p className="text-muted-foreground leading-relaxed mb-8">
+          The link you followed might be broken, or the page may have been removed.
+        </p>
+      </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">Halaman Tidak Ditemukan</h1>
-      <p className="text-muted-foreground leading-relaxed mb-8">Halaman yang Anda cari tidak dapat ditemukan. Mungkin halaman telah dipindahkan atau URL salah.</p>
-
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both">
         <PageButton href="/">
           <Home size={20} />
-          Kembali ke Beranda
+          Back to Home
         </PageButton>
         <PageButton href="/" variant="ghost">
           <ArrowLeft size={20} />
-          Kembali ke Halaman Sebelumnya
+          Go Back
         </PageButton>
       </div>
     </StateCard>
