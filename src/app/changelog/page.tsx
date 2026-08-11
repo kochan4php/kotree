@@ -28,14 +28,25 @@ export default function ChangelogPage() {
         </Link>
 
         <div className="space-y-6">
-          <Card className="mb-6">{header}</Card>
+          <Card className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-both">
+            {header}
+          </Card>
 
-          {versions.map((version) => (
-            <Card key={version.title} className="gap-3">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">{version.title}</h2>
-              <div>{version.body}</div>
-            </Card>
-          ))}
+          <div className="relative border-l border-border/60 ml-4 space-y-8 pb-4">
+            {versions.map((version, index) => (
+              <div 
+                key={version.title} 
+                className="relative pl-6 animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+                style={{ animationDelay: `${150 + index * 100}ms`, animationDuration: '600ms' }}
+              >
+                <div className="absolute w-3 h-3 bg-accent rounded-full -left-[6.5px] top-1.5 shadow-[0_0_10px_rgba(255,106,51,0.5)]"></div>
+                <Card className="gap-3 transition-colors hover:border-accent/40 hover:shadow-lg">
+                  <h2 className="text-xl font-bold tracking-tight text-accent">{version.title}</h2>
+                  <div className="text-muted-foreground leading-relaxed">{version.body}</div>
+                </Card>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>
