@@ -3,6 +3,7 @@ import CardProfile from '@/components/card-profile';
 import Footer from '@/components/footer';
 import LinksSection from '@/components/links-section';
 import LinksSkeleton from '@/components/links-skeleton';
+import CryptoTipJar from '@/components/crypto-tip-jar';
 import { Suspense } from 'react';
 
 export const revalidate = 30;
@@ -13,6 +14,7 @@ export default function LinktreePage() {
       <Background />
       <div className="relative max-w-lg mx-auto">
         <CardProfile />
+        <CryptoTipJar />
         <Suspense fallback={<LinksSkeleton />}>
           <LinksSection />
         </Suspense>

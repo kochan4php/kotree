@@ -11,6 +11,8 @@ import PwaInstallPrompt from '@/components/pwa-install-prompt';
 import KonamiCode from '@/components/konami-code';
 import GhostCursor from '@/components/ghost-cursor';
 import AITerminal from '@/components/ai-terminal';
+import PwaSyncManager from '@/components/pwa-sync-manager';
+import WasmEngine from '@/components/wasm-engine';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -31,10 +33,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <Toaster position="bottom-center" theme="system" richColors />
           <PwaInstallPrompt />
+          <PwaSyncManager />
           <KonamiCode />
           <GhostCursor />
           <AITerminal />
           <PwaRegister />
+          <WasmEngine />
           </I18nProvider>
         </ThemeProvider>
       </body>
