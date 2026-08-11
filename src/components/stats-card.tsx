@@ -1,14 +1,29 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { socialLinks } from '@/data/social-links';
 import { LinkCounter } from '@/interfaces';
 import { Heart } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface StatsCardProps {
   linkCounts: LinkCounter[];
 }
 
 export default function StatsCard({ linkCounts }: StatsCardProps) {
-  const totalClicks = linkCounts.reduce((total, item) => total + item.count, 0);
+  const initialTotalClicks = linkCounts.reduce((total, item) => total + item.count, 0);
+  const [totalClicks, setTotalClicks] = useState(initialTotalClicks);
+
+  useEffect(() => {
+    const handleLinkClick = () => {
+      setTotalClicks((prev) => prev + 1);
+    };
+
+    window.addEventListener('kotree:link-clicked', handleLinkClick as EventListener);
+    return () => {
+      window.removeEventListener('kotree:link-clicked', handleLinkClick as EventListener);
+    };
+  }, []);
 
   return (
     <Card className="mt-6">
