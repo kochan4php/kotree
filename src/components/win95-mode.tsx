@@ -68,7 +68,11 @@ export default function Win95Mode() {
     };
 
     const handlePointerUp = () => {
-      draggingId.current = null;
+      if (draggingId.current) {
+        draggingId.current = null;
+        // Trigger a subtle re-render to reset transitions
+        setWindows(prev => [...prev]); 
+      }
     };
 
     if (isActive) {
@@ -213,6 +217,12 @@ export default function Win95Mode() {
           ? { transform: 'scale(0) translateY(50vh)', opacity: 0, pointerEvents: 'none' as any }
           : { transform: 'scale(1) translateY(0)', opacity: 1, pointerEvents: 'auto' as any };
 
+        // Disable all transitions if currently dragging to eliminate delay,
+        // but enable full transition-all for smooth maximize/minimize otherwise.
+        const transitionStyle = (w.id === draggingId.current) 
+          ? { transition: 'none' } 
+          : { transition: 'all 0.3s ease-in-out' };
+
         return (
           <div key={w.id} 
                onClick={() => bringToFront(w.id)}
@@ -223,7 +233,7 @@ export default function Win95Mode() {
                  zIndex: w.zIndex, 
                  width: w.width, 
                  height: w.height,
-                 transition: 'width 0.2s ease-in-out, height 0.2s ease-in-out, transform 0.2s ease-in-out, opacity 0.2s ease-in-out',
+                 ...transitionStyle,
                  ...minimizeStyle 
                }}>
             {/* Title Bar */}
