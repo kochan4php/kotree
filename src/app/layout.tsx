@@ -10,7 +10,9 @@ import { Toaster } from 'sonner';
 import PwaInstallPrompt from '@/components/pwa-install-prompt';
 import KonamiCode from '@/components/konami-code';
 import GhostCursor from '@/components/ghost-cursor';
-import AITerminal from '@/components/ai-terminal';
+import dynamic from 'next/dynamic';
+
+const AITerminal = dynamic(() => import('@/components/ai-terminal'), { ssr: false });
 import PwaSyncManager from '@/components/pwa-sync-manager';
 import WasmEngine from '@/components/wasm-engine';
 import SelfDestruct from '@/components/self-destruct';

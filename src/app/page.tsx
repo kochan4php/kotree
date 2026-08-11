@@ -1,11 +1,13 @@
-import Background from '@/components/background';
 import CardProfile from '@/components/card-profile';
 import Footer from '@/components/footer';
 import LinksSection from '@/components/links-section';
 import LinksSkeleton from '@/components/links-skeleton';
-import CryptoTipJar from '@/components/crypto-tip-jar';
 import GeoLockedQuest from '@/components/geo-locked-quest';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+
+const Background = dynamic(() => import('@/components/background'), { ssr: false });
+const CryptoTipJar = dynamic(() => import('@/components/crypto-tip-jar'), { ssr: false });
 
 export const revalidate = 30;
 

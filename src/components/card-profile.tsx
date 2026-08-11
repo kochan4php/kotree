@@ -7,7 +7,9 @@ import { Code2 } from 'lucide-react';
 import Image from 'next/image';
 import Tilt from 'react-parallax-tilt';
 import { useI18n } from '@/contexts/i18n-context';
-import Avatar3D from './avatar-3d';
+import dynamic from 'next/dynamic';
+
+const Avatar3D = dynamic(() => import('./avatar-3d'), { ssr: false });
 
 export default function CardProfile() {
   const { t } = useI18n();
