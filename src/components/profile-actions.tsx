@@ -9,6 +9,7 @@ import { useSensory } from '@/hooks/use-sensory';
 
 export default function ProfileActions() {
   const [showQR, setShowQR] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
   const { setTheme, theme } = useTheme();
@@ -59,53 +60,61 @@ export default function ProfileActions() {
           }}
           onMouseEnter={playHoverFeedback}
           aria-label="Toggle theme"
-          className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" aria-hidden="true" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" aria-hidden="true" />
+          className="flex-1 cursor-pointer flex flex-col gap-1 items-center justify-center rounded-2xl border border-border bg-background text-foreground py-3 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
+          <div className="relative w-5 h-5">
+            <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" aria-hidden="true" />
+            <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" aria-hidden="true" />
+          </div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider">Theme</span>
         </button>
 
         <button 
           onClick={handleShare}
           onMouseEnter={playHoverFeedback}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-all active:scale-95 shadow-sm shadow-accent/20 cursor-pointer"
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-all active:scale-[0.98] shadow-sm shadow-accent/20 cursor-pointer"
         >
-          <Share2 className="w-4 h-4" />
-          Share Profile
+          {copied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
+          <span className="text-[10px] font-semibold uppercase tracking-wider">Share</span>
         </button>
 
         <button 
           onClick={() => {
             playFeedback();
             setShowQR(true);
+            setIsClosing(false);
           }}
           onMouseEnter={playHoverFeedback}
-          className="flex items-center justify-center p-2.5 rounded-xl border border-border bg-background text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all active:scale-95 cursor-pointer"
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-2xl border border-border bg-background text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all active:scale-[0.98] cursor-pointer"
           aria-label="Show QR Code"
         >
           <QrCode className="w-5 h-5" />
+          <span className="text-[10px] font-semibold uppercase tracking-wider">QR Code</span>
         </button>
       </div>
 
       {showQR && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
+          className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md ${isClosing ? 'animate-out fade-out duration-300' : 'animate-in fade-in duration-300'}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="qr-modal-title"
         >
-          <div className="relative solid-card border border-border/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 flex flex-col items-center text-center">
+          <div className={`relative solid-card border border-border/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center ${isClosing ? 'animate-out zoom-out-95 slide-out-to-bottom-8 duration-300' : 'animate-in zoom-in-95 slide-in-from-bottom-8 duration-500'}`}>
             <button
-              onClick={() => setShowQR(false)}
+              onClick={() => {
+                setIsClosing(true);
+                setTimeout(() => setShowQR(false), 300);
+              }}
               aria-label="Close modal"
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-red-500/20 text-white hover:text-red-500 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" aria-hidden="true" />
             </button>
             <h3 id="qr-modal-title" className="text-xl font-bold mb-6 text-foreground">Scan QR Code</h3>
-            <div className="bg-white p-4 rounded-lg shadow-inner">
+            <div className="bg-white p-4 rounded-xl shadow-inner ring-4 ring-white/10">
               <QRCode value={url} size={200} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">
+            <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
               Point your camera at the QR code to open this profile on another device.
             </p>
           </div>

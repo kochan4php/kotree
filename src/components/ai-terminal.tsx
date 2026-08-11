@@ -126,7 +126,10 @@ export default function AITerminal() {
       {/* Terminal Window */}
       {isOpen && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[95vw] max-w-lg z-[100] animate-in slide-in-from-bottom-8 fade-in duration-300">
-          <Card className="bg-[#0a0a0a]/95 backdrop-blur-2xl border border-accent/40 text-green-400 font-mono text-sm shadow-[0_0_40px_rgba(255,106,51,0.15)] overflow-hidden rounded-2xl">
+          <Card className="bg-[#050505]/95 backdrop-blur-3xl border border-green-500/30 text-green-500 font-mono text-sm shadow-[0_0_50px_rgba(34,197,94,0.2)] overflow-hidden rounded-2xl relative">
+            <div className="absolute inset-0 pointer-events-none scanlines opacity-50 mix-blend-overlay"></div>
+            <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-10"></div>
+            
             {/* Window Controls Header */}
             <div className="bg-muted/30 px-4 py-3 flex items-center gap-2 border-b border-accent/20 cursor-move">
               <div className="flex gap-1.5">
@@ -137,23 +140,23 @@ export default function AITerminal() {
               <span className="text-white/50 text-[10px] font-sans mx-auto -ml-8 flex-1 text-center font-medium tracking-wider uppercase">root@kochan:~</span>
             </div>
             
-            <div className="h-64 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-accent/30 hover:scrollbar-thumb-accent/60">
+            <div className="h-64 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-green-500/30 hover:scrollbar-thumb-green-500/60 relative z-20">
               {history.map((line, i) => (
-                <div key={i} className={line.type === 'user' ? 'text-blue-300 font-semibold drop-shadow-sm' : 'text-green-400 drop-shadow-sm'}>
+                <div key={i} className={line.type === 'user' ? 'text-blue-400 font-bold drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]' : 'text-green-500 drop-shadow-[0_0_5px_rgba(34,197,94,0.5)]'}>
                   {line.text}
                 </div>
               ))}
               <div ref={bottomRef} />
             </div>
 
-            <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-accent/20 flex gap-3 bg-black/40 items-center">
-              <span className="text-accent font-bold">~%</span>
+            <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-green-500/20 flex gap-3 bg-black/60 items-center relative z-20">
+              <span className="text-green-500 font-bold drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]">~%</span>
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder:text-muted-foreground/30 font-medium cursor-text"
-                placeholder="Ask me anything..."
+                className="flex-1 bg-transparent border-none outline-none text-green-400 focus:ring-0 p-0 placeholder:text-green-900 font-medium cursor-text drop-shadow-[0_0_5px_rgba(34,197,94,0.5)]"
+                placeholder="Execute command..."
                 autoFocus
                 spellCheck={false}
               />
