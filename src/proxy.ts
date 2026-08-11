@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // 1. Guard against direct API calls for click counter from unknown origins
   if (request.nextUrl.pathname.startsWith('/api/click-link-counter')) {
     const referer = request.headers.get('referer');
