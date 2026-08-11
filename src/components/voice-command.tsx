@@ -15,9 +15,12 @@ export default function VoiceCommand() {
     }
   }, []);
 
+  const [isTelepathy, setIsTelepathy] = useState(false);
+  const [telepathyInput, setTelepathyInput] = useState('');
+
   const processCommand = (transcript: string) => {
     const text = transcript.toLowerCase();
-    toast.success(`Kamu bilang/mikir: "${text}"`);
+    toast.success(`Mendeteksi pikiran: "${text}"`);
     
     let found = false;
     socialLinks.forEach(link => {
@@ -35,19 +38,23 @@ export default function VoiceCommand() {
       } else if (text.includes('kaca') || text.includes('mirror')) {
         window.dispatchEvent(new CustomEvent('ACTIVATE_MIRROR'));
       } else {
-        toast.error("Perintah tidak dikenali.");
+        toast.error("Pikiran tidak dikenali.");
       }
     }
   };
 
   const handleTelepathyFallback = () => {
     setIsListening(false);
-    setTimeout(() => {
-      const command = window.prompt("Mikrofon diblokir/rusak! Gunakan mode Telepati 🧠\nKetik perintahmu di sini (misal: github, doom, win95):");
-      if (command) {
-        processCommand(command);
-      }
-    }, 500);
+    setIsTelepathy(true);
+  };
+
+  const submitTelepathy = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (telepathyInput.trim()) {
+      processCommand(telepathyInput);
+    }
+    setIsTelepathy(false);
+    setTelepathyInput('');
   };
 
   const handleListen = async () => {
@@ -116,18 +123,37 @@ export default function VoiceCommand() {
     }
   };
 
-  if (!supported) {
-    // We still render the button so they can use Telepathy mode
-  }
-
   return (
-    <button 
-      onClick={handleListen}
-      disabled={isListening}
-      className={`fixed bottom-20 right-6 z-50 p-3 rounded-full shadow-lg transition-all ${isListening ? 'bg-red-500 animate-pulse text-white' : 'bg-accent text-accent-foreground hover:scale-110 active:scale-95'}`}
-      aria-label="Voice Command"
-    >
-      {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
-    </button>
+    <>
+      <button 
+        onClick={handleListen}
+        disabled={isListening}
+        className={`fixed bottom-20 right-6 z-50 p-3 rounded-full shadow-lg transition-all ${isListening ? 'bg-red-500 animate-pulse text-white' : 'bg-accent text-accent-foreground hover:scale-110 active:scale-95'}`}
+        aria-label="Voice Command"
+      >
+        {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+      </button>
+
+      {isTelepathy && (
+        <div className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <form onSubmit={submitTelepathy} className="bg-card p-6 rounded-xl border border-accent shadow-2xl max-w-sm w-full animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-accent mb-2">🧠 Mode Telepati</h3>
+            <p className="text-sm text-muted-foreground mb-4">Mikrofon diblokir atau error. Ketikkan saja apa yang ada di pikiranmu (misal: github, doom, win95).</p>
+            <input 
+              type="text" 
+              autoFocus
+              value={telepathyInput}
+              onChange={(e) => setTelepathyInput(e.target.value)}
+              placeholder="Fokuskan pikiranmu..." 
+              className="w-full bg-background border border-border rounded p-2 text-foreground focus:outline-none focus:border-accent mb-4"
+            />
+            <div className="flex gap-2 justify-end">
+              <button type="button" onClick={() => setIsTelepathy(false)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Batal</button>
+              <button type="submit" className="px-4 py-2 bg-accent text-accent-foreground font-bold rounded hover:opacity-90">Kirim Pikiran</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
