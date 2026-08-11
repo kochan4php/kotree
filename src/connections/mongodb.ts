@@ -37,3 +37,21 @@ export async function incrementLinkCount(name: string, count: number = 1): Promi
   const collection = await linkCounterCollection();
   await collection.updateOne({ name }, { $inc: { count } }, { upsert: true });
 }
+
+export interface GuestbookEntry {
+  message: string;
+  createdAt: Date;
+}
+
+const guestbookCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<GuestbookEntry>('guestbook'));
+
+export async function getGuestbookEntries(): Promise<GuestbookEntry[]> {
+  const collection = await guestbookCollection();
+  return collection.find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).limit(50).toArray();
+}
+
+export async function addGuestbookEntry(message: string): Promise<void> {
+  const collection = await guestbookCollection();
+  await collection.insertOne({ message, createdAt: new Date() });
+}

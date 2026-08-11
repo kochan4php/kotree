@@ -29,6 +29,10 @@ function Stars(props: any) {
     if (ref.current && !prefersReducedMotion) {
       ref.current.rotation.x -= delta / 10;
       ref.current.rotation.y -= delta / 15;
+      
+      // Interactive physics: react to mouse
+      ref.current.rotation.x += (state.pointer.y * 0.2 - ref.current.rotation.x) * 0.05;
+      ref.current.rotation.y += (state.pointer.x * 0.2 - ref.current.rotation.y) * 0.05;
     }
   });
 

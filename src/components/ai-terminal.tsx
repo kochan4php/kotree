@@ -43,7 +43,7 @@ export default function AITerminal() {
     }
   }, [history, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cmd = input.trim().toLowerCase();
     if (!cmd) return;
@@ -71,18 +71,40 @@ export default function AITerminal() {
       setHistory([]);
       setInput('');
       return;
-    } else if (!response) {
-      response = `Command not found: ${cmd}. Type 'help' for available commands.`;
-    }
+    } 
 
     setHistory((prev) => [...prev, { type: 'user', text: `> ${input}` }]);
-    
-    // Simulate AI thinking delay
-    setTimeout(() => {
-      setHistory((prev) => [...prev, { type: 'bot', text: response }]);
-    }, 400);
-
     setInput('');
+
+    if (response) {
+      setTimeout(() => {
+        setHistory((prev) => [...prev, { type: 'bot', text: response }]);
+      }, 400);
+    } else {
+      // Call Gemini AI
+      setHistory((prev) => [...prev, { type: 'bot', text: 'Processing...' }]);
+      
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: input }),
+        });
+        const data = await res.json();
+        
+        setHistory((prev) => {
+          const newHist = [...prev];
+          newHist[newHist.length - 1] = { type: 'bot', text: data.reply };
+          return newHist;
+        });
+      } catch (err) {
+        setHistory((prev) => {
+          const newHist = [...prev];
+          newHist[newHist.length - 1] = { type: 'bot', text: 'Error connecting to neural net.' };
+          return newHist;
+        });
+      }
+    }
   };
 
   return (
