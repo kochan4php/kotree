@@ -62,24 +62,24 @@ export default function CryptoTipJar() {
   };
 
   return (
-    <div className="w-full h-full p-4 border border-border bg-card text-card-foreground rounded-2xl text-center flex flex-col items-center justify-center shadow-sm">
-      <h3 className="font-bold text-sm text-purple-400 mb-1 flex items-center justify-center gap-1 uppercase tracking-wider">
+    <div className="w-full h-full p-4 border border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950 text-purple-900 dark:text-purple-100 rounded-lg text-center flex flex-col items-center justify-center">
+      <h3 className="font-bold text-sm text-purple-700 dark:text-purple-300 mb-1 flex items-center justify-center gap-1 uppercase tracking-wider">
         <Wallet className="w-3.5 h-3.5" /> Web3
       </h3>
       <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-        <p className="text-[10px] text-muted-foreground mb-3 px-2 leading-tight">Connect wallet to send crypto tips.</p>
+        <p className="text-[10px] text-purple-600 dark:text-purple-400 mb-3 px-2 leading-tight">Connect wallet to send crypto tips.</p>
         {!isConnected ? (
         <button
           onClick={handleConnect}
           disabled={isConnecting}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all active:scale-95 cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-200 hover:bg-purple-300 dark:hover:bg-purple-800 transition-colors cursor-pointer"
         >
           {isConnecting ? 'Connecting...' : 'Connect Wallet'}
         </button>
       ) : (
         <button
           onClick={handleTip}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 transition-all active:scale-95 cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl bg-yellow-200 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-800 hover:bg-yellow-300 dark:hover:bg-yellow-900 transition-colors cursor-pointer"
         >
           <Bitcoin className="w-4 h-4" />
           Tip 0.001 ETH

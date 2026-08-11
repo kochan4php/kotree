@@ -81,29 +81,29 @@ export default function GeoLockedQuest() {
   };
 
   return (
-    <div className="w-full h-full p-4 border border-border bg-card text-card-foreground rounded-2xl text-center relative overflow-hidden group flex flex-col justify-center items-center shadow-sm">
-      <h3 className="font-bold text-sm text-accent mb-1 flex items-center justify-center gap-1">
+    <div className="w-full h-full p-4 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950 text-orange-900 dark:text-orange-100 rounded-lg text-center relative overflow-hidden flex flex-col justify-center items-center">
+      <h3 className="font-bold text-sm text-orange-700 dark:text-orange-300 mb-1 flex items-center justify-center gap-1">
         <span className="text-[10px]">📍</span> GEO-QUEST
       </h3>
       {distance === null ? (
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-          <p className="text-[10px] text-muted-foreground mb-3 px-2 leading-tight">Verify physical location to unlock.</p>
+          <p className="text-[10px] text-orange-600 dark:text-orange-400 mb-3 px-2 leading-tight">Verify physical location to unlock.</p>
           <button 
             onClick={handleCheckLocation}
-            className="w-full px-3 py-2 bg-accent/10 border border-accent/30 text-accent font-semibold rounded-xl hover:bg-accent/20 active:scale-95 transition-all text-xs cursor-pointer"
+            className="w-full px-3 py-2 bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 font-semibold rounded-xl hover:bg-orange-300 dark:hover:bg-orange-800 transition-colors text-xs cursor-pointer"
           >
             Check GPS
           </button>
         </div>
       ) : unlocked ? (
-        <a href="https://github.com/kochan4php/kotree" target="_blank" rel="noreferrer" className="block w-full p-2 bg-green-500/20 border border-green-500/50 text-green-400 text-xs font-bold rounded-xl animate-pulse mt-2 cursor-pointer">
+        <a href="https://github.com/kochan4php/kotree" target="_blank" rel="noreferrer" className="block w-full p-2 bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 font-semibold rounded-xl hover:bg-green-200 dark:hover:bg-green-800 transition-colors text-xs mt-2 cursor-pointer">
           ENTER SANCTUARY
         </a>
       ) : (
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-          <p className="text-[10px] text-muted-foreground mb-1">Distance to Monas:</p>
-          <p className="font-mono text-lg text-accent font-bold">{distance.toFixed(0)}m</p>
-          <p className="text-[9px] mt-1 text-muted-foreground/70">Must be {'<'} {ALLOWED_RADIUS}m</p>
+          <p className="text-[10px] text-orange-600 dark:text-orange-400 mb-1">Distance to Monas:</p>
+          <p className="font-mono text-lg text-orange-800 dark:text-orange-200 font-bold">{distance.toFixed(0)}m</p>
+          <p className="text-[9px] mt-1 text-orange-500 dark:text-orange-500">Must be {'<'} {ALLOWED_RADIUS}m</p>
         </div>
       )}
     </div>

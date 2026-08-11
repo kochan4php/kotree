@@ -35,7 +35,7 @@ export default function WebBluetooth() {
       className="w-9 h-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-blue-500 hover:bg-blue-500/10 hover:text-blue-400 active:scale-95"
       title="Connect nearby Bluetooth Device"
     >
-      <Bluetooth className="w-4 h-4" />
+      <Bluetooth className="w-5 h-5" />
     </button>
   );
 }

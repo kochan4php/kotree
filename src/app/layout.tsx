@@ -42,10 +42,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <PwaSyncManager />
           <KonamiCode />
           <GhostCursor />
-          {/* Top Status Bar & Tools */}
-          <div className="fixed top-3 left-3 right-3 z-50 flex items-center justify-between p-1">
-            <WasmEngine />
-            <div className="flex items-center gap-1 p-1 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full shadow-sm">
+          <div className="fixed top-4 left-3 right-3 z-50 flex items-center justify-between pointer-events-none">
+            <div className="pointer-events-auto">
+              <WasmEngine />
+            </div>
+            <div className="pointer-events-auto flex items-center gap-1 h-11 px-1 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full">
               <AITerminal />
               <VoiceCommand />
               <WebBluetooth />
