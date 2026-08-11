@@ -5,6 +5,7 @@ import { SocialLink } from '@/interfaces';
 import { trackLinkClick } from '@/lib/track-click';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { useSensory } from '@/hooks/use-sensory';
 
 interface SocialLinkItemProps {
   link: SocialLink;
@@ -13,13 +14,20 @@ interface SocialLinkItemProps {
 }
 
 export default function SocialLinkItem({ link, clickCount, index }: SocialLinkItemProps) {
+  const { playFeedback } = useSensory();
+
+  const handleClick = (e: React.MouseEvent) => {
+    playFeedback();
+    trackLinkClick(link.name);
+  };
+
   return (
     <div
       className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
       style={{ animationDelay: `${100 + index * 100}ms`, animationDuration: '500ms' }}
     >
       <Card className="group p-0 overflow-hidden transition-all duration-300 hover:border-accent/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/10 active:scale-[0.99] active:translate-y-0">
-      <Link href={link.url} onClick={() => trackLinkClick(link.name)} target="_blank" aria-label={`Open ${link.name}`}>
+      <Link href={link.url} onClick={handleClick} target="_blank" aria-label={`Open ${link.name}`}>
         <div className="flex items-center gap-4 p-4">
           <span
             className="w-11 h-11 shrink-0 rounded-lg bg-muted/60 border border-border/80 flex items-center justify-center transition-colors duration-300 group-hover:border-accent/40 group-hover:bg-accent/10"

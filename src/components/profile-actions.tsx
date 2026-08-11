@@ -5,18 +5,21 @@ import { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import { useSensory } from '@/hooks/use-sensory';
 
 export default function ProfileActions() {
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
   const { setTheme, theme } = useTheme();
+  const { playFeedback } = useSensory();
 
   useEffect(() => {
     setTimeout(() => setUrl(window.location.href), 0);
   }, []);
 
   const handleShare = async () => {
+    playFeedback();
     if (navigator.share) {
       try {
         await navigator.share({
@@ -50,7 +53,10 @@ export default function ProfileActions() {
       <div className="flex items-center justify-center gap-3">
         <button
           type="button"
-          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          onClick={() => {
+            playFeedback();
+            setTheme(theme === 'light' ? 'dark' : 'light');
+          }}
           aria-label="Toggle theme"
           className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" aria-hidden="true" />
@@ -68,7 +74,10 @@ export default function ProfileActions() {
 
         <button
           type="button"
-          onClick={() => setShowQR(true)}
+          onClick={() => {
+            playFeedback();
+            setShowQR(true);
+          }}
           aria-label="Show QR Code"
           className="cursor-pointer inline-flex items-center justify-center rounded-lg border border-border bg-muted/20 text-foreground w-10 h-10 transition-all duration-300 hover:bg-muted/40 hover:border-accent/40 hover:text-accent active:scale-[0.98]">
           <QrCode className="w-4 h-4" aria-hidden="true" />

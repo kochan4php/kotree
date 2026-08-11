@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 import { Toaster } from 'sonner';
 import PwaInstallPrompt from '@/components/pwa-install-prompt';
+import KonamiCode from '@/components/konami-code';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <Toaster position="bottom-center" theme="system" richColors />
           <PwaInstallPrompt />
+          <KonamiCode />
           <PwaRegister />
         </ThemeProvider>
       </body>

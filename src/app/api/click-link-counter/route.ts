@@ -39,8 +39,20 @@ export async function POST(request: Request) {
     after(async () => {
       try {
         await incrementLinkCount(name, count);
+        
+        // Dispatch Webhook Notification if env exists
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL || process.env.TELEGRAM_WEBHOOK_URL;
+        if (webhookUrl) {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: `🚨 **New Click Detected!**\nSomeone just clicked the **${name.toUpperCase()}** link!\nIP: \`${ip.replace(/.[0-9]+$/, '.***')}\` (Masked)`
+            }),
+          });
+        }
       } catch (err) {
-        console.error('Failed to increment link count in background:', err);
+        console.error('Failed to process background tasks (db/webhook):', err);
       }
     });
 
