@@ -22,8 +22,7 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#16100c',
-            backgroundImage: 'radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.05) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.05) 2%, transparent 0%)',
-            backgroundSize: '100px 100px',
+            backgroundImage: 'linear-gradient(135deg, rgba(224,90,71,0.15) 0%, rgba(22,16,12,1) 100%)',
             fontFamily: 'sans-serif',
           }}
         >
@@ -43,7 +42,6 @@ export async function GET(request: Request) {
                 color: '#e05a47',
                 letterSpacing: '-0.05em',
                 lineHeight: 1,
-                textShadow: '0 4px 30px rgba(224, 90, 71, 0.5)',
               }}
             >
               Kotree
