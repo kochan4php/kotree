@@ -208,13 +208,23 @@ export default function Win95Mode() {
 
       {/* Windows */}
       {windows.map(w => {
-        if (w.isMinimized) return null;
-        
+        // Calculate transform for minimize animation
+        const minimizeStyle = w.isMinimized 
+          ? { transform: 'scale(0) translateY(50vh)', opacity: 0, pointerEvents: 'none' as any }
+          : { transform: 'scale(1) translateY(0)', opacity: 1, pointerEvents: 'auto' as any };
+
         return (
           <div key={w.id} 
                onClick={() => bringToFront(w.id)}
-               className={`absolute bg-[#c0c0c0] border-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_#000] flex flex-col ${w.isMaximized ? 'transition-all duration-200' : ''}`}
-               style={{ left: w.x, top: w.y, zIndex: w.zIndex, width: w.width, height: w.height }}>
+               className="absolute bg-[#c0c0c0] border-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_#000] flex flex-col transition-all duration-300 ease-in-out origin-bottom"
+               style={{ 
+                 left: w.x, 
+                 top: w.y, 
+                 zIndex: w.zIndex, 
+                 width: w.width, 
+                 height: w.height,
+                 ...minimizeStyle 
+               }}>
             {/* Title Bar */}
             <div 
               onPointerDown={(e) => handlePointerDown(e, w.id, w)}
@@ -224,17 +234,17 @@ export default function Win95Mode() {
               <div className="flex gap-0.5 pointer-events-auto">
                 <button 
                   onClick={(e) => { e.stopPropagation(); toggleMinimize(w.id); }} 
-                  className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white font-bold">
+                  className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white font-bold transition-transform active:scale-95">
                   <Minus size={10} strokeWidth={4} />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); toggleMaximize(w.id); }} 
-                  className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white font-bold">
+                  className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white font-bold transition-transform active:scale-95">
                   {w.isMaximized ? <div className="w-2 h-2 border-[1.5px] border-black relative"><div className="w-2 h-2 border-[1.5px] border-black absolute -top-1 -right-1 bg-[#c0c0c0]"></div></div> : <Square size={10} strokeWidth={3} />}
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); closeWindow(w.id); }} 
-                  className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white ml-0.5 font-bold">
+                  className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white ml-0.5 font-bold transition-transform active:scale-95">
                   <X size={12} strokeWidth={4} />
                 </button>
               </div>
