@@ -7,18 +7,25 @@ import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
+const optimisticClickMap = new Map<string, number>();
+
 interface SocialLinkItemProps {
   link: SocialLink;
   clickCount: number;
 }
 
-export default function SocialLinkItem({ link, clickCount: initialClickCount }: SocialLinkItemProps) {
-  const [localCount, setLocalCount] = useState(initialClickCount);
+export default function SocialLinkItem({ link, clickCount }: SocialLinkItemProps) {
+  const storedOptimistic = optimisticClickMap.get(link.name) || 0;
+  const displayCount = Math.max(clickCount, storedOptimistic);
+  
+  const [, forceRender] = useState(0);
 
   const handleClick = () => {
-    setLocalCount((prev) => prev + 1);
+    const newCount = displayCount + 1;
+    optimisticClickMap.set(link.name, newCount);
+    forceRender((v) => v + 1);
+
     trackLinkClick(link.name);
-    // Notify other components (like StatsCard) to update optimistically
     window.dispatchEvent(new Event('kotree:link-clicked'));
   };
 
@@ -37,9 +44,9 @@ export default function SocialLinkItem({ link, clickCount: initialClickCount }: 
             <div className="text-sm text-muted-foreground truncate">{link.description}</div>
           </div>
 
-          {localCount > 0 && (
+          {displayCount > 0 && (
             <span className="inline-flex items-center justify-center shrink-0 rounded-full bg-accent/10 text-accent border border-accent/25 px-2 py-0.5 text-xs">
-              {localCount} clicks
+              {displayCount} clicks
             </span>
           )}
           <ExternalLink className="w-4 h-4 text-muted-foreground opacity-60 group-hover:text-accent group-hover:opacity-100 transition-all duration-300" />
