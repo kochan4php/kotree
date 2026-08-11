@@ -28,6 +28,11 @@ export default function AITerminal() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input or textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
       if (e.key === '`' || e.key === '~') {
         e.preventDefault();
         setIsOpen(prev => !prev);

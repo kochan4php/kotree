@@ -18,6 +18,11 @@ export default function KonamiCode() {
     let inputSequence: string[] = [];
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input or textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
       // Don't listen if already activated
       if (activated) return;
 

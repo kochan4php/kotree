@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { generateToken } from '@/lib/security';
 import { MessageSquare, Send } from 'lucide-react';
 
+import { toast } from 'sonner';
+
 export default function Guestbook() {
   const [entries, setEntries] = useState<{message: string, createdAt: string}[]>([]);
   const [input, setInput] = useState('');
@@ -23,7 +25,16 @@ export default function Guestbook() {
     e.preventDefault();
     if (!input.trim() || isSubmitting) return;
 
+    // Spam protection
+    const lastSubmit = localStorage.getItem('kotree_guestbook_last');
+    if (lastSubmit && Date.now() - parseInt(lastSubmit) < 10000) {
+      toast.error("Please wait a few seconds before confessing again! 👀");
+      return;
+    }
+
     setIsSubmitting(true);
+    localStorage.setItem('kotree_guestbook_last', Date.now().toString());
+
     const tempMessage = input.trim();
     setInput('');
     
@@ -48,13 +59,15 @@ export default function Guestbook() {
   };
 
   return (
-    <Card className="solid-card border rounded-lg p-6 mt-6 overflow-hidden relative">
-      <div className="absolute top-4 right-4 bg-red-500/10 text-red-500 text-xs px-2 py-1 rounded border border-red-500/20 font-mono">
-        E2E ENCRYPTED
-      </div>
-      <div className="flex items-center gap-2 mb-4">
-        <MessageSquare className="w-5 h-5 text-accent" />
-        <h2 className="text-lg font-bold text-foreground">Secret Confessions</h2>
+    <Card className="solid-card border rounded-lg p-6 mt-6 overflow-hidden">
+      <div className="flex items-start justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-accent" />
+          <h2 className="text-lg font-bold text-foreground leading-tight">Secret Confessions</h2>
+        </div>
+        <div className="bg-red-500/10 text-red-500 text-[10px] px-2 py-1 rounded border border-red-500/20 font-mono whitespace-nowrap">
+          E2E ENCRYPTED
+        </div>
       </div>
 
       <div className="h-40 overflow-y-auto space-y-3 mb-4 pr-2 scrollbar-thin scrollbar-thumb-accent/20">
