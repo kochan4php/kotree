@@ -24,7 +24,9 @@ export async function POST(request: Request) {
       return new Response('Invalid name', { status: 400 });
     }
 
-    if (isRateLimited(`click-counter:${name}`)) {
+    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1';
+    
+    if (isRateLimited(`click-counter:${name}:${ip}`)) {
       return new Response('Too Many Requests', { status: 429 });
     }
 

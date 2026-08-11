@@ -1,4 +1,4 @@
-import CopyProfileButton from '@/components/copy-button';
+import ProfileActions from '@/components/profile-actions';
 import { Card } from '@/components/ui/card';
 import { profile } from '@/data/profile';
 import { Code2 } from 'lucide-react';
@@ -30,7 +30,9 @@ export default function CardProfile() {
         &rdquo;{profile.quote} <span className="font-bold text-accent">{profile.quoteHighlight}</span>&rdquo;
       </p>
 
-      <CopyProfileButton />
+      <div className="mt-2">
+        <ProfileActions />
+      </div>
     </Card>
   );
 }

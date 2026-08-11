@@ -2,7 +2,6 @@
 
 import { Card } from '@/components/ui/card';
 import { SocialLink } from '@/interfaces';
-import { cn } from '@/lib/utils';
 import { trackLinkClick } from '@/lib/track-click';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';

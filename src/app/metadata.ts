@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     description: site.description,
     siteName: 'Kotree',
     locale: 'en_US',
-    images: [{ url: site.imageUrl, width: 1200, height: 1200, alt: 'Kotree - Deo Subarno social links' }],
+    images: [{ url: `${site.baseUrl}/api/og`, width: 1200, height: 630, alt: 'Kotree - Deo Subarno social links' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: site.title,
     description: site.description,
-    images: [site.imageUrl],
+    images: [`${site.baseUrl}/api/og`],
     creator: '@kochan',
   },
   robots: {
