@@ -15,9 +15,18 @@ export default function VoiceCommand() {
     }
   }, []);
 
-  const handleListen = () => {
+  const handleListen = async () => {
     if (!supported) {
       toast.error("Browser doesn't support Web Speech API");
+      return;
+    }
+
+    try {
+      // Memaksa browser untuk meminta izin mikrofon terlebih dahulu
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      toast.error("Izin mikrofon ditolak atau diblokir browser.");
       return;
     }
 
