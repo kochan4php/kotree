@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const systemPrompt = `You are the personal AI assistant of ${profile.name} (${profile.handle}). 
 Your role is to answer questions on behalf of them based on their profile:
 Role: ${profile.role}
-Bio: ${profile.description}
+Bio: ${profile.bio}
 Quote: ${profile.quote} ${profile.quoteHighlight}
 Links: ${socialLinks.map(l => l.name).join(', ')}.
 Keep answers short, witty, and in character. Limit to 2 sentences.`;
