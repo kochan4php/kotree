@@ -6,7 +6,6 @@ import { trackLinkClick } from '@/lib/track-click';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { get, set } from 'idb-keyval';
 import { useSensory } from '@/hooks/use-sensory';
 
 interface SocialLinkItemProps {
@@ -21,33 +20,9 @@ export default function SocialLinkItem({ link, clickCount, index }: SocialLinkIt
 
   const handleClick = async () => {
     playFeedback();
-    trackLinkClick(link.name);
+    trackLinkClick(link.name); // Fire and forget with offline support
     setIsClicking(true);
     setTimeout(() => setIsClicking(false), 200);
-
-    const recordClick = async () => {
-      try {
-        if (!navigator.onLine) {
-          throw new Error('Offline');
-        }
-        await fetch('/api/click-link-counter', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ linkId: link.name }),
-        });
-      } catch (error) {
-        // Fallback to IndexedDB offline sync
-        console.warn('Network offline, saving click locally via IndexedDB');
-        const offlineClicks = (await get('offline-clicks')) || [];
-        offlineClicks.push(link.name);
-        await set('offline-clicks', offlineClicks);
-      }
-    };
-    
-    // Fire and forget
-    recordClick();
   };
 
   return (

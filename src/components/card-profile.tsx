@@ -27,13 +27,13 @@ export default function CardProfile() {
       <div className="relative w-fit mx-auto mb-4">
         <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
         <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-accent to-[#e05a47] p-[3px] shadow-lg shadow-accent/20">
-          <Image 
-            src={profile.avatarUrl} 
-            alt={profile.name} 
-            className="rounded-full object-cover" 
-            priority 
-            width={96} 
-            height={96} 
+            <Image 
+              src={profile.avatarUrl} 
+              alt={profile.name} 
+              className="rounded-full object-cover transition-transform duration-500 hover:scale-110 hover:rotate-3 cursor-pointer" 
+              priority 
+              width={96} 
+              height={96} 
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mO8Xg8AAi8BVeWk0s8AAAAASUVORK5CYII="
           />
