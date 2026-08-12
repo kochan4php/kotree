@@ -28,25 +28,6 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #fdf5eb;
-  --foreground: #32201d;
-  --card: #fbece1;
-  --card-foreground: #32201d;
-  --primary: #32201d;
-  --primary-foreground: #fdf5eb;
-  --secondary: #fbece1;
-  --secondary-foreground: #32201d;
-  --muted: #fbece1;
-  --muted-foreground: #8f7567;
-  --accent: #ff6a33;
-  --accent-foreground: #32201d;
-  --destructive: #c0392b;
-  --border: #e6cbb8;
-  --input: #e6cbb8;
-  --ring: #ff6a33;
-}
-
-.dark {
   --background: #201613;
   --foreground: #f4e7df;
   --card: #3a2a24;
@@ -97,15 +78,7 @@
   }
 
   .fluid-glass {
-    @apply relative overflow-hidden bg-card/5 backdrop-blur-2xl border border-white/20 shadow-2xl transform-gpu;
-    box-shadow: 
-      inset 0 1px 1px rgba(255, 255, 255, 0.4),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.1),
-      0 8px 32px 0 rgba(0, 0, 0, 0.15);
-  }
-
-  .dark .fluid-glass {
-    @apply border-white/10 bg-transparent;
+    @apply relative overflow-hidden bg-transparent border-white/10 shadow-2xl transform-gpu backdrop-blur-2xl;
     box-shadow: 
       inset 0 1px 1px rgba(255, 255, 255, 0.1),
       inset 0 -1px 1px rgba(0, 0, 0, 0.5),

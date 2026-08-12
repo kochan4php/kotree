@@ -149,7 +149,7 @@ export default function AITerminal() {
           />
           <div className={`w-[95vw] max-w-lg relative will-change-transform ${isOpen ? 'animate-modal-content' : 'animate-modal-content-out'}`}>
             <Card 
-              className="fluid-glass !bg-black/10 dark:!bg-black/5 !border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
+              className="fluid-glass !bg-black/5 !border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
             >
               <div className="absolute inset-0 pointer-events-none scanlines opacity-30 mix-blend-overlay z-10"></div>
               
