@@ -20,17 +20,12 @@ export default function VoiceCommand() {
 
   const [isTelepathy, setIsTelepathy] = useState(false);
   const [isTelepathyRendered, setIsTelepathyRendered] = useState(false);
-  const [isTelepathyVisible, setIsTelepathyVisible] = useState(false);
   const [telepathyInput, setTelepathyInput] = useState('');
 
   useEffect(() => {
     if (isTelepathy) {
       setIsTelepathyRendered(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setIsTelepathyVisible(true));
-      });
     } else {
-      setIsTelepathyVisible(false);
       const timer = setTimeout(() => setIsTelepathyRendered(false), 200);
       return () => clearTimeout(timer);
     }
@@ -155,13 +150,13 @@ export default function VoiceCommand() {
       {isTelepathyRendered && mounted && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div 
-            className={`absolute inset-0 bg-black/40 ${isTelepathyVisible ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
+            className={`absolute inset-0 bg-black/40 ${isTelepathy ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
             onClick={() => setIsTelepathy(false)} 
           />
           <form 
             onSubmit={submitTelepathy} 
             onClick={(e) => e.stopPropagation()}
-            className={`relative fluid-glass p-8 rounded-lg max-w-md w-full will-change-transform ${isTelepathyVisible ? 'animate-modal-content' : 'animate-modal-content-out'}`}
+            className={`relative fluid-glass p-8 rounded-lg max-w-md w-full will-change-transform ${isTelepathy ? 'animate-modal-content' : 'animate-modal-content-out'}`}
           >
             <div className="relative z-10">
               <h3 className="text-2xl font-black tracking-tight text-foreground mb-3 flex items-center gap-2">

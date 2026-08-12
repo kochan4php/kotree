@@ -21,16 +21,11 @@ const RESPONSES: Record<string, string> = {
 export default function AITerminal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  
+
   useEffect(() => {
     if (isOpen) {
       setIsRendered(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setIsVisible(true));
-      });
     } else {
-      setIsVisible(false);
       const timer = setTimeout(() => setIsRendered(false), 300);
       return () => clearTimeout(timer);
     }
@@ -149,10 +144,10 @@ export default function AITerminal() {
       {isRendered && mounted && createPortal(
         <div className="fixed inset-0 z-[100] flex justify-center items-start pt-20">
           <div 
-            className={`absolute inset-0 bg-black/40 ${isVisible ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
+            className={`absolute inset-0 bg-black/40 ${isOpen ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
             onClick={() => setIsOpen(false)} 
           />
-          <div className={`w-[95vw] max-w-lg relative will-change-transform ${isVisible ? 'animate-modal-content' : 'animate-modal-content-out'}`}>
+          <div className={`w-[95vw] max-w-lg relative will-change-transform ${isOpen ? 'animate-modal-content' : 'animate-modal-content-out'}`}>
             <Card 
               className="fluid-glass !bg-black/10 dark:!bg-black/5 !border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
             >
