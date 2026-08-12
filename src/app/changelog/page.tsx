@@ -3,8 +3,6 @@ import path from 'path';
 import { Card } from '@/components/ui/card';
 import { parseChangelog } from '@/lib/changelog';
 import { renderChangelog } from '@/lib/changelog-render';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -19,19 +17,6 @@ export default function ChangelogPage() {
 
   return (
     <main className="min-h-screen p-4 pt-[76px] md:mt-2">
-      <style>{`#global-logo { display: none !important; }`}</style>
-      
-      {/* Fixed Back Button */}
-      <Link 
-        href="/" 
-        className="!fixed top-4 left-3 z-50 pointer-events-auto flex h-12 w-fit items-center gap-2 px-5 fluid-glass !rounded-full text-sm font-bold !bg-accent/5 !border-accent/20 text-accent hover:!bg-accent/20 transition-all duration-300 shadow-lg shadow-accent/5"
-      >
-        <div className="relative z-10 flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </div>
-      </Link>
-
       <div className="relative max-w-2xl mx-auto">
 
         <div className="space-y-6">

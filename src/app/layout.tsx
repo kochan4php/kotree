@@ -17,7 +17,7 @@ const AITerminal = dynamic(() => import('@/components/ai-terminal'));
 const Background = dynamic(() => import('@/components/background'));
 import ScrollFades from '@/components/scroll-fades';
 import PwaSyncManager from '@/components/pwa-sync-manager';
-import WasmEngine from '@/components/wasm-engine';
+import HeaderLeft from '@/components/header-left';
 import SelfDestruct from '@/components/self-destruct';
 import Win95Mode from '@/components/win95-mode';
 import WebBluetooth from '@/components/web-bluetooth';
@@ -80,9 +80,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <KonamiCode />
         <GhostCursor />
         <div className="fixed top-4 left-3 right-3 z-[60] flex items-center justify-between pointer-events-none">
-          <div id="global-logo" className="pointer-events-auto">
-            <WasmEngine />
-          </div>
+          <HeaderLeft />
           <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass !rounded-full !bg-accent/5 !border-accent/20">
             <AITerminal />
             <VoiceCommand />
