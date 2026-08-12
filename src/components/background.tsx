@@ -49,7 +49,7 @@ function Stars({ size = 0.005, count = 5000, speed = 1, ...props }: any) {
 
 export default function Background() {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]" aria-hidden="true">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
       {/* Existing Fallback blur blobs just in case WebGL fails to load */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl opacity-50"></div>
       <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-accent/20 rounded-full blur-3xl opacity-30"></div>
