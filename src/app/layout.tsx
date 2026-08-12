@@ -61,7 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             theme="system" 
             richColors 
             toastOptions={{ 
-              className: 'fluid-glass !bg-card/60 !rounded-2xl border-none',
+              className: 'fluid-glass !rounded-2xl border-none',
             }} 
           />
           <PwaInstallPrompt />
@@ -72,7 +72,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div id="global-logo" className="pointer-events-auto">
               <WasmEngine />
             </div>
-            <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full">
+            <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass !rounded-full !bg-accent/5 !border-accent/20">
               <AITerminal />
               <VoiceCommand />
               <WebBluetooth />

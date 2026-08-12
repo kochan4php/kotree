@@ -6,12 +6,12 @@ import { Points, PointMaterial } from '@react-three/drei';
 // @ts-ignore
 import * as random from 'maath/random/dist/maath-random.esm';
 
-function Stars(props: any) {
+function Stars({ size = 0.005, count = 5000, speed = 1, ...props }: any) {
   const ref = useRef<any>(null);
   // Create a sphere of random particles, fallback to zeros if maath fails
   const [sphere] = useState(() => {
     try {
-      const positions = new Float32Array(5001);
+      const positions = new Float32Array(count * 3);
       random.inSphere(positions, { radius: 1.5 });
       // Sanity check for NaN
       for (let i = 0; i < positions.length; i++) {
@@ -19,7 +19,7 @@ function Stars(props: any) {
       }
       return positions;
     } catch {
-      return new Float32Array(5001).fill(0);
+      return new Float32Array(count * 3).fill(0);
     }
   });
 
@@ -27,8 +27,8 @@ function Stars(props: any) {
     // Respect reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (ref.current && !prefersReducedMotion) {
-      ref.current.rotation.x -= delta / 10;
-      ref.current.rotation.y -= delta / 15;
+      ref.current.rotation.x -= (delta / 10) * speed;
+      ref.current.rotation.y -= (delta / 15) * speed;
     }
   });
 
@@ -38,7 +38,7 @@ function Stars(props: any) {
         <PointMaterial
           transparent
           color="#ff6a33"
-          size={0.005}
+          size={size}
           sizeAttenuation={true}
           depthWrite={false}
         />
@@ -56,7 +56,11 @@ export default function Background() {
       
       {/* 3D WebGL Canvas */}
       <Canvas camera={{ position: [0, 0, 1] }}>
-        <Stars />
+        {/* Distant small stars */}
+        <Stars size={0.005} count={4000} speed={0.8} />
+        
+        {/* Closer, larger stars */}
+        <Stars size={0.015} count={1000} speed={1.5} />
       </Canvas>
     </div>
   );

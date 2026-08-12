@@ -24,10 +24,12 @@ export default function ChangelogPage() {
       {/* Fixed Back Button */}
       <Link 
         href="/" 
-        className="fixed top-4 left-3 z-50 pointer-events-auto flex h-12 items-center gap-2 px-5 rounded-full text-sm font-bold bg-accent/10 backdrop-blur-2xl border border-accent/30 text-accent hover:bg-accent/20 transition-all duration-300 shadow-lg shadow-accent/5"
+        className="fixed top-4 left-3 z-50 pointer-events-auto flex h-12 items-center gap-2 px-5 fluid-glass !rounded-full text-sm font-bold !bg-accent/5 !border-accent/20 text-accent hover:!bg-accent/20 transition-all duration-300 shadow-lg shadow-accent/5"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Back
+        <div className="relative z-10 flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </div>
       </Link>
 
       <div className="relative max-w-2xl mx-auto">
@@ -47,9 +49,11 @@ export default function ChangelogPage() {
                 className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
                 style={{ animationDelay: `${150 + index * 100}ms`, animationDuration: '600ms' }}
               >
-                <Card className="gap-3 transition-all duration-300 border-2 border-border/40 bg-card/60 hover:bg-card hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1">
-                  <h2 className="text-xl font-black tracking-tight text-accent">{version.title}</h2>
-                  <div className="text-muted-foreground leading-relaxed font-medium">{version.body}</div>
+                <Card className="gap-3 transition-all duration-300 fluid-glass hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1">
+                  <div className="relative z-10">
+                    <h2 className="text-xl font-black tracking-tight text-accent">{version.title}</h2>
+                    <div className="text-muted-foreground leading-relaxed font-medium">{version.body}</div>
+                  </div>
                 </Card>
               </div>
             ))}

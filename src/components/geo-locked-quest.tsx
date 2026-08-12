@@ -82,10 +82,10 @@ export default function GeoLockedQuest() {
 
   return (
     <div 
-      className="fluid-glass !bg-orange-400/30 dark:!bg-orange-900/40 w-full h-full p-4 text-orange-900 dark:text-orange-100 rounded-lg text-center relative flex flex-col justify-center items-center"
+      className="fluid-glass !bg-orange-400/5 dark:!bg-orange-900/10 w-full h-full p-4 text-orange-900 dark:text-orange-100 rounded-lg text-center relative flex flex-col justify-center items-center"
       style={{ '--accent': '#ea580c' } as React.CSSProperties}
     >
-      <div className="liquid-gradient opacity-100 saturate-150"></div>
+      <div className="liquid-gradient opacity-40 saturate-100"></div>
       <div className="relative z-10 w-full h-full flex flex-col justify-center items-center">
         <h3 className="font-bold text-sm text-orange-800 dark:text-orange-200 mb-1 flex items-center justify-center gap-1.5 tracking-wider">
         <span className="text-sm">📍</span> GEO-QUEST
