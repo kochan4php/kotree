@@ -4,7 +4,8 @@ import { Sparkles, TerminalSquare, ArrowRight } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="mt-4 w-full pb-4">
-      <div className="fluid-glass p-6 rounded-lg !bg-black/5 dark:!bg-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm relative group overflow-hidden">
+      <div className="fluid-glass p-6 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-6 text-sm relative group overflow-hidden">
+        <div className="liquid-gradient opacity-30"></div>
         {/* Animated background glow */}
         <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 opacity-0 group-hover:opacity-100 transition-all duration-[1.5s] -translate-x-full group-hover:translate-x-full ease-in-out" />
         
