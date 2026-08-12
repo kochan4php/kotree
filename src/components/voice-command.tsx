@@ -155,13 +155,13 @@ export default function VoiceCommand() {
       {isTelepathyRendered && mounted && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div 
-            className={`absolute inset-0 duration-200 ${isTelepathyVisible ? 'bg-black/40 backdrop-blur-sm animate-in fade-in' : 'animate-out fade-out bg-transparent'}`} 
+            className={`absolute inset-0 bg-black/40 ${isTelepathyVisible ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
             onClick={() => setIsTelepathy(false)} 
           />
           <form 
             onSubmit={submitTelepathy} 
             onClick={(e) => e.stopPropagation()}
-            className={`relative fluid-glass p-8 rounded-lg max-w-md w-full will-change-transform duration-200 ${isTelepathyVisible ? 'animate-in fade-in zoom-in-95 slide-in-from-bottom-4' : 'animate-out fade-out zoom-out-95 slide-out-to-bottom-4'}`}
+            className={`relative fluid-glass p-8 rounded-lg max-w-md w-full will-change-transform ${isTelepathyVisible ? 'animate-modal-content' : 'animate-modal-content-out'}`}
           >
             <div className="relative z-10">
               <h3 className="text-2xl font-black tracking-tight text-foreground mb-3 flex items-center gap-2">

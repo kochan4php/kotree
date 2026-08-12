@@ -149,10 +149,10 @@ export default function AITerminal() {
       {isRendered && mounted && createPortal(
         <div className="fixed inset-0 z-[100] flex justify-center items-start pt-20">
           <div 
-            className={`absolute inset-0 duration-300 ${isVisible ? 'bg-black/40 backdrop-blur-sm animate-in fade-in' : 'animate-out fade-out bg-transparent'}`} 
+            className={`absolute inset-0 bg-black/40 ${isVisible ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
             onClick={() => setIsOpen(false)} 
           />
-          <div className={`w-[95vw] max-w-lg relative will-change-transform duration-300 ${isVisible ? 'animate-in fade-in zoom-in-95 slide-in-from-top-8' : 'animate-out fade-out zoom-out-95 slide-out-to-top-8'}`}>
+          <div className={`w-[95vw] max-w-lg relative will-change-transform ${isVisible ? 'animate-modal-content' : 'animate-modal-content-out'}`}>
             <Card 
               className="fluid-glass !bg-black/10 dark:!bg-black/5 !border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
             >
