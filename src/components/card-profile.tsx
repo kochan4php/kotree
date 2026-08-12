@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { profile } from "@/data/profile";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Tilt from "react-parallax-tilt";
 import QRCode from "react-qr-code";
 import { Code2, X } from "lucide-react";
 import Image from "next/image";
@@ -36,51 +35,38 @@ export default function CardProfile() {
 
   return (
     <>
-      <Tilt
-        tiltEnable={isDesktop}
-        glareEnable={isDesktop}
-        glareMaxOpacity={0.15}
-        glareColor="#ff6a33"
-        glarePosition="all"
-        tiltMaxAngleX={isDesktop ? 5 : 0}
-        tiltMaxAngleY={isDesktop ? 5 : 0}
-        scale={isDesktop ? 1.02 : 1}
-        transitionSpeed={2500}
-        className="mb-6"
-      >
-        <Card className="fluid-glass text-center p-6 relative z-10 gap-4">
-            <div className="liquid-gradient"></div>
-            <div className="relative w-fit mx-auto mb-1 z-10">
-              <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
-              <div className="relative flex justify-center">
-                <Image
-                  src={profile.avatarUrl}
-                  alt={profile.name}
-                  width={96}
-                  height={96}
-                  priority
-                  className="rounded-full shadow-lg shadow-accent/20 object-cover border-2 border-accent/30 pointer-events-none w-24 h-24"
-                />
-              </div>
+      <Card className="fluid-glass text-center p-6 relative z-10 gap-4 mb-6">
+          <div className="liquid-gradient"></div>
+          <div className="relative w-fit mx-auto mb-1 z-10">
+            <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
+            <div className="relative flex justify-center">
+              <Image
+                src={profile.avatarUrl}
+                alt={profile.name}
+                width={96}
+                height={96}
+                priority
+                className="rounded-full shadow-lg shadow-accent/20 object-cover border-2 border-accent/30 pointer-events-none w-24 h-24"
+              />
             </div>
+          </div>
 
-            <div className="relative z-10 flex flex-col gap-0.5">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
-              <p className="text-base text-muted-foreground">{profile.handle}</p>
-            </div>
+          <div className="relative z-10 flex flex-col gap-0.5">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
+            <p className="text-base text-muted-foreground">{profile.handle}</p>
+          </div>
 
-            <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto cursor-pointer">
-              <Code2 className="w-4 h-4" />
-              {profile.role}
-            </span>
+          <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto cursor-pointer">
+            <Code2 className="w-4 h-4" />
+            {profile.role}
+          </span>
 
-            <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
+          <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
 
-            <div className="relative z-20">
-              <ProfileActions onToggleQR={() => setIsFlipped(true)} />
-            </div>
-        </Card>
-      </Tilt>
+          <div className="relative z-20">
+            <ProfileActions onToggleQR={() => setIsFlipped(true)} />
+          </div>
+      </Card>
 
       {/* Centered Modal for QR Code */}
       {isRendered && typeof window !== 'undefined' && createPortal(

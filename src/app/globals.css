@@ -27,7 +27,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1rem;
   --background: #201613;
   --foreground: #f4e7df;
   --card: #3a2a24;
@@ -243,4 +243,13 @@
 }
 .rotate-y-180 {
   transform: rotateY(180deg);
+}
+
+/* Firefox specific fixes */
+@supports (-moz-appearance:none) {
+  .firefox-static {
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
 }

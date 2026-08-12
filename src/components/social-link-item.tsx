@@ -28,15 +28,15 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+      className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both firefox-static"
       style={{ animationDelay: `${100 + index * 100}ms`, animationDuration: '500ms' }}
     >
-      <Card onMouseEnter={playHoverFeedback} className="fluid-glass group p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/20 active:scale-[0.98] active:translate-y-0">
-        <div className="liquid-gradient group-hover:opacity-100 transition-opacity duration-300 opacity-60"></div>
+      <Card onMouseEnter={playHoverFeedback} className="fluid-glass group p-0 transition-all duration-300 hover:border-accent/30 hover:bg-accent/[0.02] hover:shadow-lg active:scale-[0.99]">
+        <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
         <Link href={link.url} onClick={handleClick} target="_blank" aria-label={`Open ${link.name}`}>
           <div className="relative z-10 flex items-center gap-4 p-4">
           <span
-            className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/50 group-hover:shadow-md group-hover:shadow-accent/20 group-hover:scale-105"
+            className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-sm"
             style={{ color: link.color }}>
             <link.icon className="w-5 h-5" aria-hidden="true" />
           </span>
