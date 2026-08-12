@@ -10,7 +10,12 @@ export default function StateCard({ children }: StateCardProps) {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Background />
       <div className="relative z-10 w-full max-w-lg">
-        <Card className="p-8 text-center gap-0">{children}</Card>
+        <Card className="fluid-glass relative overflow-hidden p-8 text-center gap-0 border-accent/20 shadow-2xl">
+          <div className="liquid-gradient opacity-20"></div>
+          <div className="relative z-10">
+            {children}
+          </div>
+        </Card>
       </div>
     </div>
   );

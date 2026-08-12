@@ -8,11 +8,11 @@ interface PageButtonProps {
 }
 
 const baseClass =
-  'flex items-center justify-center gap-2 font-semibold py-3 px-6 rounded-xl transition-all duration-300 active:scale-[0.98]';
+  'flex items-center justify-center gap-2 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer';
 
 const variantClass = {
-  primary: 'bg-accent hover:bg-accent/90 text-accent-foreground',
-  ghost: 'bg-muted/20 hover:bg-muted/40 text-foreground border border-border hover:border-accent/40',
+  primary: 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-md',
+  ghost: 'fluid-glass !bg-white/5 hover:!bg-white/10 text-foreground !border-white/10 hover:!border-accent/40 shadow-sm',
 } as const;
 
 export default function PageButton({ href, onClick, variant = 'primary', children }: PageButtonProps) {

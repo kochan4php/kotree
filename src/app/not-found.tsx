@@ -8,10 +8,10 @@ export default function NotFound() {
   return (
     <StateCard>
       <div className="animate-in fade-in zoom-in-95 duration-500 fill-mode-both">
-        <p className="text-6xl font-bold tracking-tight text-accent mb-4 drop-shadow-[0_0_15px_rgba(255,106,51,0.5)]">404</p>
+        <p className="text-[120px] leading-none font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent/50 mb-4 drop-shadow-[0_0_30px_rgba(255,124,71,0.6)] mix-blend-screen">404</p>
       </div>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">Page Not Found</h1>
+        <h1 className="text-3xl font-black tracking-tight text-foreground mb-2 uppercase">Sanctuary Lost</h1>
         <p className="text-muted-foreground leading-relaxed mb-8">
           The link you followed might be broken, or the page may have been removed.
         </p>
