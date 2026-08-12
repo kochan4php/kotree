@@ -28,7 +28,7 @@ function Card({ className, children, ...props }: React.ComponentProps<'div'>) {
       ref={cardRef}
       data-slot="card"
       className={cn(
-        'group/card solid-card text-card-foreground flex flex-col gap-6 rounded-lg border p-6 shadow-sm relative overflow-hidden',
+        'group/card text-card-foreground flex flex-col gap-6 rounded-lg border p-6 shadow-sm relative overflow-hidden',
         className
       )}
       {...props}
