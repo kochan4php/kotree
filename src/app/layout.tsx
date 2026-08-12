@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic';
 
 const AITerminal = dynamic(() => import('@/components/ai-terminal'));
 const Background = dynamic(() => import('@/components/background'));
+import ScrollFades from '@/components/scroll-fades';
 import PwaSyncManager from '@/components/pwa-sync-manager';
 import WasmEngine from '@/components/wasm-engine';
 import SelfDestruct from '@/components/self-destruct';
@@ -61,12 +62,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
         <Background />
-        
-        {/* Premium Frosted Glass Scroll Fade Edges */}
-        <div className="pointer-events-none fixed inset-0 z-50 flex flex-col justify-between h-screen">
-          <div className="h-32 backdrop-blur-2xl bg-background/80 mask-gradient-top w-full"></div>
-          <div className="h-32 backdrop-blur-2xl bg-background/80 mask-gradient-bottom w-full"></div>
-        </div>
+        <ScrollFades />
 
         <div className="relative z-10">
           {children}
