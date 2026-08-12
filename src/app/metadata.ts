@@ -38,7 +38,6 @@ export const metadata: Metadata = {
       : undefined,
   },
   other: {
-    'theme-color': '#201613',
     'og:image:alt': 'Kotree - Deo Subarno social links',
     'og:profile:first_name': 'Deo',
     'og:profile:last_name': 'Subarno',

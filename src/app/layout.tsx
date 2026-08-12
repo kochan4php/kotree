@@ -25,9 +25,16 @@ import DoomMode from '@/components/doom-mode';
 import VoiceCommand from '@/components/voice-command';
 import InfiniteMirror from '@/components/infinite-mirror';
 
+import { Viewport } from 'next';
+
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
 export { metadata };
+
+export const viewport: Viewport = {
+  themeColor: '#201613',
+  colorScheme: 'dark',
+};
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -54,7 +61,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
         <Background />
-        {children}
+        
+        {/* Premium Frosted Glass Scroll Fade Edges */}
+        <div className="pointer-events-none fixed inset-0 z-50 flex flex-col justify-between h-screen">
+          <div className="h-32 backdrop-blur-2xl bg-background/80 mask-gradient-top w-full"></div>
+          <div className="h-32 backdrop-blur-2xl bg-background/80 mask-gradient-bottom w-full"></div>
+        </div>
+
+        <div className="relative z-10">
+          {children}
+        </div>
         <Toaster 
           position="bottom-center" 
           theme="dark" 
@@ -67,7 +83,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PwaSyncManager />
         <KonamiCode />
         <GhostCursor />
-        <div className="fixed top-4 left-3 right-3 z-50 flex items-center justify-between pointer-events-none">
+        <div className="fixed top-4 left-3 right-3 z-[60] flex items-center justify-between pointer-events-none">
           <div id="global-logo" className="pointer-events-auto">
             <WasmEngine />
           </div>

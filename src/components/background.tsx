@@ -57,10 +57,10 @@ export default function Background() {
       {/* 3D WebGL Canvas */}
       <Canvas camera={{ position: [0, 0, 1] }}>
         {/* Distant small stars */}
-        <Stars size={0.004} count={2500} speed={0.6} />
+        <Stars size={0.005} count={2000} speed={0.6} />
         
         {/* Closer, larger stars */}
-        <Stars size={0.010} count={350} speed={1.2} />
+        <Stars size={0.012} count={400} speed={1.2} />
       </Canvas>
     </div>
   );

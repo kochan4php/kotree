@@ -55,7 +55,7 @@
   * {
     @apply border-border outline-ring/50 selection:bg-accent selection:text-accent-foreground;
   }
-  body {
+  html, body {
     background: var(--background);
     @apply text-foreground;
   }
@@ -97,6 +97,16 @@
     );
     opacity: 0.25;
     pointer-events: none;
+  }
+
+  .mask-gradient-top {
+    mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  }
+
+  .mask-gradient-bottom {
+    mask-image: linear-gradient(to top, black 0%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
   }
 }
 
