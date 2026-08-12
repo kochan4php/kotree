@@ -19,7 +19,22 @@ export default function VoiceCommand() {
   }, []);
 
   const [isTelepathy, setIsTelepathy] = useState(false);
+  const [isTelepathyRendered, setIsTelepathyRendered] = useState(false);
+  const [isTelepathyVisible, setIsTelepathyVisible] = useState(false);
   const [telepathyInput, setTelepathyInput] = useState('');
+
+  useEffect(() => {
+    if (isTelepathy) {
+      setIsTelepathyRendered(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsTelepathyVisible(true));
+      });
+    } else {
+      setIsTelepathyVisible(false);
+      const timer = setTimeout(() => setIsTelepathyRendered(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isTelepathy]);
 
   const processCommand = (transcript: string) => {
     const text = transcript.toLowerCase();
@@ -131,15 +146,22 @@ export default function VoiceCommand() {
       <button 
         onClick={handleListen}
         disabled={isListening}
-        className={`w-9 h-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${isListening ? 'bg-red-500 animate-pulse text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-transparent text-foreground hover:bg-white/10 hover:text-accent active:scale-95'}`}
+        className={`w-10 h-10 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${isListening ? 'bg-red-500 animate-pulse text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-transparent text-foreground hover:bg-accent/20'}`}
         aria-label="Voice Command"
       >
-        {isListening ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+        {isListening ? <Mic className="w-5 h-5 text-white" /> : <MicOff className="w-5 h-5 text-rose-500" />}
       </button>
 
-      {isTelepathy && mounted && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
-          <form onSubmit={submitTelepathy} className="bg-background/80 backdrop-blur-3xl p-8 rounded-3xl border border-border shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+      {isTelepathyRendered && mounted && createPortal(
+        <div 
+          className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-200 ease-out ${isTelepathyVisible ? 'bg-black/40 backdrop-blur-md opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'}`}
+          onClick={() => setIsTelepathy(false)}
+        >
+          <form 
+            onSubmit={submitTelepathy} 
+            onClick={(e) => e.stopPropagation()}
+            className={`bg-background/80 backdrop-blur-3xl p-8 rounded-lg border border-border shadow-2xl max-w-md w-full transition-all duration-200 ease-out ${isTelepathyVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}
+          >
             <h3 className="text-2xl font-black tracking-tight text-foreground mb-3 flex items-center gap-2">
               <span>🧠</span> Telepathy Mode
             </h3>

@@ -1,6 +1,24 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
+
+// Singleton AudioContext to prevent main thread freezing/flickering
+let globalAudioCtx: AudioContext | null = null;
+
+function getAudioContext() {
+  if (typeof window === 'undefined') return null;
+  if (!globalAudioCtx) {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      globalAudioCtx = new AudioContextClass();
+    }
+  }
+  // Resume if suspended (browser policy)
+  if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+    globalAudioCtx.resume();
+  }
+  return globalAudioCtx;
+}
 
 export function useSensory() {
   const triggerHaptic = useCallback(() => {
@@ -15,9 +33,9 @@ export function useSensory() {
   }, []);
 
   const triggerSound = useCallback(() => {
-    if (typeof window !== 'undefined' && window.AudioContext) {
+    const audioCtx = getAudioContext();
+    if (audioCtx) {
       try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
 
@@ -45,9 +63,9 @@ export function useSensory() {
   }, [triggerHaptic, triggerSound]);
 
   const playHoverFeedback = useCallback(() => {
-    if (typeof window !== 'undefined' && window.AudioContext) {
+    const audioCtx = getAudioContext();
+    if (audioCtx) {
       try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
 

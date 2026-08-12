@@ -11,7 +11,7 @@ function Stars(props: any) {
   // Create a sphere of random particles, fallback to zeros if maath fails
   const [sphere] = useState(() => {
     try {
-      const positions = new Float32Array(5000);
+      const positions = new Float32Array(5001);
       random.inSphere(positions, { radius: 1.5 });
       // Sanity check for NaN
       for (let i = 0; i < positions.length; i++) {
@@ -19,7 +19,7 @@ function Stars(props: any) {
       }
       return positions;
     } catch {
-      return new Float32Array(5000).fill(0);
+      return new Float32Array(5001).fill(0);
     }
   });
 

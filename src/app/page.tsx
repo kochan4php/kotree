@@ -6,7 +6,6 @@ import GeoLockedQuest from '@/components/geo-locked-quest';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
-const Background = dynamic(() => import('@/components/background'));
 const CryptoTipJar = dynamic(() => import('@/components/crypto-tip-jar'));
 
 export const revalidate = 30;
@@ -14,7 +13,6 @@ export const revalidate = 30;
 export default function LinktreePage() {
   return (
     <main className="min-h-screen p-4 pt-[76px] md:mt-2 relative">
-      <Background />
       <div className="relative max-w-lg mx-auto">
         <CardProfile />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">

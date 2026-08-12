@@ -7,10 +7,29 @@ import { MessageSquare, Send } from 'lucide-react';
 
 import { toast } from 'sonner';
 
-export default function Guestbook() {
+export default function Guestbook({ token }: { token?: string }) {
   const [entries, setEntries] = useState<{message: string, createdAt: string}[]>([]);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [decryptedIndexes, setDecryptedIndexes] = useState<Set<number>>(new Set());
+
+  const decryptMessage = (encrypted: string) => {
+    if (!encrypted.startsWith("🔒 ")) return encrypted;
+    try {
+      const base64 = encrypted.replace("🔒 ", "");
+      const decoded = atob(base64);
+      return Array.from(decoded).map(c => String.fromCharCode(c.charCodeAt(0) - 1)).join('');
+    } catch (e) {
+      return encrypted;
+    }
+  };
+
+  const toggleDecrypt = (index: number) => {
+    const newSet = new Set(decryptedIndexes);
+    if (newSet.has(index)) newSet.delete(index);
+    else newSet.add(index);
+    setDecryptedIndexes(newSet);
+  };
 
   useEffect(() => {
     fetch('/api/guestbook')
@@ -45,7 +64,6 @@ export default function Guestbook() {
     setEntries([{ message: encryptedMessage, createdAt: new Date().toISOString() }, ...entries].slice(0, 50));
 
     try {
-      const token = await generateToken();
       await fetch('/api/guestbook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,7 +77,7 @@ export default function Guestbook() {
   };
 
   return (
-    <Card className="solid-card border rounded-lg p-6 mt-6 overflow-hidden">
+    <Card className="solid-card border-2 border-border/40 bg-card/60 backdrop-blur-sm rounded-xl p-6 mt-6 overflow-hidden shadow-lg hover:border-red-500/30 transition-all duration-300">
       <div className="flex items-start justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-accent" />
@@ -74,27 +92,38 @@ export default function Guestbook() {
         {entries.length === 0 ? (
           <p className="text-sm text-muted-foreground italic text-center py-4">No secrets yet. Be the first!</p>
         ) : (
-          entries.map((entry, i) => (
-            <div key={i} className="text-xs font-mono break-all border-l-2 border-red-500/40 pl-3 py-1 bg-muted/10 rounded-r-md">
-              <p className="text-muted-foreground">{entry.message}</p>
-            </div>
-          ))
+          entries.map((entry, i) => {
+            const isDecrypted = decryptedIndexes.has(i);
+            return (
+              <div 
+                key={i} 
+                onClick={() => toggleDecrypt(i)}
+                className="text-xs font-mono break-all border-l-2 border-red-500/40 pl-3 py-1 bg-muted/10 rounded-r-md cursor-pointer hover:bg-muted/20 transition-colors"
+                title="Click to decrypt/encrypt"
+              >
+                <p className={isDecrypted ? "text-foreground" : "text-muted-foreground"}>
+                  {isDecrypted ? "🔓 " + decryptMessage(entry.message) : entry.message}
+                </p>
+              </div>
+            );
+          })
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value.substring(0, 100))}
           placeholder="Leave a secret encrypted message..."
-          className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+          className="flex-1 rounded-lg border-2 border-border/50 bg-background/50 px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all"
           disabled={isSubmitting}
+          suppressHydrationWarning
         />
         <button
           type="submit"
           disabled={!input.trim() || isSubmitting}
-          className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
         >
           <Send className="w-4 h-4" />
         </button>

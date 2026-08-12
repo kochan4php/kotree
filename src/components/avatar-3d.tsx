@@ -9,11 +9,11 @@ function AvatarShape() {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHover] = useState(false);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (meshRef.current) {
-      // Rotate slowly
-      meshRef.current.rotation.x = state.clock.getElapsedTime() * 0.5;
-      meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.3;
+      // Rotate slowly using delta
+      meshRef.current.rotation.x += delta * 0.5;
+      meshRef.current.rotation.y += delta * 0.3;
       
       // Look at cursor (gentle lerp)
       const targetX = (state.pointer.x * Math.PI) / 4;

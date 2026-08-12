@@ -13,7 +13,7 @@ export default async function LinksSection() {
     <>
       <SocialLinkList linkCounts={linkCounts} token={token} />
       <StatsCard linkCounts={linkCounts} />
-      <Guestbook />
+      <Guestbook token={token} />
     </>
   );
 }

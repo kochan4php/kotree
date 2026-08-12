@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getGuestbookEntries, addGuestbookEntry } from '@/connections/mongodb';
-import { validateToken } from '@/lib/security';
+import { guardOrigin } from '@/lib/security';
 
 export async function GET() {
   try {
@@ -13,12 +13,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const forbidden = guardOrigin(request);
+    if (forbidden) return forbidden;
+
     const body = await request.json();
-    
-    // Validate CSRF Token
-    if (!body._token || !validateToken(body._token)) {
-      return new NextResponse('Forbidden', { status: 403 });
-    }
 
     // Honeypot trap
     if (body._honeypot) {
@@ -35,7 +33,11 @@ export async function POST(request: Request) {
       return new NextResponse('Bad Request', { status: 400 });
     }
 
-    await addGuestbookEntry(cleanMessage);
+    // Get IP and User-Agent
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Unknown';
+    const userAgent = request.headers.get('user-agent') || 'Unknown';
+
+    await addGuestbookEntry(cleanMessage, ip, userAgent);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to add entry' }, { status: 500 });

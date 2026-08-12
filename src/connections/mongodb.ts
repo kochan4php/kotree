@@ -41,6 +41,8 @@ export async function incrementLinkCount(name: string, count: number = 1): Promi
 export interface GuestbookEntry {
   message: string;
   createdAt: Date;
+  ip?: string;
+  userAgent?: string;
 }
 
 const guestbookCollection = () =>
@@ -51,7 +53,7 @@ export async function getGuestbookEntries(): Promise<GuestbookEntry[]> {
   return collection.find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).limit(50).toArray();
 }
 
-export async function addGuestbookEntry(message: string): Promise<void> {
+export async function addGuestbookEntry(message: string, ip?: string, userAgent?: string): Promise<void> {
   const collection = await guestbookCollection();
-  await collection.insertOne({ message, createdAt: new Date() });
+  await collection.insertOne({ message, ip, userAgent, createdAt: new Date() });
 }
