@@ -153,32 +153,35 @@ export default function VoiceCommand() {
       </button>
 
       {isTelepathyRendered && mounted && createPortal(
-        <div 
-          className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-200 ease-out ${isTelepathyVisible ? 'bg-black/40 backdrop-blur-md opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'}`}
-          onClick={() => setIsTelepathy(false)}
-        >
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div 
+            className={`absolute inset-0 transition-opacity duration-200 ${isTelepathyVisible ? 'bg-black/40 backdrop-blur-sm opacity-100' : 'opacity-0'}`} 
+            onClick={() => setIsTelepathy(false)} 
+          />
           <form 
             onSubmit={submitTelepathy} 
             onClick={(e) => e.stopPropagation()}
-            className={`bg-background/80 backdrop-blur-3xl p-8 rounded-lg border border-border shadow-2xl max-w-md w-full transition-all duration-200 ease-out ${isTelepathyVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}
+            className={`relative fluid-glass p-8 rounded-lg max-w-md w-full transition-all duration-200 ease-out will-change-transform ${isTelepathyVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}
           >
-            <h3 className="text-2xl font-black tracking-tight text-foreground mb-3 flex items-center gap-2">
-              <span>🧠</span> Telepathy Mode
-            </h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Microphone access is unavailable. Please type your thoughts directly into the neural net (e.g. github, win95, doom).
-            </p>
-            <input 
-              type="text" 
-              autoFocus
-              value={telepathyInput}
-              onChange={(e) => setTelepathyInput(e.target.value)}
-              placeholder="Focus your thoughts here..." 
-              className="w-full bg-muted/50 border border-border rounded-xl p-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all mb-6"
-            />
-            <div className="flex gap-3 justify-end">
-              <button type="button" onClick={() => setIsTelepathy(false)} className="px-6 py-2.5 text-sm font-semibold rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Cancel</button>
-              <button type="submit" className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">Transmit</button>
+            <div className="relative z-10">
+              <h3 className="text-2xl font-black tracking-tight text-foreground mb-3 flex items-center gap-2">
+                <span>🧠</span> Telepathy Mode
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Microphone access is unavailable. Please type your thoughts directly into the neural net (e.g. github, win95, doom).
+              </p>
+              <input 
+                type="text" 
+                autoFocus
+                value={telepathyInput}
+                onChange={(e) => setTelepathyInput(e.target.value)}
+                placeholder="Focus your thoughts here..." 
+                className="w-full bg-muted/50 border border-border rounded-xl p-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all mb-6"
+              />
+              <div className="flex gap-3 justify-end">
+                <button type="button" onClick={() => setIsTelepathy(false)} className="px-6 py-2.5 text-sm font-semibold rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Cancel</button>
+                <button type="submit" className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">Transmit</button>
+              </div>
             </div>
           </form>
         </div>,

@@ -62,7 +62,12 @@ export default function CryptoTipJar() {
   };
 
   return (
-    <div className="w-full h-full p-4 border-2 border-purple-300 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 shadow-md shadow-purple-500/20 text-purple-900 dark:text-purple-100 rounded-lg text-center flex flex-col items-center justify-center">
+    <div 
+      className="fluid-glass !bg-purple-400/30 dark:!bg-purple-900/40 w-full h-full p-4 text-purple-900 dark:text-purple-100 rounded-lg text-center relative flex flex-col justify-center items-center"
+      style={{ '--accent': '#9333ea' } as React.CSSProperties}
+    >
+      <div className="liquid-gradient opacity-100 saturate-150"></div>
+      <div className="relative z-10 w-full h-full flex flex-col justify-center items-center">
       <h3 className="font-bold text-sm text-purple-800 dark:text-purple-200 mb-1 flex items-center justify-center gap-1.5 uppercase tracking-wider">
         <Wallet className="w-4 h-4" /> Web3
       </h3>
@@ -85,6 +90,7 @@ export default function CryptoTipJar() {
           Tip 0.001 ETH
         </button>
       )}
+      </div>
       </div>
     </div>
   );

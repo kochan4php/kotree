@@ -56,7 +56,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           />
           <Background />
           {children}
-          <Toaster position="bottom-center" theme="system" richColors />
+          <Toaster 
+            position="bottom-center" 
+            theme="system" 
+            richColors 
+            toastOptions={{ 
+              className: 'fluid-glass !bg-card/60 !rounded-2xl border-none',
+            }} 
+          />
           <PwaInstallPrompt />
           <PwaSyncManager />
           <KonamiCode />

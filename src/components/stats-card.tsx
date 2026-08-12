@@ -13,8 +13,9 @@ export default function StatsCard({ linkCounts }: StatsCardProps) {
   const totalClicks = linkCounts.reduce((total, item) => total + item.count, 0);
 
   return (
-    <Card className="mt-6 border-2 border-border/40 bg-card/60 backdrop-blur-sm hover:border-accent/40 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300">
-      <div className="grid grid-cols-3 divide-x divide-border/60 text-center py-1">
+    <Card className="fluid-glass mt-6 hover:border-accent/40 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300">
+      <div className="liquid-gradient"></div>
+      <div className="relative z-10 grid grid-cols-3 divide-x divide-border/60 text-center py-1">
         <Stat value={totalClicks} label="Total Clicks" />
         <Stat value={socialLinks.length} label="Links" />
         <div className="flex flex-col items-center justify-center gap-1">

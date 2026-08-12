@@ -31,9 +31,10 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
       className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
       style={{ animationDelay: `${100 + index * 100}ms`, animationDuration: '500ms' }}
     >
-      <Card onMouseEnter={playHoverFeedback} className="group p-0 overflow-hidden transition-all duration-300 border-2 border-border/40 bg-card/60 hover:bg-card hover:border-accent/50 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/20 active:scale-[0.98] active:translate-y-0">
-      <Link href={link.url} onClick={handleClick} target="_blank" aria-label={`Open ${link.name}`}>
-        <div className="flex items-center gap-4 p-4">
+      <Card onMouseEnter={playHoverFeedback} className="fluid-glass group p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/20 active:scale-[0.98] active:translate-y-0">
+        <div className="liquid-gradient group-hover:opacity-100 transition-opacity duration-300 opacity-60"></div>
+        <Link href={link.url} onClick={handleClick} target="_blank" aria-label={`Open ${link.name}`}>
+          <div className="relative z-10 flex items-center gap-4 p-4">
           <span
             className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/50 group-hover:shadow-md group-hover:shadow-accent/20 group-hover:scale-105"
             style={{ color: link.color }}>

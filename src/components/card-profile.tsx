@@ -37,8 +37,9 @@ export default function CardProfile() {
         transitionSpeed={2500}
         className="mb-6"
       >
-        <Card className="text-center p-6 shadow-2xl shadow-accent/5 relative z-10 gap-4 border-2 border-border/40 bg-card/80 backdrop-blur-xl">
-            <div className="relative w-fit mx-auto mb-1">
+        <Card className="fluid-glass text-center p-6 relative z-10 gap-4">
+            <div className="liquid-gradient"></div>
+            <div className="relative w-fit mx-auto mb-1 z-10">
               <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
               <div className="relative flex justify-center">
                 <Image
@@ -52,17 +53,17 @@ export default function CardProfile() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-0.5">
+            <div className="relative z-10 flex flex-col gap-0.5">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
               <p className="text-base text-muted-foreground">{profile.handle}</p>
             </div>
 
-            <span className="inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto cursor-pointer">
+            <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto cursor-pointer">
               <Code2 className="w-4 h-4" />
               {profile.role}
             </span>
 
-            <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
+            <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
 
             <div className="relative z-20">
               <ProfileActions onToggleQR={() => setIsFlipped(true)} />

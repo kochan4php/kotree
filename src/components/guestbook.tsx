@@ -77,8 +77,10 @@ export default function Guestbook({ token }: { token?: string }) {
   };
 
   return (
-    <Card className="solid-card border-2 border-border/40 bg-card/60 backdrop-blur-sm rounded-xl p-6 mt-6 overflow-hidden shadow-lg hover:border-red-500/30 transition-all duration-300">
-      <div className="flex items-start justify-between gap-2 mb-4">
+    <Card className="fluid-glass rounded-xl p-6 mt-6 hover:border-red-500/30 transition-all duration-300">
+      <div className="liquid-gradient"></div>
+      <div className="relative z-10 w-full h-full">
+        <div className="flex items-start justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-bold text-foreground leading-tight">Secret Confessions</h2>
@@ -128,6 +130,7 @@ export default function Guestbook({ token }: { token?: string }) {
           <Send className="w-4 h-4" />
         </button>
       </form>
+      </div>
     </Card>
   );
 }

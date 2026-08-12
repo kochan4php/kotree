@@ -147,15 +147,19 @@ export default function AITerminal() {
 
       {/* Terminal Window */}
       {isRendered && mounted && createPortal(
-        <div className={`fixed inset-0 z-[100] flex justify-center items-start pt-20 transition-all duration-300 ease-out ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <div className="absolute inset-0" onClick={() => setIsOpen(false)} />
-          <div className={`w-[95vw] max-w-lg relative transition-all duration-300 ease-out ${isVisible ? 'translate-y-0' : '-translate-y-8'}`}>
-            <Card className="bg-[#050505]/95 backdrop-blur-3xl border border-green-500/30 text-green-500 font-mono text-sm shadow-[0_0_50px_rgba(34,197,94,0.2)] overflow-hidden rounded-lg relative">
-              <div className="absolute inset-0 pointer-events-none scanlines opacity-50 mix-blend-overlay"></div>
-              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-10"></div>
+        <div className="fixed inset-0 z-[100] flex justify-center items-start pt-20">
+          <div 
+            className={`absolute inset-0 transition-opacity duration-300 ${isVisible ? 'bg-black/40 backdrop-blur-sm opacity-100' : 'opacity-0'}`} 
+            onClick={() => setIsOpen(false)} 
+          />
+          <div className={`w-[95vw] max-w-lg relative transition-all duration-300 ease-out will-change-transform ${isVisible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-8 opacity-0 scale-95'}`}>
+            <Card 
+              className="relative overflow-hidden bg-black/60 backdrop-blur-2xl border border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl"
+            >
+              <div className="absolute inset-0 pointer-events-none scanlines opacity-30 mix-blend-overlay z-10"></div>
               
               {/* Window Controls Header */}
-              <div className="bg-muted/30 px-4 py-3 flex items-center gap-2 border-b border-accent/20 cursor-move">
+              <div className="bg-black/40 px-4 py-3 flex items-center gap-2 border-b border-white/10 cursor-move relative z-20">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer hover:bg-red-500" onClick={() => setIsOpen(false)} />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
@@ -173,7 +177,7 @@ export default function AITerminal() {
                 <div ref={bottomRef} />
               </div>
 
-              <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-green-500/20 flex gap-3 bg-black/60 items-center relative z-20">
+              <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-white/10 flex gap-3 bg-black/40 items-center relative z-20">
                 <span className="text-green-500 font-bold drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]">~%</span>
                 <input
                   type="text"

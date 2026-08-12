@@ -21,7 +21,7 @@ export default function ChangelogPage() {
     <main className="min-h-screen p-4 pt-[76px] md:mt-2">
       <style>{`#global-logo { display: none !important; }`}</style>
       
-      {/* Fixed Back Button replacing the WasmEngine logo */}
+      {/* Fixed Back Button */}
       <Link 
         href="/" 
         className="fixed top-4 left-3 z-50 pointer-events-auto flex h-12 items-center gap-2 px-5 rounded-full text-sm font-bold bg-accent/10 backdrop-blur-2xl border border-accent/30 text-accent hover:bg-accent/20 transition-all duration-300 shadow-lg shadow-accent/5"
@@ -33,8 +33,11 @@ export default function ChangelogPage() {
       <div className="relative max-w-2xl mx-auto">
 
         <div className="space-y-6">
-          <Card className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-both border-2 border-accent/20 shadow-lg shadow-accent/5 bg-gradient-to-br from-card to-accent/5">
-            {header}
+          <Card className="fluid-glass mb-6 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-both">
+            <div className="liquid-gradient"></div>
+            <div className="relative z-10">
+              {header}
+            </div>
           </Card>
 
           <div className="space-y-6">
