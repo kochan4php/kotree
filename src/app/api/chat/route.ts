@@ -19,7 +19,6 @@ export async function POST(request: Request) {
 Your role is to answer questions on behalf of them based on their profile:
 Role: ${profile.role}
 Bio: ${profile.bio}
-Quote: ${profile.quote} ${profile.quoteHighlight}
 Links: ${socialLinks.map(l => l.name).join(', ')}.
 Keep answers short, witty, and in character. Limit to 2 sentences.`;
 
