@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 import { toast } from 'sonner';
-import { Bitcoin, Wallet } from 'lucide-react';
+import { Bitcoin, Wallet, CreditCard } from 'lucide-react';
 import { useSensory } from '@/hooks/use-sensory';
 
 export default function CryptoTipJar() {
