@@ -2,7 +2,7 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
-## [3.0.0]
+## [3.0.0-lts]
 
 The biggest update yet: new interactive features, a faster and safer page, and better accessibility.
 
