@@ -38,6 +38,9 @@ export function createEngine(container: HTMLDivElement): DoomEngine {
 
   const dispose = () => {
     renderer.dispose();
+    // Release the WebGL context — browsers cap ~16 live contexts, so
+    // opening DOOM repeatedly without this would eventually blank it
+    renderer.forceContextLoss();
     container.innerHTML = '';
   };
 

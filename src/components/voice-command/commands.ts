@@ -9,7 +9,7 @@ export function processCommand(transcript: string) {
   let found = false;
   socialLinks.forEach(link => {
     if (text.includes(link.name.toLowerCase())) {
-      window.open(link.url, '_blank');
+      window.open(link.url, '_blank', 'noopener');
       found = true;
     }
   });
