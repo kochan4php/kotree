@@ -27,7 +27,7 @@ export default function Win95Mode() {
 
   return (
     <div
-      className="fixed inset-0 z-[9000] bg-[#008080] font-[System] text-sm overflow-hidden pointer-events-auto selection:bg-[#000080] selection:text-white"
+      className="fixed inset-0 z-9000 bg-[#008080] font-[System] text-sm overflow-hidden pointer-events-auto selection:bg-[#000080] selection:text-white"
       style={{ fontFamily: '"MS Sans Serif", Tahoma, sans-serif' }}
     >
       <DesktopIcons onOpen={openWindow} onExit={() => setIsActive(false)} />

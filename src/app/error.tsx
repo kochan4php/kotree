@@ -12,7 +12,7 @@ export default function Error({ error }: { error: Error & { digest?: string } })
 
   return (
     <StateCard>
-      <div className="w-24 h-24 mx-auto mb-6 rounded-3xl fluid-glass !bg-destructive/10 !border-destructive/30 flex items-center justify-center shadow-[0_0_30px_rgba(224,90,71,0.2)]">
+      <div className="w-24 h-24 mx-auto mb-6 rounded-3xl fluid-glass bg-destructive/10! border-destructive/30! flex items-center justify-center shadow-[0_0_30px_rgba(224,90,71,0.2)]">
         <TriangleAlert className="w-12 h-12 text-destructive drop-shadow-[0_0_15px_rgba(224,90,71,0.8)]" />
       </div>
 

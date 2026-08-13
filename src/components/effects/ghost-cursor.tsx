@@ -56,7 +56,7 @@ export default function GhostCursor() {
   return (
     <div
       ref={ref}
-      className="fixed pointer-events-none z-[100] flex flex-col items-center"
+      className="fixed pointer-events-none z-100 flex flex-col items-center"
       style={{ left: 0, top: 0, transform: 'translate(-100px, -100px)' }}
       aria-hidden="true"
     >

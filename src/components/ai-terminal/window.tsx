@@ -23,7 +23,7 @@ export default function TerminalWindow({
   onClose,
 }: TerminalWindowProps) {
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex justify-center items-start pt-20">
+    <div className="fixed inset-0 z-100 flex justify-center items-start pt-20">
       <div
         className={`absolute inset-0 bg-black/40 ${isOpen ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`}
         onClick={onClose}
@@ -33,7 +33,7 @@ export default function TerminalWindow({
         role="dialog"
         aria-modal="true"
         aria-label="AI Terminal"
-        className="fluid-glass !bg-black/5 !border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
+        className="fluid-glass bg-black/5! border-white/10! text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
       >
         <div className="absolute inset-0 pointer-events-none scanlines opacity-30 mix-blend-overlay z-10"></div>
 
@@ -47,7 +47,7 @@ export default function TerminalWindow({
           <span className="text-white/50 text-[10px] font-sans mx-auto -ml-8 flex-1 text-center font-medium tracking-wider uppercase">root@kochan:~</span>
         </div>
 
-        <div className="h-64 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-green-500/30 hover:scrollbar-thumb-green-500/60 relative z-20">
+        <div className="h-64 overflow-y-auto p-4 space-y-2 relative z-20">
           {history.map((line, i) => (
             <div
               key={i}

@@ -23,7 +23,7 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both firefox-static"
+      className=""
       style={{ animationDelay: `${100 + index * 100}ms`, animationDuration: '500ms' }}
     >
       <Card onMouseEnter={playHoverFeedback} className="fluid-glass group p-0 transition-all duration-300 hover:border-accent/30 hover:bg-accent/[0.02] hover:shadow-lg active:scale-[0.99]">
@@ -31,7 +31,7 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
         <Link href={link.url} onClick={handleClick} target="_blank">
           <div className="relative z-10 flex items-center gap-4 p-4">
           <span
-            className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-sm"
+            className="w-12 h-12 shrink-0 rounded-xl bg-linear-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-sm"
             style={{ color: link.color }}>
             <link.icon className="w-5 h-5" aria-hidden="true" />
           </span>

@@ -69,7 +69,7 @@ export default function PwaInstallPrompt() {
   if (!isInstallable || dismissed) return null;
 
   return (
-    <div className="fixed top-4 left-0 right-0 z-[100] px-4 animate-in slide-in-from-top-8 fade-in duration-500 ease-out flex justify-center pointer-events-none">
+    <div className="fixed top-4 left-0 right-0 z-100 px-4 ease-out flex justify-center pointer-events-none">
       <div className="w-full max-w-sm flex items-center justify-between p-3 bg-black/80 backdrop-blur-xl shadow-2xl border border-accent/40 rounded-full gap-3 pointer-events-auto">
         <div className="flex-1 min-w-0 pl-2">
           <p className="font-bold text-sm text-white flex items-center gap-2">

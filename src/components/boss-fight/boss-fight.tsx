@@ -74,7 +74,7 @@ export default function BossFight() {
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] pointer-events-auto cursor-crosshair">
+    <div className="fixed inset-0 z-99999 pointer-events-auto cursor-crosshair">
       <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );

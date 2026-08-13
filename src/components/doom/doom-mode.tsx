@@ -26,7 +26,7 @@ export default function DoomMode() {
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black">
+    <div className="fixed inset-0 z-99999 bg-black">
       <div ref={containerRef} className="w-full h-full" />
 
       {/* HUD */}

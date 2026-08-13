@@ -52,7 +52,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
   return (
     <div className="space-y-4">
       {isSearching && (
-        <div className="relative animate-in slide-in-from-top-2 fade-in duration-200">
+        <div className="relative duration-200">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             autoFocus

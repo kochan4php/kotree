@@ -12,7 +12,7 @@ const baseClass =
 
 const variantClass = {
   primary: 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-md',
-  ghost: 'fluid-glass !bg-white/5 hover:!bg-white/10 text-foreground !border-white/10 hover:!border-accent/40 shadow-sm',
+  ghost: 'fluid-glass bg-white/5! hover:bg-white/10! text-foreground border-white/10! hover:border-accent/40! shadow-sm',
 } as const;
 
 export default function PageButton({ href, onClick, variant = 'primary', children }: PageButtonProps) {

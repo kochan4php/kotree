@@ -18,11 +18,11 @@ export default function ChangelogPage() {
   const { header, versions } = renderChangelog(parseChangelog(fs.readFileSync(filePath, 'utf-8')));
 
   return (
-    <main className="min-h-screen p-4 pt-[76px] md:mt-2">
+    <main className="min-h-screen p-4 pt-19 md:mt-2">
       <div className="relative max-w-2xl mx-auto">
 
         <div className="space-y-6">
-          <Card className="fluid-glass mb-6 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-both">
+          <Card className="fluid-glass mb-6">
             <div className="liquid-gradient"></div>
             <div className="relative z-10">
               {header}
@@ -33,7 +33,7 @@ export default function ChangelogPage() {
             {versions.map((version, index) => (
               <div 
                 key={version.title} 
-                className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+                className=""
                 style={{ animationDelay: `${150 + index * 100}ms`, animationDuration: '600ms' }}
               >
                 <Card className="gap-3 transition-all duration-300 fluid-glass hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1">

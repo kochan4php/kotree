@@ -43,7 +43,7 @@ export default function GeoLockedQuest() {
 
   return (
     <div
-      className="fluid-glass !bg-orange-900/10 w-full h-full p-4 text-orange-100 rounded-lg text-center relative flex flex-col justify-center items-center"
+      className="fluid-glass bg-orange-900/10! w-full h-full p-4 text-orange-100 rounded-lg text-center relative flex flex-col justify-center items-center"
       style={{ '--accent': '#ea580c' } as React.CSSProperties}
     >
       <div className="liquid-gradient opacity-30 saturate-100"></div>
@@ -56,7 +56,7 @@ export default function GeoLockedQuest() {
             <p className="text-xs font-medium text-orange-300 mb-3 px-1 leading-snug">Verify physical location to unlock.</p>
             <button
               onClick={handleCheckLocation}
-              className="w-full px-3 py-2 bg-orange-700 text-white shadow-sm font-bold rounded-xl hover:bg-orange-600 transition-colors text-xs cursor-pointer min-h-[44px]"
+              className="w-full px-3 py-2 bg-orange-700 text-white shadow-sm font-bold rounded-xl hover:bg-orange-600 transition-colors text-xs cursor-pointer min-h-11"
             >
               Check GPS
             </button>

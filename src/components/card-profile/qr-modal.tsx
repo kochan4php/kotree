@@ -17,7 +17,7 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
   if (!isRendered || typeof window === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div
         className={`absolute inset-0 bg-black/40 ${isOpen ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`}
         onClick={onClose}
@@ -42,7 +42,7 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
           ref={closeBtnRef}
           onClick={onClose}
           aria-label="Close QR"
-          className="absolute top-4 right-4 p-2 rounded-full bg-accent/10 hover:bg-red-500/20 text-accent hover:text-red-500 transition-colors cursor-pointer z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="absolute top-4 right-4 p-2 rounded-full bg-accent/10 hover:bg-red-500/20 text-accent hover:text-red-500 transition-colors cursor-pointer z-20 min-w-11 min-h-11 flex items-center justify-center"
         >
           <X className="w-4 h-4" />
         </button>

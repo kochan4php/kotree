@@ -16,7 +16,7 @@ export const profileWindowContent = (
 );
 
 export const linksWindowContent = (
-  <div className="grid grid-cols-3 gap-6 p-4 bg-white min-h-[300px] w-full text-black items-start content-start">
+  <div className="grid grid-cols-3 gap-6 p-4 bg-white min-h-75 w-full text-black items-start content-start">
     {socialLinks.map(link => {
       const Icon = link.icon;
       return (

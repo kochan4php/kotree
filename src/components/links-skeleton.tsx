@@ -4,7 +4,7 @@ function Skeleton({ className }: { className: string }) {
 
 export default function LinksSkeleton() {
   return (
-    <div className="animate-in fade-in duration-500 slide-in-from-bottom-4">
+    <div className="">
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="solid-card border rounded-lg p-0 overflow-hidden">

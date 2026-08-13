@@ -1,3 +1,13 @@
+/* Modal animations — --animate-* theme tokens generate the
+   animate-modal-* utilities (the v4-native way) */
+
+@theme {
+  --animate-modal-backdrop: modal-backdrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-modal-content: modal-content 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-modal-backdrop-out: modal-backdrop-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-modal-content-out: modal-content-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes liquid-spin {
   0% {
     transform: rotate(0deg) scale(1) translate(5%, 5%);
@@ -7,7 +17,6 @@
   }
 }
 
-/* Modal enter/exit animations */
 @keyframes modal-backdrop {
   from {
     opacity: 0;
@@ -50,20 +59,4 @@
     opacity: 0;
     transform: scale(0.95) translateY(20px);
   }
-}
-
-.animate-modal-backdrop {
-  animation: modal-backdrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-modal-content {
-  animation: modal-content 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-modal-backdrop-out {
-  animation: modal-backdrop-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-modal-content-out {
-  animation: modal-content-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

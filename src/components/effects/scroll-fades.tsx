@@ -55,7 +55,7 @@ export default function ScrollFades() {
         style={{ opacity: 0 }}
       >
         <div className="absolute inset-0 backdrop-blur-md bg-black/[0.01]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#201613] to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-[#201613] to-transparent"></div>
       </div>
 
       {/* Bottom Edge */}
@@ -65,7 +65,7 @@ export default function ScrollFades() {
         style={{ opacity: 0 }}
       >
         <div className="absolute inset-0 backdrop-blur-md bg-black/[0.01]"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#201613] to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-[#201613] to-transparent"></div>
       </div>
     </div>
   );

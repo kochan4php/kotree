@@ -12,7 +12,7 @@ export default function CryptoTipJar() {
 
   return (
     <div
-      className="fluid-glass !bg-purple-900/10 w-full h-full p-4 text-purple-100 rounded-lg text-center relative flex flex-col justify-center items-center"
+      className="fluid-glass bg-purple-900/10! w-full h-full p-4 text-purple-100 rounded-lg text-center relative flex flex-col justify-center items-center"
       style={{ '--accent': '#9333ea' } as React.CSSProperties}
     >
       <div className="liquid-gradient opacity-50 saturate-150"></div>
@@ -30,7 +30,7 @@ export default function CryptoTipJar() {
                   connectWallet(() => setIsConnected(true), setIsConnecting);
                 }}
                 disabled={isConnecting}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-purple-700 text-white shadow-sm hover:bg-purple-600 transition-colors cursor-pointer min-h-[44px]"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-purple-700 text-white shadow-sm hover:bg-purple-600 transition-colors cursor-pointer min-h-11"
               >
                 <CreditCard className="w-4 h-4" /> {isConnecting ? 'Connecting...' : 'Connect Wallet'}
               </button>
@@ -40,7 +40,7 @@ export default function CryptoTipJar() {
                   playFeedback();
                   sendTip();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-yellow-500 text-yellow-950 shadow-md hover:bg-yellow-400 transition-all hover:scale-105 active:scale-95 cursor-pointer min-h-[44px]"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-yellow-500 text-yellow-950 shadow-md hover:bg-yellow-400 transition-all hover:scale-105 active:scale-95 cursor-pointer min-h-11"
               >
                 <Bitcoin className="w-4 h-4" />
                 Tip 0.001 ETH
