@@ -1,9 +1,20 @@
 import { test, expect } from '@playwright/test';
 
-// Hydration race: event listeners attach only after React hydrates the page
+// Hydration race: event listeners attach only after React hydrates the page.
+// A fixed wait flakes under machine load — poll the service worker registration
+// (its effect only runs post-hydration) as a deterministic hydration gate.
 async function waitHydrated(page: import('@playwright/test').Page) {
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(800);
+  await page
+    .waitForFunction(
+      () => navigator.serviceWorker.getRegistration().then((r) => Boolean(r)),
+      null,
+      { timeout: 10000 }
+    )
+    .catch(() => {
+      /* SW is not the point of most tests — fall through to a grace wait */
+    });
+  await page.waitForTimeout(300);
 }
 
 test('service worker registers (PWA)', async ({ page }) => {
@@ -21,14 +32,23 @@ test('service worker registers (PWA)', async ({ page }) => {
   expect(registered).toBe(true);
 });
 
-test('search button in dock toggles search', async ({ page }) => {
+test('search: X closes on mobile, Esc still works, hidden on changelog', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
-  const btn = page.getByRole('button', { name: 'Search links' });
-  await btn.click();
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await expect(page.getByRole('textbox', { name: 'Search links' })).toBeVisible();
+  // mobile path: X button (mobile keyboards have no Escape key)
+  await page.getByRole('button', { name: 'Close search' }).click();
+  await expect(page.getByRole('textbox', { name: 'Search links' })).toHaveCount(0);
+  // desktop path: Escape still closes
+  await page.getByRole('button', { name: 'Search links' }).click();
   await expect(page.getByRole('textbox', { name: 'Search links' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('textbox', { name: 'Search links' })).toHaveCount(0);
+  // changelog has no search button (nothing to search there)
+  await page.getByRole('link', { name: /changelog/i }).click();
+  await expect(page).toHaveURL(/.*changelog/);
+  await expect(page.getByRole('button', { name: 'Search links' })).toHaveCount(0);
 });
 
 test('QR modal lazy-loads and focuses close button', async ({ page }) => {

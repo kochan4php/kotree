@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import SocialLinkItem from './social-link-item';
 import { socialLinks } from '@/data/social-links';
 import { syncOfflineClicks } from '@/lib/track-click';
@@ -69,10 +69,22 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search links... (Esc to close)"
+            placeholder="Search links..."
             aria-label="Search links"
-            className="w-full bg-background border border-accent/30 rounded-xl py-3 pl-10 pr-4 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 shadow-sm transition-all"
+            className="w-full bg-background border border-accent/30 rounded-xl py-3 pl-10 pr-12 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 shadow-sm transition-all"
           />
+          {/* Close affordance: mobile keyboards have no Escape key */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsSearching(false);
+              setSearchQuery('');
+            }}
+            aria-label="Close search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-accent/10 hover:text-foreground transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
       

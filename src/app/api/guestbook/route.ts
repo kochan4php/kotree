@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       return new NextResponse('Invalid CSRF Token', { status: 403 });
     }
 
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Unknown';
+    const ip = getClientIp(request);
     if (isRateLimited(`guestbook:${ip}`)) {
       return new NextResponse('Too Many Requests', { status: 429 });
     }

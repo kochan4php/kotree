@@ -49,6 +49,8 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Install instructions on iPhone show as a toast instead of a browser pop-up
 - The project license (MIT) is back — it was accidentally dropped during a past cleanup
 - The boss fight game no longer traps you — press Escape or hit the exit button
+- Search can be closed on phones with an X button (phone keyboards have no Escape key)
+- The search button no longer appears on the changelog page
 
 ### Accessibility
 
