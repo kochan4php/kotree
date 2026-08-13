@@ -1,7 +1,7 @@
 'use client';
 
-import PageButton from '@/components/page-button';
-import StateCard from '@/components/state-card';
+import PageButton from '@/components/ui/page-button';
+import StateCard from '@/components/ui/state-card';
 import { ArrowLeft, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 

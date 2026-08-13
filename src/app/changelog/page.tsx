@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Card } from '@/components/ui/card';
 import { parseChangelog } from '@/lib/changelog';
-import { renderChangelog } from '@/lib/changelog-render';
+import { renderChangelog } from '@/lib/changelog';
 import { site } from '@/lib/site';
 import type { Metadata } from 'next';
 

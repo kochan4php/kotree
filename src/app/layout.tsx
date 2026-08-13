@@ -1,26 +1,20 @@
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
-import PwaRegister from '@/components/pwa-register';
 import { metadata } from './metadata';
 import { jsonLd } from './schema';
 import './globals.css';
 
-
-
 import { Toaster } from 'sonner';
-import PwaInstallPrompt from '@/components/pwa-install-prompt';
-import KonamiCode from '@/components/konami-code';
-import GhostCursor from '@/components/ghost-cursor';
+import PwaInstallPrompt from '@/components/pwa';
+import { KonamiCode } from '@/components/easter-eggs';
+import { GhostCursor } from '@/components/effects';
 import dynamic from 'next/dynamic';
 
-const AITerminal = dynamic(() => import('@/components/ai-terminal'));
-const Background = dynamic(() => import('@/components/background'));
-import ScrollFades from '@/components/scroll-fades';
-import HeaderLeft from '@/components/header-left';
+const Background = dynamic(() => import('@/components/effects'));
+import { ScrollFades } from '@/components/effects';
+import HeaderBar from '@/components/layout/header-bar';
 import SelfDestruct from '@/components/self-destruct';
-import EasterEggLauncher from '@/components/easter-egg-launcher';
-import WebBluetooth from '@/components/web-bluetooth';
-import VoiceCommand from '@/components/voice-command';
+import EasterEggLauncher from '@/components/easter-eggs';
 
 import { Viewport } from 'next';
 
@@ -54,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 };
                 window.__consoleWarnPatched = true;
               }
-            `
+            `,
           }}
         />
         <Background />
@@ -63,10 +57,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div className="relative z-10">
           {children}
         </div>
-        <Toaster 
-          position="bottom-center" 
+        <Toaster
+          position="bottom-center"
           theme="dark"
-          toastOptions={{ 
+          toastOptions={{
             classNames: {
               toast: 'fluid-glass !rounded-2xl shadow-xl',
               default: '!bg-accent/5 !border-accent/20 [&_svg]:!text-accent',
@@ -77,23 +71,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               title: 'text-sm font-bold text-foreground',
               description: 'text-xs text-muted-foreground font-medium',
               actionButton: '!bg-accent !text-accent-foreground font-bold !rounded-md px-4 py-1.5 text-xs hover:!bg-accent/90 transition-colors',
-              cancelButton: '!bg-transparent !text-muted-foreground hover:!text-foreground transition-colors font-semibold'
-            }
-          }} 
+              cancelButton: '!bg-transparent !text-muted-foreground hover:!text-foreground transition-colors font-semibold',
+            },
+          }}
         />
         <PwaInstallPrompt />
         <KonamiCode />
         <GhostCursor />
-        <div className="fixed top-4 left-3 right-3 z-[60] flex items-center justify-between pointer-events-none">
-          <HeaderLeft />
-          <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass !rounded-full !bg-accent/5 !border-accent/20">
-            <AITerminal />
-            <VoiceCommand />
-            <WebBluetooth />
-          </div>
-        </div>
+        <HeaderBar />
 
-        <PwaRegister />
         <SelfDestruct />
         <EasterEggLauncher />
       </body>

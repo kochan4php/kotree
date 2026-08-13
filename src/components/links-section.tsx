@@ -1,4 +1,4 @@
-import SocialLinkList from '@/components/social-link-list';
+import SocialLinkList from '@/components/social-links';
 import StatsCard from '@/components/stats-card';
 import Guestbook from '@/components/guestbook';
 import { generateToken } from '@/lib/security';

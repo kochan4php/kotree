@@ -1,5 +1,5 @@
 import CardProfile from '@/components/card-profile';
-import Footer from '@/components/footer';
+import Footer from '@/components/layout/footer';
 import LinksSection from '@/components/links-section';
 import LinksSkeleton from '@/components/links-skeleton';
 import GeoLockedQuest from '@/components/geo-locked-quest';

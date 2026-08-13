@@ -1,0 +1,24 @@
+@layer base {
+  * {
+    @apply border-border outline-ring/50 selection:bg-accent selection:text-accent-foreground;
+  }
+  html,
+  body {
+    background: var(--background);
+    @apply text-foreground;
+  }
+  button,
+  a,
+  [role="button"] {
+    @apply cursor-pointer;
+  }
+  input,
+  textarea {
+    @apply cursor-text;
+  }
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"] {
+    @apply cursor-pointer;
+  }
+}
