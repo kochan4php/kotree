@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.idea/
 
 # debug
 npm-debug.log*
@@ -44,5 +45,5 @@ package-lock.json
 # .gitignore
 certificates
 
-/.ideatest-results
 /test-results*
+playwright-report/
