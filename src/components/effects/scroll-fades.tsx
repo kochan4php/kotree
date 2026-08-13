@@ -49,22 +49,14 @@ export default function ScrollFades() {
   return (
     <div className="pointer-events-none fixed inset-0 z-40 flex flex-col justify-between h-screen">
       {/* Top Edge */}
-      <div
-        ref={topRef}
-        className="relative h-16 w-full mask-gradient-top"
-        style={{ opacity: 0 }}
-      >
-        <div className="absolute inset-0 backdrop-blur-md bg-black/[0.01]"></div>
+      <div ref={topRef} className="relative h-16 w-full mask-gradient-top" style={{ opacity: 0 }}>
+        <div className="absolute inset-0 backdrop-blur-md bg-black/1"></div>
         <div className="absolute inset-0 bg-linear-to-b from-[#201613] to-transparent"></div>
       </div>
 
       {/* Bottom Edge */}
-      <div
-        ref={bottomRef}
-        className="relative h-20 w-full mask-gradient-bottom"
-        style={{ opacity: 0 }}
-      >
-        <div className="absolute inset-0 backdrop-blur-md bg-black/[0.01]"></div>
+      <div ref={bottomRef} className="relative h-20 w-full mask-gradient-bottom" style={{ opacity: 0 }}>
+        <div className="absolute inset-0 backdrop-blur-md bg-black/1"></div>
         <div className="absolute inset-0 bg-linear-to-t from-[#201613] to-transparent"></div>
       </div>
     </div>
