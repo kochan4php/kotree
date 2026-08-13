@@ -4,43 +4,59 @@ A log of every update to Kotree, from the newest to the oldest.
 
 ## [3.0.0]
 
-A deep hardening pass: performance, security, accessibility, and code health.
+The biggest update yet: new interactive features, a faster and safer page, and better accessibility.
 
 ### Added
 
-- Search button in the header dock (mobile-friendly entry point)
-- Focus returns to the trigger after closing any modal
-- Tab focus is trapped inside the AI terminal, telepathy, and QR dialogs
-- ARIA labels for the guestbook, terminal, and telepathy inputs
-- iOS safe-area insets when installed as a PWA
-- `noopener noreferrer` on all external links
+- AI terminal — chat with a clone of Deo right on the page (press the green button or type `help`)
+- Voice commands — say a link name to open it; falls back to typing if your microphone is blocked
+- Secret Confessions — leave an encrypted message in the guestbook
+- Crypto tip jar — connect a wallet and send a tip
+- Geo quest — verify your location to unlock a hidden reward
+- Hidden easter eggs: a retro Windows 95 desktop, DOOM, a boss fight, an infinite mirror, and more
+- Search button in the top bar (Ctrl+K on desktop) — now reachable on phones too
+- RSS feed so you can follow updates in your reader
+- Offline support — the page keeps working and your clicks sync when you're back online
+- Add-to-home-screen prompt for phones and computers
+- Toast notifications and subtle sound and haptic feedback on buttons
+- Fresh 404 and error pages
 
 ### Changed
 
-- QR code modal now lazy-loads (smaller initial bundle)
-- Fluid-glass depth applied consistently to every card
-- Sitemap dates come from git history instead of build time
-- Header bar inset widened to match the layout grid
+- Much faster first visit: about 3.3 seconds before, under 1 second now
+- Heavy extras (games, wallet, QR code) now load only when you actually use them
+- The page is permanently dark — light mode is gone
+- Softer frosted-glass cards with gentler corners everywhere
+- Tools moved to the top bar for easier access
+- Click counts and stats update instantly after you click a link
+- QR code now opens in a neat popup instead of flipping the card
+
+### Removed
+
+- Light mode
+- The 3D tilt effect on cards
+- Several heavy background effects
 
 ### Fixed
 
-- First visit was slow (3.3s) — the middleware edge function is gone (0.7s now)
-- Intermittent broken CSS — service worker v2 is network-first for pages
-- Guestbook entries kept optimistic ghosts after a failed save
-- Guestbook API no longer exposes visitor IP addresses / user agents
+- The page no longer breaks after updates (CSS sometimes failed to load before)
+- Some cards lost their glassy depth — now they all match
+- Guestbook entries that looked saved but never were
+- Guestbook no longer stores visitor IP addresses
+
+### Accessibility
+
+- Closing a window returns focus where it belongs; Tab stays inside popups
+- Every button is big enough to tap comfortably
+- Screen readers get proper labels and live terminal output
+- Animations respect the system "reduce motion" setting
 
 ### Security
 
-- Rate limiting now uses the real client IP (last proxy hop)
-- Click counter and guestbook hardened with CSRF tokens and rate limits
-- `X-Powered-By` header removed
+- Guestbook and click counter hardened against fake requests and floods
+- Rate limits can no longer be bypassed with spoofed IPs
+- Stricter security headers on every page
 - All dependencies audited — no known vulnerabilities
-
-### Refactor
-
-- Every file is now 100 lines or fewer, grouped into feature folders
-- All Tailwind v4 editor warnings resolved
-- Lint and CI are green (0 errors, 0 warnings)
 
 ## [2.0.0-lts]
 
