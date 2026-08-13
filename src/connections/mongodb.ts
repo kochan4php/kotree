@@ -61,3 +61,22 @@ export async function addGuestbookEntry(message: string, ip?: string, userAgent?
   const hashedIp = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 32) : undefined;
   await collection.insertOne({ message, ip: hashedIp, userAgent, createdAt: new Date() });
 }
+
+// Atomic cross-instance daily budget (spend control for the Gemini proxy).
+// Date-keyed doc + $inc upsert: safe under concurrent serverless instances.
+// Fails OPEN (returns true) when Mongo is unreachable — a DB hiccup must
+// never kill the chat, and the in-memory limits still apply.
+export async function consumeDailyBudget(key: string, max: number): Promise<boolean> {
+  const collection = getClientPromise().then((c) => c.db('kotreedb').collection<{ _id: string; count: number }>('daily_counters'));
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const doc = await (await collection).findOneAndUpdate(
+      { _id: `${key}:${today}` },
+      { $inc: { count: 1 } },
+      { upsert: true, returnDocument: 'after' }
+    );
+    return (doc?.count ?? 0) <= max;
+  } catch {
+    return true; // fail open
+  }
+}
