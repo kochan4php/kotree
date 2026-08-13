@@ -8,15 +8,6 @@
   --animate-modal-content-out: modal-content-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes liquid-spin {
-  0% {
-    transform: rotate(0deg) scale(1) translate(5%, 5%);
-  }
-  100% {
-    transform: rotate(180deg) scale(1.2) translate(-5%, -5%);
-  }
-}
-
 @keyframes modal-backdrop {
   from {
     opacity: 0;

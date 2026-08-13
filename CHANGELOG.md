@@ -31,6 +31,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Tools moved to the top bar for easier access
 - Click counts and stats update instantly after you click a link
 - QR code now opens in a neat popup instead of flipping the card
+- Smaller stylesheet — a few unused effects were removed
 
 ### Removed
 

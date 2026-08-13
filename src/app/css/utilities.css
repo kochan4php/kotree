@@ -1,14 +1,6 @@
 /* Custom utilities — defined with @utility so Tailwind v4 IntelliSense
    recognizes them in className (plain @layer classes get flagged as unknown) */
 
-@utility solid-card {
-  background: var(--card);
-  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
 @utility fluid-glass {
   @apply relative overflow-hidden bg-transparent border-white/10 shadow-2xl transform-gpu backdrop-blur-2xl;
   box-shadow:
