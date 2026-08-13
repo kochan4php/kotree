@@ -1,7 +1,7 @@
 import { after } from 'next/server';
 import { getLinkCounts, incrementLinkCount } from '@/connections/mongodb';
 import { socialLinks } from '@/data/social-links';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 import { guardOrigin, validateToken } from '@/lib/security';
 
 const MAX_BODY_BYTES = 10_000;
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { name?: unknown; count?: unknown; _token?: string; _honeypot?: boolean };
 
-    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1';
+    const ip = getClientIp(request);
 
     // Honeypot trap
     if (body._honeypot) {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getGuestbookEntries, addGuestbookEntry } from '@/connections/mongodb';
 import { guardOrigin, validateToken } from '@/lib/security';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export async function GET() {
   try {

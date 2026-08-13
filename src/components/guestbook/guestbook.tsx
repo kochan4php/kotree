@@ -81,6 +81,7 @@ export default function Guestbook({ token }: { token?: string }) {
             value={input}
             onChange={(e) => setInput(e.target.value.substring(0, 100))}
             placeholder="Leave a secret encrypted message..."
+            aria-label="Secret message"
             className="flex-1 rounded-lg border-2 border-border/50 bg-background/50 px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all"
             disabled={isSubmitting}
             suppressHydrationWarning

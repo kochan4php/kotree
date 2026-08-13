@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { profile } from '@/data/profile';
 import { socialLinks } from '@/data/social-links';
 import { guardOrigin } from '@/lib/security';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
   // Same protections as the other write endpoints: this burns Gemini quota.
   const forbidden = guardOrigin(request);
   if (forbidden) return forbidden;
 
-  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const ip = getClientIp(request);
   if (isRateLimited(`chat:${ip}`)) {
     return new Response('Too Many Requests', { status: 429 });
   }

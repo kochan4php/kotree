@@ -75,6 +75,7 @@ export default function TerminalWindow({
             onChange={(e) => onInput(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none text-green-400 focus:ring-0 p-0 placeholder:text-green-900 font-medium cursor-text drop-shadow-[0_0_5px_rgba(34,197,94,0.5)]"
             placeholder="Execute command..."
+            aria-label="Terminal command"
             autoFocus
             spellCheck={false}
           />

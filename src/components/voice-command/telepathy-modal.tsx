@@ -48,6 +48,7 @@ export default function TelepathyModal({ isOpen, value, onInput, onSubmit, onClo
           value={value}
           onChange={(e) => onInput(e.target.value)}
           placeholder="Focus your thoughts here..."
+          aria-label="Telepathy thought"
           className="w-full bg-muted/50 border border-border rounded-xl p-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all mb-6"
         />
         <div className="flex gap-3 justify-end">
