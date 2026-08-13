@@ -16,6 +16,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Hidden easter eggs: a retro Windows 95 desktop, DOOM, a boss fight, an infinite mirror, and more
 - Search button in the top bar (Ctrl+K on desktop) — now reachable on phones too
 - RSS feed so you can follow updates in your reader
+- Automated regression tests that run on every change, keeping the page stable
 - Offline support — the page keeps working and your clicks sync when you're back online
 - Add-to-home-screen prompt for phones and computers
 - Toast notifications and subtle sound and haptic feedback on buttons
