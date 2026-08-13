@@ -1,8 +1,11 @@
 {
   "name": "kotree",
-  "version": "2.0.0-lts",
+  "version": "3.0.0",
   "private": true,
   "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev --experimental-https",
     "prebuild": "node scripts/gen-og.mjs",
