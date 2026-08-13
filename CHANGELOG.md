@@ -45,6 +45,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Guestbook entries that looked saved but never were
 - Guestbook no longer stores visitor IP addresses
 - RSS dates now show when each version actually came out (they all said "today" before)
+- Install instructions on iPhone show as a toast instead of a browser pop-up
 
 ### Accessibility
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 // BeforeInstallPromptEvent isn't in TS's DOM lib yet
 type BeforeInstallPromptEvent = {
@@ -47,7 +48,7 @@ export default function PwaInstallPrompt() {
 
   const handleInstall = async () => {
     if (isIOS) {
-      alert('To install on iOS: tap the Share button at the bottom of Safari, then tap "Add to Home Screen".');
+      toast.info('On iOS: tap Share in Safari, then "Add to Home Screen".');
       return;
     }
     

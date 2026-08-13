@@ -35,7 +35,7 @@ export function checkDistance(lat: number, lon: number, { onDistance, onUnlocked
 export async function fallbackToIP(callbacks: QuestCallbacks) {
   toast.info('Trying IP-based location...');
   try {
-    const res = await fetch('https://ipapi.co/json/');
+    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(8000) });
     const data = await res.json();
     if (data && data.latitude && data.longitude) {
       toast.success(`IP location detected: ${data.city}`);

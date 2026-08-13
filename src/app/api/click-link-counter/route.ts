@@ -65,6 +65,7 @@ export async function POST(request: Request) {
           await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(5000), // never let a hung webhook hold the lambda
             body: JSON.stringify({
               content: `🚨 **New Click Detected!**\nSomeone just clicked the **${name.toUpperCase()}** link!\nIP: \`${ip.replace(/.[0-9]+$/, '.***')}\` (Masked)`
             }),
