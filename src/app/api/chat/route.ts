@@ -5,6 +5,25 @@ import { guardOrigin } from '@/lib/security';
 import { isRateLimited, isGloballyRateLimited, getClientIp } from '@/lib/rate-limit';
 import { consumeDailyBudget } from '@/connections/mongodb';
 
+// Input-side moderation: reject obvious prompt-injection / jailbreak attempts
+// before they reach the model. The model's own safetySettings stay the primary
+// guard — this just stops the cheapest abuse attempts cheaply. Deliberately
+// narrow to avoid false positives (e.g. no \bDAN\b — "dan" is Indonesian for
+// "and").
+const JAILBREAK_PATTERNS = [
+  /\bignore\s+(all\s+)?(previous|prior|above|your)\s+(instructions|prompts?|rules?)\b/i,
+  /\bsystem\s+prompt\b/i,
+  /\bjailbreak\b/i,
+  /\bdo\s+anything\s+now\b/i,
+  /\bdeveloper\s+(instructions|prompt)\b/i,
+];
+
+function isJailbreak(prompt: string): boolean {
+  // Strip zero-width / format chars that smuggle keywords past the filter
+  const normalized = prompt.replace(/[\u200b-\u200f\u2060\ufeff]/g, '');
+  return JAILBREAK_PATTERNS.some((re) => re.test(normalized));
+}
+
 export async function POST(request: Request) {
   // Emergency kill switch: shut the AI off instantly without a redeploy
   if (process.env.CHAT_DISABLED === '1') {
@@ -40,6 +59,11 @@ export async function POST(request: Request) {
     if (!prompt || typeof prompt !== 'string') return new Response('Bad Request', { status: 400 });
     const cleanPrompt = prompt.trim().slice(0, 200);
     if (!cleanPrompt) return new Response('Bad Request', { status: 400 });
+
+    // Refuse prompt-injection attempts in character (no error, no model cost)
+    if (isJailbreak(cleanPrompt)) {
+      return NextResponse.json({ reply: 'Nice try 😉 — but I stay in character.' });
+    }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {

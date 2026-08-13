@@ -21,7 +21,7 @@ were confirmed with live probes against the deployed site.
 | CSRF token + honeypot | naive bots, automated spam | no-token POST -> 403; honeypot field -> 403 |
 | Rate limit (10/min/IP + 60/min global + 500/day global budget for chat; 30/min/IP elsewhere) | floods, Gemini quota drain | 11th same-IP chat post -> 429; 61st cross-IP chat post -> 429; 10KB body -> 413 |
 | Edge function on `/api/chat` (CDN-level, before origin) | floods hitting the function | 20/min per real socket IP — `context.ip` cannot be spoofed via X-Forwarded-For; runs only on `/api/chat` so homepage TTFB is untouched |
-| Chat-specific hardening | abuse of the Gemini proxy | kill switch (`CHAT_DISABLED=1` -> 503), 4KB body cap, 200-char prompt cap, 2000-char reply cap, Gemini `safetySettings` blocking harmful content, 10s timeout, generic errors |
+| Chat-specific hardening | abuse of the Gemini proxy | kill switch (`CHAT_DISABLED=1` -> 503), 4KB body cap, 200-char prompt cap, 2000-char reply cap, jailbreak/prompt-injection input filter (zero-width stripped), Gemini `safetySettings` blocking harmful content, 10s timeout, generic errors |
 | Input validation (whitelist, caps, clamps) | garbage / oversized payloads | name whitelist, 100/200 char caps, count clamp |
 | Upstream timeouts (AbortSignal) | hung webhook / Gemini / ipapi | 5s webhook, 10s Gemini, 8s geo fallback |
 | PII hygiene | visitor data exposure | GET guestbook returns only `createdAt` + `message`; stored IP is sha-256 hashed |
