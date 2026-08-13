@@ -9,6 +9,12 @@ async function waitHydrated(page: import('@playwright/test').Page) {
 test('service worker registers (PWA)', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
+  // Poll instead of fixed wait — registration is async and can be slow on a loaded machine
+  await page.waitForFunction(
+    () => navigator.serviceWorker.getRegistration().then((r) => Boolean(r)),
+    null,
+    { timeout: 5000 }
+  );
   const registered = await page.evaluate(() =>
     navigator.serviceWorker.getRegistration().then((r) => Boolean(r))
   );
@@ -44,6 +50,20 @@ test('focus returns to the trigger after the terminal closes', async ({ page }) 
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   await expect(page.getByRole('button', { name: 'Open AI Terminal' })).toBeFocused();
+});
+
+test('boss fight can be exited (no trap)', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  // Konami code triggers the boss fight
+  for (const k of ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']) {
+    await page.keyboard.press(k);
+  }
+  await page.waitForTimeout(1500);
+  await expect(page.getByRole('button', { name: 'EXIT BOSS FIGHT' })).toBeVisible();
+  await page.getByRole('button', { name: 'EXIT BOSS FIGHT' }).click();
+  await page.waitForTimeout(400);
+  await expect(page.getByRole('button', { name: 'EXIT BOSS FIGHT' })).toHaveCount(0);
 });
 
 test('clicking a link triggers a counts refresh', async ({ page }) => {

@@ -32,6 +32,11 @@ export default function BossFight() {
     bossImage.src = profile.avatarUrl;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Escape') {
+        setIsActive(false); // never trap the user — Esc always exits
+        return;
+      }
+      if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' || e.code === 'Space') e.preventDefault();
       if (e.code === 'ArrowLeft') state.keys.ArrowLeft = true;
       if (e.code === 'ArrowRight') state.keys.ArrowRight = true;
       if (e.code === 'Space') state.keys.Space = true;
@@ -75,6 +80,12 @@ export default function BossFight() {
 
   return (
     <div className="fixed inset-0 z-99999 pointer-events-auto cursor-crosshair">
+      <button
+        onClick={() => setIsActive(false)}
+        className="absolute top-4 right-4 bg-red-600 text-white font-mono px-4 py-2 hover:bg-red-700 pointer-events-auto"
+      >
+        EXIT BOSS FIGHT
+      </button>
       <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );

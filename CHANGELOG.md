@@ -48,6 +48,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - RSS dates now show when each version actually came out (they all said "today" before)
 - Install instructions on iPhone show as a toast instead of a browser pop-up
 - The project license (MIT) is back — it was accidentally dropped during a past cleanup
+- The boss fight game no longer traps you — press Escape or hit the exit button
 
 ### Accessibility
 
