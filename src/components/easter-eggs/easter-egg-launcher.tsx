@@ -22,16 +22,18 @@ export default function EasterEggLauncher() {
   useEffect(() => {
     const handlers = Object.entries(LOADERS).map(([event, load]) => {
       const handler = () => {
-        load().then((mod) => {
-          setMounted((prev) => (prev[event] ? prev : { ...prev, [event]: mod.default }));
-          // Re-fire only when the component was JUST mounted, so its own
-          // listener catches the event. Without this guard every re-dispatch
-          // schedules another re-dispatch -> exponential event loop.
-          if (!mountedRef.current[event]) {
-            mountedRef.current[event] = true;
-            requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(event)));
-          }
-        });
+        load()
+          .then((mod) => {
+            setMounted((prev) => (prev[event] ? prev : { ...prev, [event]: mod.default }));
+            // Re-fire only when the component was JUST mounted, so its own
+            // listener catches the event. Without this guard every re-dispatch
+            // schedules another re-dispatch -> exponential event loop.
+            if (!mountedRef.current[event]) {
+              mountedRef.current[event] = true;
+              requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(event)));
+            }
+          })
+          .catch((err) => console.error(`[easter-egg] failed to load ${event}:`, err));
       };
       window.addEventListener(event, handler);
       return [event, handler] as const;

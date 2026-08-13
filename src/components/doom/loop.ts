@@ -37,7 +37,7 @@ export function createLoop(engine: DoomEngine, { targets, linkUrls }: TargetSetu
       const hit = intersects[0].object;
       hit.position.y += 1000; // make it disappear
       const url = linkUrls[hit.uuid];
-      if (url) window.open(url, '_blank');
+      if (url) window.open(url, '_blank', 'noopener');
     }
   };
 

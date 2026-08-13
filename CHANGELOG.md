@@ -59,6 +59,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Guestbook and click counter hardened against fake requests and floods
 - Rate limits can no longer be bypassed with spoofed IPs
 - Stricter security headers on every page
+- Links opened from games and easter eggs are fully sandboxed
 - All dependencies audited — no known vulnerabilities
 
 ## [2.0.0-lts]
