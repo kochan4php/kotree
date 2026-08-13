@@ -19,7 +19,7 @@ were confirmed with live probes against the deployed site.
 | ----- | ------------- | ----- |
 | `guardOrigin` (Origin header check) | cross-site requests / CSRF | evil-origin POST to all 3 write endpoints -> 403 |
 | CSRF token + honeypot | naive bots, automated spam | no-token POST -> 403; honeypot field -> 403 |
-| Rate limit (30/min/IP, last XFF hop) | floods, Gemini quota drain | 35 spoofed-IP posts -> 429 at hit 31 |
+| Rate limit (10/min/IP + 60/min global for chat; 30/min/IP elsewhere) | floods, Gemini quota drain | 11th same-IP chat post -> 429; 61st cross-IP chat post -> 429 |
 | Input validation (whitelist, caps, clamps) | garbage / oversized payloads | name whitelist, 100/200 char caps, count clamp |
 | Upstream timeouts (AbortSignal) | hung webhook / Gemini / ipapi | 5s webhook, 10s Gemini, 8s geo fallback |
 | PII hygiene | visitor data exposure | GET guestbook returns only `createdAt` + `message`; stored IP is sha-256 hashed |
@@ -30,15 +30,17 @@ were confirmed with live probes against the deployed site.
 | ----- | ------ | ------ | ------- |
 | Random bot | any POST | cross-site form/fetch | blocked by guardOrigin (403) |
 | Spammer | guestbook | scripted posts | blocked by token + honeypot + rate limit |
-| Flooder | chat (Gemini quota) | rapid same-site requests | rate limited (30/min/IP); limiter resets on cold start |
+| Flooder | chat (Gemini quota) | rapid same-site requests | rate limited (10/min/IP) + 60/min global budget across all visitors |
 | Curious dev | endpoints | manual probing | sees only public data; no stack traces, no PII |
-| Attacker with real browsers | any write | distributed, one request per IP | **residual risk** — no auth, by design |
+| Attacker with real browsers | any write | distributed, one request per IP | **residual risk** — no auth, by design (chat is covered by the 60/min global budget) |
 
 ## Known limitations (deliberate tradeoffs)
 
 1. Rate limiter is in-memory per serverless instance — resets on cold start.
-   Ceiling: distributed floods. Upgrade path: Redis-backed limiter if the site
-   ever gets real traffic.
+   The chat endpoint adds a global 60/min budget across all visitors, so a
+   distributed flood can no longer drain the AI quota on a single instance.
+   Ceiling: floods that outlive instance recycling. Upgrade path: Redis-backed
+   limiter if the site ever gets real traffic.
 2. CSRF token is derivable (hour slice + public base URL) — cosmetic only.
    The real protection is `guardOrigin`: browsers enforce the Origin header,
    which cross-site requests cannot forge.

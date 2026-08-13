@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { profile } from '@/data/profile';
 import { socialLinks } from '@/data/social-links';
 import { guardOrigin } from '@/lib/security';
-import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { isRateLimited, isGloballyRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
   // Same protections as the other write endpoints: this burns Gemini quota.
@@ -10,7 +10,12 @@ export async function POST(request: Request) {
   if (forbidden) return forbidden;
 
   const ip = getClientIp(request);
-  if (isRateLimited(`chat:${ip}`)) {
+  // Tighter per-IP cap for chat (burns Gemini quota) + a global budget so a
+  // flood spread across many IPs can't drain the quota either
+  if (isRateLimited(`chat:${ip}`, 10)) {
+    return new Response('Too Many Requests', { status: 429 });
+  }
+  if (isGloballyRateLimited('chat', 60)) {
     return new Response('Too Many Requests', { status: 429 });
   }
 
