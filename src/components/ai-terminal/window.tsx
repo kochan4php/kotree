@@ -55,7 +55,7 @@ export default function TerminalWindow({
           <span className="text-white/50 text-[10px] font-sans mx-auto -ml-8 flex-1 text-center font-medium tracking-wider uppercase">root@kochan:~</span>
         </div>
 
-        <div className="h-64 overflow-y-auto p-4 space-y-2 relative z-20">
+        <div className="h-64 overflow-y-auto p-4 space-y-2 relative z-20" aria-live="polite">
           {history.map((line, i) => (
             <div
               key={i}

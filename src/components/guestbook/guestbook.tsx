@@ -46,12 +46,14 @@ export default function Guestbook({ token }: { token?: string }) {
 
     // Optimistic UI update
     const encryptedMessage = encryptMessage(tempMessage);
-    setEntries([{ message: encryptedMessage, createdAt: new Date().toISOString() }, ...entries].slice(0, MAX_ENTRIES));
+    const tempCreatedAt = new Date().toISOString();
+    setEntries([{ message: encryptedMessage, createdAt: tempCreatedAt }, ...entries].slice(0, MAX_ENTRIES));
 
     try {
       await postEntry(encryptedMessage, token);
     } catch {
-      // Revert if failed
+      // Revert the optimistic entry if the POST failed
+      setEntries((prev) => prev.filter((e) => e.createdAt !== tempCreatedAt));
     } finally {
       setIsSubmitting(false);
     }

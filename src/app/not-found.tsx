@@ -13,14 +13,14 @@ export default function NotFound() {
       <div className="">
         <p className="text-[120px] leading-none font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-br from-accent to-accent/50 mb-4 drop-shadow-[0_0_30px_rgba(255,124,71,0.6)] mix-blend-screen">404</p>
       </div>
-      <div className=" delay-150">
+      <div>
         <h1 className="text-3xl font-black tracking-tight text-foreground mb-2 uppercase">Sanctuary Lost</h1>
         <p className="text-muted-foreground leading-relaxed mb-8">
           The link you followed might be broken, or the page may have been removed.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 delay-300">
+      <div className="flex flex-col gap-3">
         <PageButton href="/">
           <Home size={20} />
           Back to Home

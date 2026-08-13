@@ -37,7 +37,7 @@ export default function WasmEngine() {
 
   return (
     <div className="flex items-center gap-2 pointer-events-none">
-      <div className="flex items-center justify-center w-12 h-12 fluid-glass rounded-full! bg-accent/5! border-accent/20! cursor-pointer hover:bg-accent/20! transition-colors">
+      <div className="flex items-center justify-center w-12 h-12 fluid-glass rounded-full! bg-accent/5! border-accent/20! hover:bg-accent/20! transition-colors">
         <span className="text-sm font-mono text-accent font-bold tracking-tighter relative z-10">{'<k/>'}</span>
       </div>
     </div>

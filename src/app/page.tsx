@@ -1,9 +1,7 @@
 import CardProfile from '@/components/card-profile';
 import Footer from '@/components/layout/footer';
 import LinksSection from '@/components/links-section';
-import LinksSkeleton from '@/components/links-skeleton';
 import GeoLockedQuest from '@/components/geo-locked-quest';
-import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
 const CryptoTipJar = dynamic(() => import('@/components/crypto-tip-jar'));
@@ -20,9 +18,7 @@ export default function LinktreePage() {
           <GeoLockedQuest />
         </div>
         
-        <Suspense fallback={<LinksSkeleton />}>
-          <LinksSection />
-        </Suspense>
+        <LinksSection />
         <Footer />
       </div>
     </main>

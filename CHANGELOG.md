@@ -2,6 +2,46 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
+## [3.0.0]
+
+A deep hardening pass: performance, security, accessibility, and code health.
+
+### Added
+
+- Search button in the header dock (mobile-friendly entry point)
+- Focus returns to the trigger after closing any modal
+- Tab focus is trapped inside the AI terminal, telepathy, and QR dialogs
+- ARIA labels for the guestbook, terminal, and telepathy inputs
+- iOS safe-area insets when installed as a PWA
+- `noopener noreferrer` on all external links
+
+### Changed
+
+- QR code modal now lazy-loads (smaller initial bundle)
+- Fluid-glass depth applied consistently to every card
+- Sitemap dates come from git history instead of build time
+- Header bar inset widened to match the layout grid
+
+### Fixed
+
+- First visit was slow (3.3s) — the middleware edge function is gone (0.7s now)
+- Intermittent broken CSS — service worker v2 is network-first for pages
+- Guestbook entries kept optimistic ghosts after a failed save
+- Guestbook API no longer exposes visitor IP addresses / user agents
+
+### Security
+
+- Rate limiting now uses the real client IP (last proxy hop)
+- Click counter and guestbook hardened with CSRF tokens and rate limits
+- `X-Powered-By` header removed
+- All dependencies audited — no known vulnerabilities
+
+### Refactor
+
+- Every file is now 100 lines or fewer, grouped into feature folders
+- All Tailwind v4 editor warnings resolved
+- Lint and CI are green (0 errors, 0 warnings)
+
 ## [2.0.0-lts]
 
 A big refresh. The whole page now matches the kochan.dev brand.
