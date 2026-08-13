@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+import { createHash } from 'crypto';
 import { LinkCounter } from '@/interfaces';
 
 const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017';
@@ -50,10 +51,13 @@ const guestbookCollection = () =>
 
 export async function getGuestbookEntries(): Promise<GuestbookEntry[]> {
   const collection = await guestbookCollection();
-  return collection.find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).limit(50).toArray();
+  // ip/userAgent are moderation data, never exposed to clients (privacy)
+  return collection.find({}, { projection: { _id: 0, ip: 0, userAgent: 0 } }).sort({ createdAt: -1 }).limit(50).toArray();
 }
 
 export async function addGuestbookEntry(message: string, ip?: string, userAgent?: string): Promise<void> {
   const collection = await guestbookCollection();
-  await collection.insertOne({ message, ip, userAgent, createdAt: new Date() });
+  // Store a hash, not the raw IP: same visitor correlates for moderation, no PII kept
+  const hashedIp = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 32) : undefined;
+  await collection.insertOne({ message, ip: hashedIp, userAgent, createdAt: new Date() });
 }

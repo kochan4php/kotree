@@ -3,7 +3,7 @@ import { Sparkles, TerminalSquare, ArrowRight } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="mt-4 w-full pb-4">
+    <footer className="mt-4 w-full pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="fluid-glass p-6 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-6 text-sm relative group overflow-hidden">
         <div className="liquid-gradient opacity-30"></div>
         {/* Animated background glow */}

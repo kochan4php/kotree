@@ -18,7 +18,7 @@ export default function ChangelogPage() {
   const { header, versions } = renderChangelog(parseChangelog(fs.readFileSync(filePath, 'utf-8')));
 
   return (
-    <main className="min-h-screen p-4 pt-19 md:mt-2">
+    <main className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2">
       <div className="relative max-w-2xl mx-auto">
 
         <div className="space-y-6">
