@@ -64,6 +64,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Guestbook and click counter hardened against fake requests and floods
 - The AI chat has its own tighter limit (10 a minute), a global budget, and a daily spend cap, so floods can't drain the AI quota
 - The AI chat blocks harmful content and has an emergency kill switch
+- The AI chat is also guarded at the CDN edge, so floods are stopped before they reach the server
 - Rate limits can no longer be bypassed with spoofed IPs
 - Stricter security headers on every page
 - Links opened from games and easter eggs are fully sandboxed

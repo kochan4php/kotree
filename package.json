@@ -29,6 +29,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@netlify/edge-functions": "^3.0.8",
     "@netlify/plugin-nextjs": "^5.15.13",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
