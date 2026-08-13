@@ -66,7 +66,7 @@ export default function GeoLockedQuest() {
             href="https://github.com/kochan4php/kotree"
             target="_blank"
             rel="noreferrer"
-            className="block w-full p-2 mt-2 bg-green-600 shadow-md text-white font-bold rounded-xl hover:bg-green-500 transition-all hover:scale-105 active:scale-95 text-xs cursor-pointer"
+            className="block w-full p-2 mt-2 bg-green-600 shadow-md text-white font-bold rounded-xl hover:bg-green-500 transition-all hover:scale-105 active:scale-95 text-xs cursor-pointer min-h-11 flex items-center justify-center"
           >
             ENTER SANCTUARY
           </a>

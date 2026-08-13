@@ -16,7 +16,7 @@ export default function AITerminal() {
         className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
           isOpen ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'
         }`}
-        aria-label="Open AI Terminal"
+        aria-label={isOpen ? 'Close AI Terminal' : 'Open AI Terminal'}
       >
         {isOpen ? <X className="w-5 h-5 text-red-500" /> : <TerminalIcon className="w-5 h-5 text-green-500" />}
       </button>

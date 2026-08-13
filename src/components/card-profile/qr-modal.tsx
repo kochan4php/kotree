@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
 import QRCode from 'react-qr-code';
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -14,6 +15,11 @@ interface QRModalProps {
 }
 
 export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose }: QRModalProps) {
+  // Move focus to the close button once the dialog mounts (also on reopen)
+  useEffect(() => {
+    if (isOpen) closeBtnRef.current?.focus();
+  }, [isOpen, closeBtnRef]);
+
   if (!isRendered || typeof window === 'undefined') return null;
 
   return createPortal(

@@ -22,6 +22,10 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
     const handleOnline = () => syncOfflineClicks(token);
     window.addEventListener('online', handleOnline);
 
+    // Search button in the header dock (mobile-friendly entry point)
+    const toggleSearch = () => setIsSearching((s) => !s);
+    window.addEventListener('kotree:search', toggleSearch);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsSearching(false);
@@ -41,6 +45,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('kotree:search', toggleSearch);
     };
   }, [token]);
 
@@ -74,9 +79,9 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
 
       <div className="space-y-3">
         {filteredLinks.length > 0 ? (
-          filteredLinks.map((link, index) => {
+          filteredLinks.map((link) => {
             const clickCount = linkCounts.find((item) => item.name === link.name.toLowerCase())?.count ?? 0;
-            return <SocialLinkItem key={link.name} link={link} clickCount={clickCount} index={index} token={token} />;
+            return <SocialLinkItem key={link.name} link={link} clickCount={clickCount} token={token} />;
           })
         ) : (
           <div className="text-center py-8 text-muted-foreground text-sm">

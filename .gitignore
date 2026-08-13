@@ -44,4 +44,4 @@ package-lock.json
 # .gitignore
 certificates
 
-/.idea
+/.ideatest-results

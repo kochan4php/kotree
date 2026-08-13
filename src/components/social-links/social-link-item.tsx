@@ -10,11 +10,10 @@ import { useSensory } from '@/hooks/use-sensory';
 interface SocialLinkItemProps {
   link: SocialLink;
   clickCount: number;
-  index: number;
   token?: string;
 }
 
-export default function SocialLinkItem({ link, clickCount, index, token }: SocialLinkItemProps) {
+export default function SocialLinkItem({ link, clickCount, token }: SocialLinkItemProps) {
   const { playFeedback, playHoverFeedback } = useSensory();
   const handleClick = async () => {
     playFeedback();
@@ -22,13 +21,12 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
   };
 
   return (
-    <div
-      className=""
-      style={{ animationDelay: `${100 + index * 100}ms`, animationDuration: '500ms' }}
+    <Card
+      onMouseEnter={playHoverFeedback}
+      className="fluid-glass group p-0 transition-all duration-300 hover:border-accent/30 hover:bg-accent/[0.02] hover:shadow-lg active:scale-[0.99]"
     >
-      <Card onMouseEnter={playHoverFeedback} className="fluid-glass group p-0 transition-all duration-300 hover:border-accent/30 hover:bg-accent/[0.02] hover:shadow-lg active:scale-[0.99]">
-        <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
-        <Link href={link.url} onClick={handleClick} target="_blank">
+      <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
+      <Link href={link.url} onClick={handleClick} target="_blank">
           <div className="relative z-10 flex items-center gap-4 p-4">
           <span
             className="w-12 h-12 shrink-0 rounded-xl bg-linear-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-sm"
@@ -54,6 +52,5 @@ export default function SocialLinkItem({ link, clickCount, index, token }: Socia
         </div>
       </Link>
     </Card>
-    </div>
   );
 }

@@ -30,19 +30,16 @@ export default function ChangelogPage() {
           </Card>
 
           <div className="space-y-6">
-            {versions.map((version, index) => (
-              <div 
-                key={version.title} 
-                className=""
-                style={{ animationDelay: `${150 + index * 100}ms`, animationDuration: '600ms' }}
+            {versions.map((version) => (
+              <Card
+                key={version.title}
+                className="gap-3 transition-all duration-300 fluid-glass hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1"
               >
-                <Card className="gap-3 transition-all duration-300 fluid-glass hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1">
-                  <div className="relative z-10">
-                    <h2 className="text-xl font-black tracking-tight text-accent">{version.title}</h2>
-                    <div className="text-muted-foreground leading-relaxed font-medium">{version.body}</div>
-                  </div>
-                </Card>
-              </div>
+                <div className="relative z-10">
+                  <h2 className="text-xl font-black tracking-tight text-accent">{version.title}</h2>
+                  <div className="text-muted-foreground leading-relaxed font-medium">{version.body}</div>
+                </div>
+              </Card>
             ))}
           </div>
         </div>

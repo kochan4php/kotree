@@ -6,7 +6,9 @@ import { profile } from '@/data/profile';
 import { useEffect, useRef, useState } from 'react';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
-import QRModal from './qr-modal';
+import dynamic from 'next/dynamic';
+
+const QRModal = dynamic(() => import('./qr-modal'), { ssr: false });
 
 export default function CardProfile() {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -25,10 +27,7 @@ export default function CardProfile() {
     setTimeout(() => setIsRendered(false), 300);
   };
 
-  // Move focus into the dialog once it actually exists (isRendered, not isFlipped)
-  useEffect(() => {
-    if (isRendered && isFlipped) closeBtnRef.current?.focus();
-  }, [isRendered, isFlipped]);
+  // Focus moves into the dialog on open — handled inside QRModal (lazy chunk may not be mounted yet when isRendered flips)
 
   useEffect(() => {
     if (!isFlipped) return;
@@ -67,12 +66,12 @@ export default function CardProfile() {
           <p className="text-base text-muted-foreground">{profile.handle}</p>
         </div>
 
-        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto cursor-pointer">
+        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto">
           <Code2 className="w-4 h-4" />
           {profile.role}
         </span>
 
-        <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
+        <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
 
         <div className="relative z-20">
           <ProfileActions onToggleQR={openQR} />
