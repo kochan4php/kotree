@@ -4,6 +4,14 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+const escapeXml = (s: string) =>
+  s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
 export async function GET() {
   const filePath = path.join(process.cwd(), 'CHANGELOG.md');
   const changelog = parseChangelog(fs.readFileSync(filePath, 'utf-8'));
@@ -12,9 +20,9 @@ export async function GET() {
   changelog.versions.forEach((version) => {
     let htmlDescription = '';
     version.blocks.forEach(block => {
-      if (block.type === 'p') htmlDescription += `<p>${block.text}</p>`;
-      if (block.type === 'h3') htmlDescription += `<h3>${block.text}</h3>`;
-      if (block.type === 'list') htmlDescription += `<ul>${block.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+      if (block.type === 'p') htmlDescription += `<p>${escapeXml(block.text)}</p>`;
+      if (block.type === 'h3') htmlDescription += `<h3>${escapeXml(block.text)}</h3>`;
+      if (block.type === 'list') htmlDescription += `<ul>${block.items.map(i => `<li>${escapeXml(i)}</li>`).join('')}</ul>`;
     });
     
     // Extract a mock date from the version string if possible (e.g., [1.0.0] - 2024-01-01)
@@ -24,9 +32,9 @@ export async function GET() {
 
     rssItemsXml += `
       <item>
-        <title>${version.title}</title>
-        <link>${site.baseUrl}/changelog</link>
-        <guid>${site.baseUrl}/changelog#${version.title.replace(/[^a-zA-Z0-9]/g, '-')}</guid>
+        <title>${escapeXml(version.title)}</title>
+        <link>${escapeXml(site.baseUrl)}/changelog</link>
+        <guid>${escapeXml(site.baseUrl)}/changelog#${version.title.replace(/[^a-zA-Z0-9]/g, '-')}</guid>
         <pubDate>${pubDate}</pubDate>
         <description><![CDATA[${htmlDescription}]]></description>
       </item>`;
@@ -35,12 +43,12 @@ export async function GET() {
   const rssFeed = `<?xml version="1.0" encoding="UTF-8" ?>
     <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
       <channel>
-        <title>${site.title} Changelog</title>
-        <link>${site.baseUrl}</link>
-        <description>Latest updates and changes to ${site.name}'s portfolio</description>
+        <title>${escapeXml(site.title)} Changelog</title>
+        <link>${escapeXml(site.baseUrl)}</link>
+        <description>Latest updates and changes to ${escapeXml(site.name)}'s portfolio</description>
         <language>en</language>
         <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-        <atom:link href="${site.baseUrl}/rss.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="${escapeXml(site.baseUrl)}/rss.xml" rel="self" type="application/rss+xml" />
         ${rssItemsXml}
       </channel>
     </rss>`;

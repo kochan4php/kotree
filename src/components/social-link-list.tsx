@@ -4,24 +4,31 @@ import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import SocialLinkItem from '@/components/social-link-item';
 import { socialLinks } from '@/data/social-links';
-import { trackLinkClick, syncOfflineClicks } from '@/lib/track-click';
-import { LinkCounter } from '@/interfaces';
+import { syncOfflineClicks } from '@/lib/track-click';
+import { useLinkCounts } from '@/hooks/use-link-counts';
 
 interface SocialLinkListProps {
-  linkCounts: LinkCounter[];
   token?: string;
 }
 
-export default function SocialLinkList({ linkCounts, token }: SocialLinkListProps) {
+export default function SocialLinkList({ token }: SocialLinkListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const linkCounts = useLinkCounts();
 
   useEffect(() => {
-    // Sync any pending offline clicks when component mounts
+    // Sync any pending offline clicks on mount and whenever the connection returns
     syncOfflineClicks(token);
+    const handleOnline = () => syncOfflineClicks(token);
+    window.addEventListener('online', handleOnline);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input or textarea
+      if (e.key === 'Escape') {
+        setIsSearching(false);
+        setSearchQuery('');
+        return;
+      }
+      // Ignore Ctrl+K while typing in an input or textarea
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -29,14 +36,13 @@ export default function SocialLinkList({ linkCounts, token }: SocialLinkListProp
         e.preventDefault();
         setIsSearching(true);
       }
-      if (e.key === 'Escape') {
-        setIsSearching(false);
-        setSearchQuery('');
-      }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [token]);
 
   const filteredLinks = socialLinks.filter(link => 
     link.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -54,6 +60,7 @@ export default function SocialLinkList({ linkCounts, token }: SocialLinkListProp
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search links... (Esc to close)"
+            aria-label="Search links"
             className="w-full bg-background border border-accent/30 rounded-xl py-3 pl-10 pr-4 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 shadow-sm transition-all"
           />
         </div>
@@ -73,14 +80,14 @@ export default function SocialLinkList({ linkCounts, token }: SocialLinkListProp
           })
         ) : (
           <div className="text-center py-8 text-muted-foreground text-sm">
-            No links found for "{searchQuery}"
+            No links found for &quot;{searchQuery}&quot;
           </div>
         )}
       </div>
 
-      {/* Honeypot Link for bots */}
-      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <a href="#" onClick={(e) => { e.preventDefault(); fetch('/api/click-link-counter', { method: 'POST', body: JSON.stringify({ _honeypot: true }) }) }} rel="nofollow" id="honeypot-link" data-bot="true">Admin Login</a>
+      {/* Honeypot Link for bots — kept out of tab order so keyboard users never land on it */}
+      <div aria-hidden="true" inert style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <a href="#" tabIndex={-1} onClick={(e) => { e.preventDefault(); fetch('/api/click-link-counter', { method: 'POST', body: JSON.stringify({ _honeypot: true }) }) }} rel="nofollow" id="honeypot-link" data-bot="true">Admin Login</a>
       </div>
     </div>
   );

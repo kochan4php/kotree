@@ -27,7 +27,7 @@ export default function Footer() {
         
         <Link 
           href="/changelog" 
-          className="relative z-10 group/btn flex items-center gap-2 px-6 py-2.5 fluid-glass !rounded-full text-xs font-black uppercase tracking-wider !bg-accent/10 !border-accent/30 text-accent hover:!bg-accent/20 hover:scale-105 hover:shadow-[0_0_25px_color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-all duration-300"
+          className="relative z-10 group/btn flex items-center gap-2 px-6 py-2.5 fluid-glass !rounded-full text-xs font-black uppercase tracking-wider !bg-accent/10 !border-accent/30 text-accent hover:!bg-accent/20 hover:scale-105 hover:shadow-[0_0_25px_color-mix(in_srgb,var(--color-accent)_30%,transparent)] transition-all duration-300 min-h-[44px]"
         >
           <div className="relative z-10 flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-accent animate-pulse" />

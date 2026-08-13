@@ -16,15 +16,11 @@ import dynamic from 'next/dynamic';
 const AITerminal = dynamic(() => import('@/components/ai-terminal'));
 const Background = dynamic(() => import('@/components/background'));
 import ScrollFades from '@/components/scroll-fades';
-import PwaSyncManager from '@/components/pwa-sync-manager';
 import HeaderLeft from '@/components/header-left';
 import SelfDestruct from '@/components/self-destruct';
-import Win95Mode from '@/components/win95-mode';
+import EasterEggLauncher from '@/components/easter-egg-launcher';
 import WebBluetooth from '@/components/web-bluetooth';
-import BossFight from '@/components/boss-fight';
-import DoomMode from '@/components/doom-mode';
 import VoiceCommand from '@/components/voice-command';
-import InfiniteMirror from '@/components/infinite-mirror';
 
 import { Viewport } from 'next';
 
@@ -86,7 +82,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }} 
         />
         <PwaInstallPrompt />
-        <PwaSyncManager />
         <KonamiCode />
         <GhostCursor />
         <div className="fixed top-4 left-3 right-3 z-[60] flex items-center justify-between pointer-events-none">
@@ -100,10 +95,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
         <PwaRegister />
         <SelfDestruct />
-        <Win95Mode />
-        <BossFight />
-        <DoomMode />
-        <InfiniteMirror />
+        <EasterEggLauncher />
       </body>
     </html>
   );

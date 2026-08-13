@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 
 // Singleton AudioContext to prevent main thread freezing/flickering
 let globalAudioCtx: AudioContext | null = null;
@@ -8,7 +8,7 @@ let globalAudioCtx: AudioContext | null = null;
 function getAudioContext() {
   if (typeof window === 'undefined') return null;
   if (!globalAudioCtx) {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (AudioContextClass) {
       globalAudioCtx = new AudioContextClass();
     }
@@ -26,7 +26,7 @@ export function useSensory() {
       try {
         // A subtle 15ms vibration
         window.navigator.vibrate(15);
-      } catch (e) {
+      } catch {
         // Ignore errors on unsupported devices
       }
     }
@@ -51,7 +51,7 @@ export function useSensory() {
 
         oscillator.start();
         oscillator.stop(audioCtx.currentTime + 0.1);
-      } catch (e) {
+      } catch {
         // Ignore audio errors
       }
     }
@@ -81,7 +81,7 @@ export function useSensory() {
 
         oscillator.start();
         oscillator.stop(audioCtx.currentTime + 0.05);
-      } catch (e) {
+      } catch {
         // Ignore audio errors
       }
     }

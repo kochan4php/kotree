@@ -6,7 +6,6 @@ import { Terminal as TerminalIcon, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 import { socialLinks } from '@/data/social-links';
-import { profile } from '@/data/profile';
 
 const RESPONSES: Record<string, string> = {
   'whoami': "I am Deo Subarno (Kochan). I write code, I make games, and I exist on the internet.",
@@ -22,14 +21,16 @@ export default function AITerminal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setIsRendered(true);
-    } else {
-      const timer = setTimeout(() => setIsRendered(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
+  const openTerminal = () => {
+    setIsOpen(true);
+    setIsRendered(true);
+  };
+
+  const closeTerminal = () => {
+    setIsOpen(false);
+    // Keep it mounted briefly so the exit animation plays
+    setTimeout(() => setIsRendered(false), 300);
+  };
 
   const [history, setHistory] = useState<{ type: 'user' | 'bot'; text: string }[]>([
     { type: 'bot', text: 'Initializing Kochan AI Clone v1.0.0...' },
@@ -37,27 +38,27 @@ export default function AITerminal() {
   ]);
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
 
+  // Keyboard shortcuts: ` / ~ toggles the terminal, Escape closes it
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input or textarea
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeTerminal();
+        return;
+      }
+      // Ignore the toggle key while typing in an input or textarea
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
-      
       if (e.key === '`' || e.key === '~') {
         e.preventDefault();
-        setIsOpen(prev => !prev);
+        if (isOpen) closeTerminal();
+        else openTerminal();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen]);
 
   useEffect(() => {
     if (bottomRef.current) {
@@ -79,7 +80,7 @@ export default function AITerminal() {
       window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
       response = "IDDQD. Initializing DOOM Engine...";
     } else if (cmd === 'ls') {
-      response = socialLinks.map(l => `- ${l.name.toLowerCase()} (url)`).join('\n');
+      response = socialLinks.map(l => `- ${l.name.toLowerCase()} (${l.url})`).join('\n');
     } else if (cmd.startsWith('open ')) {
       const target = cmd.replace('open ', '').trim();
       const link = socialLinks.find(l => l.name.toLowerCase() === target);
@@ -119,7 +120,7 @@ export default function AITerminal() {
           newHist[newHist.length - 1] = { type: 'bot', text: data.reply };
           return newHist;
         });
-      } catch (err) {
+      } catch {
         setHistory((prev) => {
           const newHist = [...prev];
           newHist[newHist.length - 1] = { type: 'bot', text: 'Error connecting to neural net.' };
@@ -133,22 +134,25 @@ export default function AITerminal() {
     <>
       {/* Dock Icon Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-10 h-10 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'}`}
+        onClick={isOpen ? closeTerminal : openTerminal}
+        className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${isOpen ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'}`}
         aria-label="Open AI Terminal"
       >
         {isOpen ? <X className="w-5 h-5 text-red-500" /> : <TerminalIcon className="w-5 h-5 text-green-500" />}
       </button>
 
       {/* Terminal Window */}
-      {isRendered && mounted && createPortal(
+      {isRendered && createPortal(
         <div className="fixed inset-0 z-[100] flex justify-center items-start pt-20">
           <div 
             className={`absolute inset-0 bg-black/40 ${isOpen ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
-            onClick={() => setIsOpen(false)} 
+            onClick={closeTerminal} 
           />
           <div className={`w-[95vw] max-w-lg relative will-change-transform ${isOpen ? 'animate-modal-content' : 'animate-modal-content-out'}`}>
             <Card 
+              role="dialog"
+              aria-modal="true"
+              aria-label="AI Terminal"
               className="fluid-glass !bg-black/5 !border-white/10 text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
             >
               <div className="absolute inset-0 pointer-events-none scanlines opacity-30 mix-blend-overlay z-10"></div>
@@ -156,7 +160,7 @@ export default function AITerminal() {
               {/* Window Controls Header */}
               <div className="bg-black/10 px-4 py-3 flex items-center gap-2 border-b border-white/10 cursor-move relative z-20">
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer hover:bg-red-500" onClick={() => setIsOpen(false)} />
+                  <button type="button" aria-label="Close terminal" className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer hover:bg-red-500" onClick={closeTerminal} />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                   <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>

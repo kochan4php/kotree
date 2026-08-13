@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
-  // 1. Guard against direct API calls for click counter from unknown origins
-  if (request.nextUrl.pathname.startsWith('/api/click-link-counter')) {
+  // 1. Guard against direct API calls for click counter from unknown origins.
+  //    POST only: GET is public read-only data (the counters used to be
+  //    server-rendered into the HTML for everyone).
+  if (request.method === 'POST' && request.nextUrl.pathname.startsWith('/api/click-link-counter')) {
     const referer = request.headers.get('referer');
     const origin = request.headers.get('origin');
     
@@ -22,16 +24,17 @@ export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live;
+    script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';
     style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: https:;
-    font-src 'self' data:;
+    img-src 'self' data: blob: https://avatars.githubusercontent.com https://win98icons.alexmeub.com;
+    font-src 'self';
+    media-src 'self' blob:;
+    connect-src 'self' https://ipapi.co;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
     upgrade-insecure-requests;
-    connect-src 'self' https: wss:;
     worker-src 'self' blob:;
   `.replace(/\s{2,}/g, ' ').trim();
 

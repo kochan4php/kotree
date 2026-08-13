@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 // Minimal WebAssembly module bytecode (exports 'add' function: a + b)
 // Compiled by hand for maximum over-engineering
@@ -13,23 +13,18 @@ const WASM_BYTECODE = new Uint8Array([
 ]);
 
 export default function WasmEngine() {
-  const [wasmStatus, setWasmStatus] = useState<string>('Booting WASM Virtual Machine...');
-  const [calculation, setCalculation] = useState<number | null>(null);
 
   useEffect(() => {
-    let addFunc: any = null;
+    let addFunc: ((a: number, b: number) => number) | null = null;
 
     const initWasm = async () => {
       try {
         const { instance } = await WebAssembly.instantiate(WASM_BYTECODE);
-        addFunc = instance.exports.add;
-        setWasmStatus('WebAssembly Native Engine: ONLINE');
-        
-        // Use WASM to add two numbers because JS is too mainstream
-        setCalculation(addFunc(420, 69));
+        addFunc = instance.exports.add as (a: number, b: number) => number;
+        // Self-check: WASM must be able to add (verifies wasm-unsafe-eval CSP works)
+        if (addFunc(420, 69) !== 489) throw new Error('WASM self-check failed');
       } catch (err) {
-        console.error(err);
-        setWasmStatus('WASM Engine: FAILED');
+        console.error('WASM engine failed:', err);
       }
     };
 

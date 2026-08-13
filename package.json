@@ -5,21 +5,18 @@
   "packageManager": "pnpm@11.18.0",
   "scripts": {
     "dev": "next dev --experimental-https",
+    "prebuild": "node scripts/gen-og.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint ."
   },
   "dependencies": {
-    "@react-three/drei": "^10.7.8",
-    "@react-three/fiber": "^9.7.0",
     "clsx": "^2.1.1",
     "ethers": "^6.17.0",
     "idb-keyval": "^6.3.0",
     "lucide-react": "^1.30.0",
-    "maath": "^0.10.8",
     "mongodb": "^7.5.0",
     "next": "16.3.0",
-    "next-themes": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-icons": "^5.7.0",

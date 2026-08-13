@@ -2,14 +2,17 @@ import type { Metadata } from 'next';
 import { site } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: { default: site.title, template: '%s | Kochan' },
+  title: { default: site.title, template: '%s | Kotree' },
   description: site.description,
   keywords: ['Deo Subarno', 'Kochan', 'Software Developer', 'Game Developer', 'Kotree', 'Linktree'],
   authors: [{ name: site.name, url: site.baseUrl }],
   creator: site.name,
   publisher: site.name,
   metadataBase: new URL(site.baseUrl),
-  alternates: { canonical: site.baseUrl },
+  alternates: {
+    canonical: site.baseUrl,
+    types: { 'application/rss+xml': `${site.baseUrl}/rss.xml` },
+  },
   openGraph: {
     type: 'profile',
     url: site.baseUrl,
@@ -17,13 +20,13 @@ export const metadata: Metadata = {
     description: site.description,
     siteName: 'Kotree',
     locale: 'en_US',
-    images: [{ url: `${site.baseUrl}/api/og`, width: 1200, height: 630, alt: 'Kotree - Deo Subarno social links' }],
+    images: [{ url: `${site.baseUrl}/og.png`, width: 1200, height: 630, alt: 'Kotree - Deo Subarno social links' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: site.title,
     description: site.description,
-    images: [`${site.baseUrl}/api/og`],
+    images: [`${site.baseUrl}/og.png`],
     creator: '@kochan',
   },
   robots: {

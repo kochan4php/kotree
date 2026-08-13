@@ -3,7 +3,7 @@
 import ProfileActions from "@/components/profile-actions";
 import { Card } from "@/components/ui/card";
 import { profile } from "@/data/profile";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import QRCode from "react-qr-code";
 import { Code2, X } from "lucide-react";
@@ -11,26 +11,39 @@ import Image from "next/image";
 
 
 export default function CardProfile() {
-  const [isDesktop, setIsDesktop] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
   const [url, setUrl] = useState("");
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+
+  const openQR = () => {
+    setIsFlipped(true);
+    setIsRendered(true);
+  };
+
+  const closeQR = () => {
+    setIsFlipped(false);
+    // Keep it mounted briefly so the exit animation plays
+    setTimeout(() => setIsRendered(false), 300);
+  };
+
+  // Move focus into the dialog once it actually exists (isRendered, not isFlipped)
+  useEffect(() => {
+    if (isRendered && isFlipped) closeBtnRef.current?.focus();
+  }, [isRendered, isFlipped]);
 
   useEffect(() => {
-    if (isFlipped) {
-      setIsRendered(true);
-    } else {
-      const timer = setTimeout(() => setIsRendered(false), 300);
-      return () => clearTimeout(timer);
-    }
+    if (!isFlipped) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeQR();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [isFlipped]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe: window-only value, initial state is the SSR placeholder
     setUrl(window.location.href);
-    const checkScreen = () => setIsDesktop(window.innerWidth >= 768);
-    checkScreen();
-    window.addEventListener("resize", checkScreen);
-    return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
   return (
@@ -64,7 +77,7 @@ export default function CardProfile() {
           <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug cursor-pointer">{profile.bio}</p>
 
           <div className="relative z-20">
-            <ProfileActions onToggleQR={() => setIsFlipped(true)} />
+            <ProfileActions onToggleQR={openQR} />
           </div>
       </Card>
 
@@ -73,18 +86,29 @@ export default function CardProfile() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div 
             className={`absolute inset-0 bg-black/40 ${isFlipped ? 'animate-modal-backdrop' : 'animate-modal-backdrop-out'}`} 
-            onClick={() => setIsFlipped(false)} 
+            onClick={closeQR} 
           />
           <Card 
+            role="dialog"
+            aria-modal="true"
+            aria-label="QR Code"
+            onKeyDown={(e) => {
+              if (e.key === 'Tab') {
+                // Only the close button is focusable inside — keep Tab in the dialog
+                e.preventDefault();
+                closeBtnRef.current?.focus();
+              }
+            }}
             className={`relative w-full max-w-sm text-center p-8 flex flex-col items-center justify-center fluid-glass will-change-transform ${
               isFlipped ? 'animate-modal-content' : 'animate-modal-content-out'
             }`}
           >
             <div className="liquid-gradient opacity-40"></div>
             <button
-              onClick={() => setIsFlipped(false)}
+              ref={closeBtnRef}
+              onClick={closeQR}
               aria-label="Close QR"
-              className="absolute top-4 right-4 p-2 rounded-full bg-accent/10 hover:bg-red-500/20 text-accent hover:text-red-500 transition-colors cursor-pointer z-20"
+              className="absolute top-4 right-4 p-2 rounded-full bg-accent/10 hover:bg-red-500/20 text-accent hover:text-red-500 transition-colors cursor-pointer z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="w-4 h-4" />
             </button>

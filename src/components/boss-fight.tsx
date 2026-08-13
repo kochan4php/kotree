@@ -54,7 +54,7 @@ export default function BossFight() {
     const bossImage = new Image();
     bossImage.src = profile.avatarUrl;
 
-    let keys = { ArrowLeft: false, ArrowRight: false, Space: false };
+    const keys = { ArrowLeft: false, ArrowRight: false, Space: false };
     let lastShot = 0;
     let lastBossShot = 0;
 

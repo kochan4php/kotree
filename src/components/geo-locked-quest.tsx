@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 // Coordinates for Monas, Jakarta
@@ -27,12 +27,12 @@ export default function GeoLockedQuest() {
 
   const handleCheckLocation = () => {
     if (!('geolocation' in navigator)) {
-      toast.error("GPS tidak didukung. Mencoba deteksi IP...");
+      toast.error("GPS not supported. Trying IP detection...");
       fallbackToIP();
       return;
     }
 
-    toast.info("Meminta izin GPS...");
+    toast.info("Requesting GPS permission...");
     
     // Set a manual timeout to fallback faster
     const timeoutId = setTimeout(() => {
@@ -60,23 +60,23 @@ export default function GeoLockedQuest() {
       setUnlocked(true);
       toast.success("QUEST UNLOCKED! Welcome to Monas.");
     } else {
-      toast.error(`Gagal! Jarakmu ${dist.toFixed(0)} meter dari target.`);
+      toast.error(`Failed! You're ${dist.toFixed(0)} meters away from target.`);
     }
   };
 
   const fallbackToIP = async () => {
-    toast.info("Mencoba melacak via alamat IP...");
+    toast.info("Trying IP-based location...");
     try {
       const res = await fetch('https://ipapi.co/json/');
       const data = await res.json();
       if (data && data.latitude && data.longitude) {
-        toast.success(`Lokasi IP terdeteksi: ${data.city}`);
+        toast.success(`IP location detected: ${data.city}`);
         checkDistance(data.latitude, data.longitude);
       } else {
-        toast.error("Gagal mendeteksi lokasi via IP.");
+        toast.error("Failed to detect location via IP.");
       }
-    } catch (e) {
-      toast.error("Gagal mengakses server lokasi IP.");
+    } catch {
+      toast.error("Failed to reach IP location service.");
     }
   };
 
@@ -87,15 +87,15 @@ export default function GeoLockedQuest() {
     >
       <div className="liquid-gradient opacity-30 saturate-100"></div>
       <div className="relative z-10 w-full h-full flex flex-col justify-center items-center">
-        <h3 className="font-bold text-sm text-orange-200 mb-1 flex items-center justify-center gap-1.5 tracking-wider">
+        <h2 className="font-bold text-sm text-orange-200 mb-1 flex items-center justify-center gap-1.5 tracking-wider">
         <span className="text-sm">📍</span> GEO-QUEST
-      </h3>
+      </h2>
       {distance === null ? (
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-1">
           <p className="text-xs font-medium text-orange-300 mb-3 px-1 leading-snug">Verify physical location to unlock.</p>
           <button 
             onClick={handleCheckLocation}
-            className="w-full px-3 py-2 bg-orange-700 text-white shadow-sm font-bold rounded-xl hover:bg-orange-600 transition-colors text-xs cursor-pointer"
+            className="w-full px-3 py-2 bg-orange-700 text-white shadow-sm font-bold rounded-xl hover:bg-orange-600 transition-colors text-xs cursor-pointer min-h-[44px]"
           >
             Check GPS
           </button>

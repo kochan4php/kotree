@@ -1,24 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
 import { Download, X } from 'lucide-react';
+
+// BeforeInstallPromptEvent isn't in TS's DOM lib yet
+type BeforeInstallPromptEvent = {
+  prompt: () => void;
+  userChoice: Promise<{ outcome: string }>;
+};
 
 export default function PwaInstallPrompt() {
   const [isInstallable, setIsInstallable] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [dismissed, setDismissed] = useState(true); // Default to true to prevent hydration mismatch
 
   useEffect(() => {
     // Check if dismissed previously
     const hasDismissed = localStorage.getItem('pwa-prompt-dismissed') === 'true';
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe: initial state IS the SSR value; real value applied after mount
     setDismissed(hasDismissed);
     
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-    const isStandalone = ('standalone' in window.navigator) && (window.navigator as any).standalone;
+    const isStandalone = ('standalone' in window.navigator) && (window.navigator as unknown as { standalone?: boolean }).standalone;
     
     if (isIosDevice && !isStandalone) {
       setIsIOS(true);
@@ -28,7 +34,7 @@ export default function PwaInstallPrompt() {
     // Android/Chrome install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as unknown as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 

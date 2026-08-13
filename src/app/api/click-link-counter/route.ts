@@ -1,11 +1,19 @@
 import { after } from 'next/server';
-import { incrementLinkCount } from '@/connections/mongodb';
+import { getLinkCounts, incrementLinkCount } from '@/connections/mongodb';
 import { socialLinks } from '@/data/social-links';
 import { isRateLimited } from '@/lib/rate-limit';
 import { guardOrigin, validateToken } from '@/lib/security';
 
 const MAX_BODY_BYTES = 10_000;
 const MAX_COUNT = 100;
+
+export async function GET() {
+  // Public read-only data (was previously server-rendered into the HTML).
+  // No origin guard: same-origin GET fetches don't always carry an Origin
+  // header, and blocking on it would silently zero out the counters.
+  const counts = await getLinkCounts().catch(() => []);
+  return Response.json(counts);
+}
 
 export async function POST(request: Request) {
   const forbidden = guardOrigin(request);

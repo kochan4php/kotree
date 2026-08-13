@@ -3,8 +3,11 @@
 import PageButton from '@/components/page-button';
 import StateCard from '@/components/state-card';
 import { ArrowLeft, Home } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function NotFound() {
+  const router = useRouter();
+
   return (
     <StateCard>
       <div className="animate-in fade-in zoom-in-95 duration-500 fill-mode-both">
@@ -22,7 +25,7 @@ export default function NotFound() {
           <Home size={20} />
           Back to Home
         </PageButton>
-        <PageButton href="/" variant="ghost">
+        <PageButton onClick={() => router.back()} variant="ghost">
           <ArrowLeft size={20} />
           Go Back
         </PageButton>

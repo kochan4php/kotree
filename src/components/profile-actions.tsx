@@ -1,8 +1,7 @@
 'use client';
 
-import { Share2, QrCode, X, Check } from 'lucide-react';
+import { Share2, QrCode, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
 import { useSensory } from '@/hooks/use-sensory';
 
@@ -55,7 +54,7 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
         <button 
           onClick={handleShare}
           onMouseEnter={playHoverFeedback}
-          className={`w-10 h-10 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${copied ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'}`}
+          className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${copied ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'}`}
           aria-label="Share Profile"
         >
           <div className="relative w-5 h-5 pointer-events-none">
@@ -70,7 +69,7 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
             if (onToggleQR) onToggleQR();
           }}
           onMouseEnter={playHoverFeedback}
-          className="w-10 h-10 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-foreground hover:bg-accent/20"
+          className="w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-foreground hover:bg-accent/20"
           aria-label="Show QR Code"
         >
           <QrCode className="w-5 h-5 text-purple-500 pointer-events-none" />

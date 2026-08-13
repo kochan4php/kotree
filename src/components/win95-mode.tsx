@@ -23,6 +23,18 @@ interface WindowState {
   prevHeight: number | string;
 }
 
+const profileWindowContent = (
+  <div className="flex flex-col items-center gap-4 p-4 text-black">
+    {/* eslint-disable-next-line @next/next/no-img-element -- pixel-art easter egg, next/image irrelevant */}
+    <img src={profile.avatarUrl} alt="Avatar" className="w-24 h-24 border-2 border-gray-500 shadow-[inset_1px_1px_0px_white,inset_-1px_-1px_0px_#888]" style={{ imageRendering: 'pixelated' }} />
+    <h2 className="font-bold text-xl">{profile.name}</h2>
+    <p className="text-center">{profile.bio}</p>
+  </div>
+);
+
+// Module scope so Math.random never runs in render-phase code
+const randomWindowPos = () => ({ x: 50 + Math.random() * 50, y: 50 + Math.random() * 50 });
+
 export default function Win95Mode() {
   const [isActive, setIsActive] = useState(false);
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -34,73 +46,7 @@ export default function Win95Mode() {
   const dragPos = useRef({ x: 0, y: 0 });
   const windowRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  useEffect(() => {
-    const handleActivate = () => {
-      setIsActive(true);
-      if (windows.length === 0) {
-        openWindow('profile', 'Profile.exe', (
-          <div className="flex flex-col items-center gap-4 p-4 text-black">
-            <img src={profile.avatarUrl} alt="Avatar" className="w-24 h-24 border-2 border-gray-500 shadow-[inset_1px_1px_0px_white,inset_-1px_-1px_0px_#888]" style={{ imageRendering: 'pixelated' }} />
-            <h2 className="font-bold text-xl">{profile.name}</h2>
-            <p className="text-center">{profile.bio}</p>
-          </div>
-        ), 320, 300);
-      }
-    };
-
-    window.addEventListener('ACTIVATE_WIN95', handleActivate);
-    return () => window.removeEventListener('ACTIVATE_WIN95', handleActivate);
-  }, [windows.length]);
-
-  // Handle global mouse move for dragging
-  useEffect(() => {
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!draggingId.current) return;
-      
-      const el = windowRefs.current[draggingId.current];
-      if (el) {
-        // Calculate new pos
-        const newX = e.clientX - dragOffset.current.x;
-        const newY = e.clientY - dragOffset.current.y;
-        
-        // Mutate DOM directly to bypass React render cycle for 120fps smooth drag
-        el.style.left = `${newX}px`;
-        el.style.top = `${newY}px`;
-        
-        // Save to ref to update state on drop
-        dragPos.current = { x: newX, y: newY };
-      }
-    };
-
-    const handlePointerUp = () => {
-      if (draggingId.current) {
-        const id = draggingId.current;
-        const finalX = dragPos.current.x;
-        const finalY = dragPos.current.y;
-        
-        draggingId.current = null;
-        
-        // Sync final position back to React state
-        setWindows(prev => prev.map(w => {
-          if (w.id === id) {
-            return { ...w, x: finalX, y: finalY };
-          }
-          return w;
-        }));
-      }
-    };
-
-    if (isActive) {
-      window.addEventListener('pointermove', handlePointerMove);
-      window.addEventListener('pointerup', handlePointerUp);
-    }
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-    };
-  }, [isActive]);
-
-  const openWindow = (id: string, title: string, content: React.ReactNode, width: number | string = 300, height: number | string = 'auto') => {
+  function openWindow(id: string, title: string, content: React.ReactNode, x: number, y: number, width: number | string = 300, height: number | string = 'auto') {
     if (windows.find(w => w.id === id)) {
       bringToFront(id);
       return;
@@ -109,15 +55,14 @@ export default function Win95Mode() {
     setTopZ(newZ);
     setWindows([...windows, { 
       id, title, content, 
-      x: Math.random() * 50 + 50, 
-      y: Math.random() * 50 + 50,
+      x, y,
       width, height,
       zIndex: newZ,
       isMinimized: false,
       isMaximized: false,
       prevX: 0, prevY: 0, prevWidth: width, prevHeight: height
     }]);
-  };
+  }
 
   const closeWindow = (id: string) => {
     setWindows(windows.filter(w => w.id !== id));
@@ -180,8 +125,93 @@ export default function Win95Mode() {
         y: e.clientY - w.y
       };
       dragPos.current = { x: w.x, y: w.y };
+      // Disable CSS transition while dragging (direct DOM mutation, no React re-render)
+      const el = windowRefs.current[id];
+      if (el) el.style.transition = 'none';
     }
   };
+
+  // Listen for the activation event: mount the overlay AND auto-open the profile window
+  useEffect(() => {
+    const handleActivate = () => {
+      setIsActive(true);
+      setTopZ(z => z + 1);
+      setWindows(prev => {
+        if (prev.some(w => w.id === 'profile')) return prev;
+        const pos = randomWindowPos();
+        return [...prev, {
+          id: 'profile',
+          title: 'Profile.exe',
+          content: profileWindowContent,
+          x: pos.x,
+          y: pos.y,
+          width: 320,
+          height: 300,
+          zIndex: prev.length === 0 ? 101 : prev[prev.length - 1].zIndex + 1,
+          isMinimized: false,
+          isMaximized: false,
+          prevX: 0,
+          prevY: 0,
+          prevWidth: 320,
+          prevHeight: 300,
+        }];
+      });
+    };
+    window.addEventListener('ACTIVATE_WIN95', handleActivate);
+    return () => window.removeEventListener('ACTIVATE_WIN95', handleActivate);
+  }, []);
+
+  // Handle global mouse move for dragging
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!draggingId.current) return;
+      
+      const el = windowRefs.current[draggingId.current];
+      if (el) {
+        // Calculate new pos
+        const newX = e.clientX - dragOffset.current.x;
+        const newY = e.clientY - dragOffset.current.y;
+        
+        // Mutate DOM directly to bypass React render cycle for 120fps smooth drag
+        el.style.left = `${newX}px`;
+        el.style.top = `${newY}px`;
+        
+        // Save to ref to update state on drop
+        dragPos.current = { x: newX, y: newY };
+      }
+    };
+
+    const handlePointerUp = () => {
+      if (draggingId.current) {
+        const id = draggingId.current;
+        const finalX = dragPos.current.x;
+        const finalY = dragPos.current.y;
+        
+        draggingId.current = null;
+        
+        // Restore transition now that the drag is over
+        const el = windowRefs.current[id];
+        if (el) el.style.transition = '';
+
+        // Sync final position back to React state
+        setWindows(prev => prev.map(w => {
+          if (w.id === id) {
+            return { ...w, x: finalX, y: finalY };
+          }
+          return w;
+        }));
+      }
+    };
+
+    if (isActive) {
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
+    }
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [isActive]);
 
   if (!isActive) return null;
 
@@ -190,18 +220,12 @@ export default function Win95Mode() {
       
       {/* Desktop Icons */}
       <div className="flex flex-col gap-6 p-4 items-start">
-        <button onDoubleClick={() => openWindow('profile', 'Profile.exe', (
-          <div className="flex flex-col items-center gap-4 p-4 text-black">
-            <img src={profile.avatarUrl} alt="Avatar" className="w-24 h-24 border-2 border-gray-500 shadow-[inset_1px_1px_0px_white,inset_-1px_-1px_0px_#888]" style={{ imageRendering: 'pixelated' }} />
-            <h2 className="font-bold text-xl">{profile.name}</h2>
-            <p className="text-center">{profile.bio}</p>
-          </div>
-        ), 320, 300)} className="flex flex-col items-center gap-1 group w-20 text-white">
+        <button onDoubleClick={() => { const pos = randomWindowPos(); openWindow('profile', 'Profile.exe', profileWindowContent, pos.x, pos.y, 320, 300); }} className="flex flex-col items-center gap-1 group w-20 text-white">
           <div className="w-10 h-10 bg-[url('https://win98icons.alexmeub.com/icons/png/user_computer-0.png')] bg-contain bg-no-repeat" />
           <span className="bg-transparent group-focus:bg-[#000080] group-focus:text-white group-focus:border-dotted group-focus:border px-1 text-center">My Profile</span>
         </button>
         
-        <button onDoubleClick={() => openWindow('links', 'Links.folder', (
+        <button onDoubleClick={() => { const pos = randomWindowPos(); openWindow('links', 'Links.folder', (
           <div className="grid grid-cols-3 gap-6 p-4 bg-white min-h-[300px] w-full text-black items-start content-start">
             {socialLinks.map(link => {
               const Icon = link.icon;
@@ -215,7 +239,7 @@ export default function Win95Mode() {
               );
             })}
           </div>
-        ), 400, 350)} className="flex flex-col items-center gap-1 group w-20 text-white">
+        ), pos.x, pos.y, 400, 350); }} className="flex flex-col items-center gap-1 group w-20 text-white">
           <div className="w-10 h-10 bg-[url('https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png')] bg-contain bg-no-repeat" />
           <span className="bg-transparent group-focus:bg-[#000080] group-focus:text-white group-focus:border-dotted group-focus:border px-1 text-center">My Links</span>
         </button>
@@ -229,15 +253,9 @@ export default function Win95Mode() {
       {/* Windows */}
       {windows.map(w => {
         // Calculate transform for minimize animation
-        const minimizeStyle = w.isMinimized 
-          ? { transform: 'scale(0) translateY(50vh)', opacity: 0, pointerEvents: 'none' as any }
-          : { transform: 'scale(1) translateY(0)', opacity: 1, pointerEvents: 'auto' as any };
-
-        // Disable all transitions if currently dragging to eliminate delay,
-        // but enable full transition-all for smooth maximize/minimize otherwise.
-        const transitionStyle = (w.id === draggingId.current) 
-          ? { transition: 'none' } 
-          : { transition: 'all 0.3s ease-in-out' };
+        const minimizeStyle: React.CSSProperties = w.isMinimized 
+          ? { transform: 'scale(0) translateY(50vh)', opacity: 0, pointerEvents: 'none' }
+          : { transform: 'scale(1) translateY(0)', opacity: 1, pointerEvents: 'auto' };
 
         return (
           <div key={w.id} 
@@ -250,7 +268,7 @@ export default function Win95Mode() {
                  zIndex: w.zIndex, 
                  width: w.width, 
                  height: w.height,
-                 ...transitionStyle,
+                 transition: 'all 0.3s ease-in-out',
                  ...minimizeStyle 
                }}>
             {/* Title Bar */}
@@ -260,17 +278,20 @@ export default function Win95Mode() {
               className="bg-[#000080] text-white font-bold p-1 m-0.5 flex justify-between items-center cursor-default select-none touch-none">
               <span className="pl-1 truncate">{w.title}</span>
               <div className="flex gap-0.5 pointer-events-auto">
-                <button 
+                <button
+                  aria-label={`Minimize ${w.title}`}
                   onClick={(e) => { e.stopPropagation(); toggleMinimize(w.id); }} 
                   className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white font-bold transition-transform active:scale-95">
                   <Minus size={10} strokeWidth={4} />
                 </button>
-                <button 
+                <button
+                  aria-label={w.isMaximized ? `Restore ${w.title}` : `Maximize ${w.title}`}
                   onClick={(e) => { e.stopPropagation(); toggleMaximize(w.id); }} 
                   className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white font-bold transition-transform active:scale-95">
                   {w.isMaximized ? <div className="w-2 h-2 border-[1.5px] border-black relative"><div className="w-2 h-2 border-[1.5px] border-black absolute -top-1 -right-1 bg-[#c0c0c0]"></div></div> : <Square size={10} strokeWidth={3} />}
                 </button>
-                <button 
+                <button
+                  aria-label={`Close ${w.title}`}
                   onClick={(e) => { e.stopPropagation(); closeWindow(w.id); }} 
                   className="w-4 h-4 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black flex items-center justify-center text-black active:border-black active:border-b-white active:border-r-white ml-0.5 font-bold transition-transform active:scale-95">
                   <X size={12} strokeWidth={4} />
@@ -289,6 +310,7 @@ export default function Win95Mode() {
       <div className="fixed bottom-0 left-0 right-0 h-8 bg-[#c0c0c0] border-t-2 border-white flex items-center px-1 z-[9999] justify-between">
         <div className="flex items-center gap-1">
           <button className="h-6 px-2 flex items-center gap-1 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black font-bold active:border-black active:border-b-white active:border-r-white text-black shadow-[1px_1px_0px_#000]">
+            {/* eslint-disable-next-line @next/next/no-img-element -- remote pixel icon */}
             <img src="https://win98icons.alexmeub.com/icons/png/windows_slanted-1.png" className="w-4 h-4" alt="Start" />
             Start
           </button>

@@ -7,7 +7,7 @@ test('has title and profile info', async ({ page }) => {
   await expect(page).toHaveTitle(/Kotree/);
 
   // Check if profile card is visible
-  const name = page.getByText(/Deo Subarno/);
+  const name = page.getByRole('heading', { name: 'Deo Subarno' });
   await expect(name).toBeVisible();
 
   // Check if links are rendered
@@ -26,5 +26,5 @@ test('can navigate to changelog', async ({ page }) => {
   await expect(page).toHaveURL(/.*changelog/);
   
   // Verify changelog page loaded
-  await expect(page.getByText('Kotree Updates')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Changelog' })).toBeVisible();
 });

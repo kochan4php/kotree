@@ -15,8 +15,8 @@ export async function syncOfflineClicks(token?: string): Promise<void> {
       });
     }
     await set('offline-clicks', []);
-  } catch (e) {
-    console.error('Failed to sync offline clicks', e);
+  } catch {
+    console.error('Failed to sync offline clicks');
   }
 }
 
@@ -31,14 +31,14 @@ export async function trackLinkClick(name: string, token?: string): Promise<void
       body: JSON.stringify({ name: name.toLowerCase(), count: 1, _token: token }),
       keepalive: true,
     });
-  } catch (error) {
+  } catch {
     // Fallback to IndexedDB offline sync
     console.warn('Network offline or fetch failed, saving click locally via IndexedDB');
     try {
       const offlineClicks: string[] = (await get('offline-clicks')) || [];
       offlineClicks.push(name.toLowerCase());
       await set('offline-clicks', offlineClicks);
-    } catch (e) {
+    } catch {
       // Ignore idb errors in incognito mode
     }
   }

@@ -2,14 +2,11 @@
 
 import { Card } from '@/components/ui/card';
 import { socialLinks } from '@/data/social-links';
-import { LinkCounter } from '@/interfaces';
+import { useLinkCounts } from '@/hooks/use-link-counts';
 import { Heart } from 'lucide-react';
 
-interface StatsCardProps {
-  linkCounts: LinkCounter[];
-}
-
-export default function StatsCard({ linkCounts }: StatsCardProps) {
+export default function StatsCard() {
+  const linkCounts = useLinkCounts();
   const totalClicks = linkCounts.reduce((total, item) => total + item.count, 0);
 
   return (

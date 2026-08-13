@@ -3,11 +3,13 @@ import path from 'path';
 import { Card } from '@/components/ui/card';
 import { parseChangelog } from '@/lib/changelog';
 import { renderChangelog } from '@/lib/changelog-render';
+import { site } from '@/lib/site';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Changelog',
   description: 'All notable changes to Kotree, grouped by version.',
+  alternates: { canonical: `${site.baseUrl}/changelog` },
   robots: { index: true, follow: true },
 };
 

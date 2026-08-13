@@ -19,7 +19,8 @@ export default function DoomMode() {
   }, []);
 
   useEffect(() => {
-    if (!isActive || !containerRef.current) return;
+    const container = containerRef.current;
+    if (!isActive || !container) return;
 
     // Setup Three.js Scene
     const scene = new THREE.Scene();
@@ -32,7 +33,7 @@ export default function DoomMode() {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     // Floor
     const floorGeometry = new THREE.PlaneGeometry(2000, 2000, 10, 10);
@@ -45,7 +46,7 @@ export default function DoomMode() {
     const targets: THREE.Mesh[] = [];
     const linkUrls: { [uuid: string]: string } = {};
 
-    socialLinks.forEach((link, i) => {
+    socialLinks.forEach((link) => {
       const geometry = new THREE.BoxGeometry(20, 20, 20);
       
       // We create a canvas to draw the text texture
@@ -146,7 +147,7 @@ export default function DoomMode() {
     const raycaster = new THREE.Raycaster();
     const center = new THREE.Vector2(0, 0);
 
-    const onMouseDown = (event: MouseEvent) => {
+    const onMouseDown = () => {
       if (document.pointerLockElement !== renderer.domElement) return;
 
       if (crosshairRef.current) {
@@ -217,8 +218,8 @@ export default function DoomMode() {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mousedown', onMouseDown);
       renderer.dispose();
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (container) {
+        container.innerHTML = '';
       }
     };
   }, [isActive]);

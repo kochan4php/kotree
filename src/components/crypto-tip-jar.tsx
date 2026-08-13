@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ethers } from 'ethers';
 import { toast } from 'sonner';
+import type { Eip1193Provider } from 'ethers';
 import { Bitcoin, Wallet, CreditCard } from 'lucide-react';
 import { useSensory } from '@/hooks/use-sensory';
+
+type EthereumWindow = { ethereum?: Eip1193Provider };
 
 export default function CryptoTipJar() {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -14,15 +16,18 @@ export default function CryptoTipJar() {
   const handleConnect = async () => {
     playFeedback();
     
-    if (typeof window === 'undefined' || !(window as any).ethereum) {
+    const ethereum = (window as unknown as EthereumWindow).ethereum;
+    if (typeof window === 'undefined' || !ethereum) {
       toast.error('Web3 Wallet not found! Install MetaMask or Phantom.');
       return;
     }
 
     try {
       setIsConnecting(true);
+      // Load the ~380KB ethers bundle only when the user actually wants to connect
+      const { BrowserProvider } = await import('ethers');
       // Request account access
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const provider = new BrowserProvider(ethereum);
       await provider.send('eth_requestAccounts', []);
       setIsConnected(true);
       toast.success('Wallet Connected!');
@@ -37,23 +42,24 @@ export default function CryptoTipJar() {
   const handleTip = async () => {
     playFeedback();
     try {
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const { BrowserProvider, parseEther } = await import('ethers');
+      const provider = new BrowserProvider((window as unknown as EthereumWindow).ethereum as Eip1193Provider);
       const signer = await provider.getSigner();
       
       toast.info('Please confirm transaction in your wallet...');
       
       const tx = await signer.sendTransaction({
         to: '0x000000000000000000000000000000000000dEaD', // Burn address as joke/placeholder
-        value: ethers.parseEther('0.001')
+        value: parseEther('0.001')
       });
       
       toast.success('Transaction sent! Waiting for confirmation...');
       await tx.wait();
       toast.success('Thank you for the tip! 🚀 (Tx Confirmed)');
       
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      if (error.code === 'ACTION_REJECTED') {
+      if ((error as { code?: string }).code === 'ACTION_REJECTED') {
         toast.error('Transaction cancelled');
       } else {
         toast.error('Transaction failed');
@@ -68,9 +74,9 @@ export default function CryptoTipJar() {
     >
       <div className="liquid-gradient opacity-50 saturate-150"></div>
       <div className="relative z-10 w-full h-full flex flex-col justify-center items-center">
-      <h3 className="font-bold text-sm text-purple-200 mb-1 flex items-center justify-center gap-1.5 uppercase tracking-wider">
+      <h2 className="font-bold text-sm text-purple-200 mb-1 flex items-center justify-center gap-1.5 uppercase tracking-wider">
         <Wallet className="w-4 h-4" /> Web3
-      </h3>
+      </h2>
       <div className="flex flex-col items-center justify-center flex-1 w-full mt-1">
         <p className="text-xs font-medium text-purple-300 mb-3 px-1 leading-snug">Connect wallet to send crypto tips.</p>
         <div className="w-full space-y-2 mt-auto">
@@ -78,7 +84,7 @@ export default function CryptoTipJar() {
         <button
           onClick={handleConnect}
           disabled={isConnecting}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-purple-700 text-white shadow-sm hover:bg-purple-600 transition-colors cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-purple-700 text-white shadow-sm hover:bg-purple-600 transition-colors cursor-pointer min-h-[44px]"
         >
           <CreditCard className="w-4 h-4" /> {isConnecting ? 'Connecting...' : 'Connect Wallet'}
         </button>

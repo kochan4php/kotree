@@ -31,7 +31,11 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  
+
+  // Never cache API responses (live data) or cross-origin requests
+  const url = new URL(event.request.url);
+  if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+
   // Stale-while-revalidate strategy
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

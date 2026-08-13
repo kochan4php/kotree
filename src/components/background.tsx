@@ -1,67 +1,91 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Points, PointMaterial } from '@react-three/drei';
-// @ts-ignore
-import * as random from 'maath/random/dist/maath-random.esm';
+import { useEffect, useRef } from 'react';
 
-function Stars({ size = 0.005, count = 5000, speed = 1, ...props }: any) {
-  const ref = useRef<any>(null);
-  // Create a sphere of random particles, fallback to zeros if maath fails
-  const [sphere] = useState(() => {
-    try {
-      const positions = new Float32Array(count * 3);
-      random.inSphere(positions, { radius: 1.5 });
-      // Sanity check for NaN
-      for (let i = 0; i < positions.length; i++) {
-        if (isNaN(positions[i])) positions[i] = 0;
-      }
-      return positions;
-    } catch {
-      return new Float32Array(count * 3).fill(0);
-    }
-  });
-
-  useFrame((state, delta) => {
-    // Respect reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (ref.current && !prefersReducedMotion) {
-      ref.current.rotation.x -= (delta / 10) * speed;
-      ref.current.rotation.y -= (delta / 15) * speed;
-    }
-  });
-
-  return (
-    <group rotation={[0, 0, Math.PI / 4]}>
-      <Points ref={ref} positions={sphere} stride={3} frustumCulled={false} {...props}>
-        <PointMaterial
-          transparent
-          color="#ff6a33"
-          size={size}
-          sizeAttenuation={true}
-          depthWrite={false}
-        />
-      </Points>
-    </group>
-  );
-}
-
+// Canvas-2D starfield: same warm-orange vibe as the old three.js Points,
+// at a fraction of the cost. No WebGL, no three.js in the bundle.
 export default function Background() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    type Star = { x: number; y: number; r: number; phase: number; speed: number; alpha: number };
+    let stars: Star[] = [];
+    let w = 0;
+    let h = 0;
+    let raf = 0;
+    let t = 0;
+
+    const spawn = () => {
+      stars = Array.from({ length: 160 }, (_, i) => ({
+        x: Math.random(),
+        y: Math.random(),
+        r: (i % 5 === 0 ? 1.2 : 0.6) + Math.random() * 0.6,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.2 + Math.random() * 0.6,
+        alpha: 0.3 + Math.random() * 0.6,
+      }));
+    };
+
+    const resize = () => {
+      w = canvas.width = Math.floor(window.innerWidth * dpr);
+      h = canvas.height = Math.floor(window.innerHeight * dpr);
+      spawn();
+    };
+
+    const draw = () => {
+      t += 0.005;
+      ctx.clearRect(0, 0, w, h);
+      for (const s of stars) {
+        const twinkle = 0.6 + 0.4 * Math.sin(t * s.speed * 4 + s.phase);
+        ctx.globalAlpha = s.alpha * twinkle;
+        ctx.fillStyle = '#ff7c47';
+        ctx.beginPath();
+        ctx.arc(s.x * w, s.y * h, s.r * dpr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const loop = () => {
+      draw();
+      if (!reduced) raf = requestAnimationFrame(loop);
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else if (!reduced) {
+        raf = requestAnimationFrame(loop);
+      }
+    };
+
+    resize();
+    loop();
+    window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-      {/* Existing Fallback blur blobs just in case WebGL fails to load */}
+      {/* Fallback blur blobs just in case canvas fails */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl opacity-50"></div>
       <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-accent/20 rounded-full blur-3xl opacity-30"></div>
-      
-      {/* 3D WebGL Canvas */}
-      <Canvas camera={{ position: [0, 0, 1] }}>
-        {/* Distant small stars */}
-        <Stars size={0.005} count={2000} speed={0.6} />
-        
-        {/* Closer, larger stars */}
-        <Stars size={0.012} count={400} speed={1.2} />
-      </Canvas>
+
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>
   );
 }

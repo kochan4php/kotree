@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { generateToken } from '@/lib/security';
 import { MessageSquare, Send } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -14,12 +13,12 @@ export default function Guestbook({ token }: { token?: string }) {
   const [decryptedIndexes, setDecryptedIndexes] = useState<Set<number>>(new Set());
 
   const decryptMessage = (encrypted: string) => {
-    if (!encrypted.startsWith("🔒 ")) return encrypted;
+    if (!encrypted.startsWith("🔒 ") && !encrypted.startsWith("🤫 ")) return encrypted;
     try {
-      const base64 = encrypted.replace("🔒 ", "");
+      const base64 = encrypted.replace(/^(🔒|🤫) /, "");
       const decoded = atob(base64);
       return Array.from(decoded).map(c => String.fromCharCode(c.charCodeAt(0) - 1)).join('');
-    } catch (e) {
+    } catch {
       return encrypted;
     }
   };
@@ -57,8 +56,8 @@ export default function Guestbook({ token }: { token?: string }) {
     const tempMessage = input.trim();
     setInput('');
     
-    // E2E Encryption simulation (Base64 + Shift) for "Confession" mode
-    const encryptedMessage = "🔒 " + btoa(Array.from(tempMessage).map(c => String.fromCharCode(c.charCodeAt(0) + 1)).join(''));
+    // Light obfuscation (Base64 + char shift) for the "Confession" mode
+    const encryptedMessage = "🤫 " + btoa(Array.from(tempMessage).map(c => String.fromCharCode(c.charCodeAt(0) + 1)).join(''));
     
     // Optimistic UI update
     setEntries([{ message: encryptedMessage, createdAt: new Date().toISOString() }, ...entries].slice(0, 50));
@@ -69,7 +68,7 @@ export default function Guestbook({ token }: { token?: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: encryptedMessage, _token: token }),
       });
-    } catch (err) {
+    } catch {
       // Revert if failed
     } finally {
       setIsSubmitting(false);
@@ -86,7 +85,7 @@ export default function Guestbook({ token }: { token?: string }) {
           <h2 className="text-lg font-bold text-foreground leading-tight">Secret Confessions</h2>
         </div>
         <div className="bg-red-500/10 text-red-500 text-[10px] px-2 py-1 rounded border border-red-500/20 font-mono whitespace-nowrap">
-          E2E ENCRYPTED
+          OBFUSCATED
         </div>
       </div>
 
@@ -100,11 +99,20 @@ export default function Guestbook({ token }: { token?: string }) {
               <div 
                 key={i} 
                 onClick={() => toggleDecrypt(i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleDecrypt(i);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isDecrypted}
                 className="text-xs font-mono break-all border-l-2 border-red-500/40 pl-3 py-1 bg-muted/10 rounded-r-md cursor-pointer hover:bg-muted/20 transition-colors"
-                title="Click to decrypt/encrypt"
+                title="Click to reveal/hide"
               >
                 <p className={isDecrypted ? "text-foreground" : "text-muted-foreground"}>
-                  {isDecrypted ? "🔓 " + decryptMessage(entry.message) : entry.message}
+                  {isDecrypted ? "👁 " + decryptMessage(entry.message) : entry.message}
                 </p>
               </div>
             );
@@ -125,7 +133,8 @@ export default function Guestbook({ token }: { token?: string }) {
         <button
           type="submit"
           disabled={!input.trim() || isSubmitting}
-          className="inline-flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+          aria-label="Send message"
+          className="inline-flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 min-h-[44px]"
         >
           <Send className="w-4 h-4" />
         </button>

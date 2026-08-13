@@ -28,11 +28,11 @@ export default function Error({ error }: { error: Error & { digest?: string } })
       <div className="flex flex-col gap-3">
         <PageButton onClick={() => window.location.reload()}>
           <RefreshCw size={20} />
-          Coba Lagi
+          Try Again
         </PageButton>
         <PageButton href="/" variant="ghost">
           <Home size={20} />
-          Kembali ke Beranda
+          Back to Home
         </PageButton>
       </div>
     </StateCard>

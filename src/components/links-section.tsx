@@ -1,18 +1,18 @@
 import SocialLinkList from '@/components/social-link-list';
 import StatsCard from '@/components/stats-card';
 import Guestbook from '@/components/guestbook';
-import { getLinkCounts } from '@/connections/mongodb';
-import { LinkCounter } from '@/interfaces';
 import { generateToken } from '@/lib/security';
 
-export default async function LinksSection() {
-  const linkCounts: LinkCounter[] = await getLinkCounts().catch(() => []);
+// Server component: NO database access in the render path anymore.
+// Click counts are fetched client-side via /api/click-link-counter (GET),
+// so HTML ships without waiting on MongoDB.
+export default function LinksSection() {
   const token = generateToken();
 
   return (
     <>
-      <SocialLinkList linkCounts={linkCounts} token={token} />
-      <StatsCard linkCounts={linkCounts} />
+      <SocialLinkList token={token} />
+      <StatsCard />
       <Guestbook token={token} />
     </>
   );
