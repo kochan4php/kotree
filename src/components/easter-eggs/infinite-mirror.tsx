@@ -24,9 +24,12 @@ export default function InfiniteMirror() {
           }
         }, 100);
 
-        stream.getVideoTracks()[0].onended = () => {
-          setIsActive(false);
-        };
+        const track = stream.getVideoTracks()[0];
+        if (track) {
+          track.onended = () => {
+            setIsActive(false);
+          };
+        }
       } catch (err) {
         console.error("Mirror effect cancelled or failed", err);
       }

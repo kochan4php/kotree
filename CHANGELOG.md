@@ -43,7 +43,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 
 - The page no longer breaks after updates (CSS sometimes failed to load before)
 - Some cards lost their glassy depth — now they all match
-- Guestbook entries that looked saved but never were
+- Guestbook entries that looked saved but never were — including when the server rejects them
 - Guestbook no longer stores visitor IP addresses
 - RSS dates now show when each version actually came out (they all said "today" before)
 - Install instructions on iPhone show as a toast instead of a browser pop-up

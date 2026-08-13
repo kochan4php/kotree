@@ -11,9 +11,11 @@ export async function fetchEntries(): Promise<GuestbookEntry[]> {
 }
 
 export async function postEntry(message: string, token?: string): Promise<void> {
-  await fetch('/api/guestbook', {
+  const res = await fetch('/api/guestbook', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, _token: token }),
   });
+  // Reject on HTTP errors too — the caller's catch reverts the optimistic entry
+  if (!res.ok) throw new Error(`guestbook POST failed: ${res.status}`);
 }

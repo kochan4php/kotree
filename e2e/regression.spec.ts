@@ -66,6 +66,25 @@ test('boss fight can be exited (no trap)', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'EXIT BOSS FIGHT' })).toHaveCount(0);
 });
 
+test('guestbook removes the optimistic entry when the server rejects', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  // Force every guestbook POST to fail with an HTTP error (not a network error)
+  await page.evaluate(() => {
+    const orig = window.fetch.bind(window);
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
+      String(input).includes('/api/guestbook') && init?.method === 'POST'
+        ? Promise.resolve(new Response('{"error":"forced"}', { status: 500 }))
+        : orig(input, init);
+  });
+  const before = await page.locator('[role="button"]').count();
+  await page.getByLabel('Secret message').fill('ghost test');
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await page.waitForTimeout(1500);
+  const after = await page.locator('[role="button"]').count();
+  expect(after).toBe(before); // optimistic entry appeared then reverted
+});
+
 test('clicking a link triggers a counts refresh', async ({ page }) => {
   let gets = 0;
   page.on('request', (req) => {
