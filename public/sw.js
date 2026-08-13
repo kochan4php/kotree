@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kotree-offline-cache-v1';
+const CACHE_NAME = 'kotree-offline-cache-v2';
 
 const ASSETS_TO_CACHE = [
   '/',
@@ -36,7 +36,23 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
 
-  // Stale-while-revalidate strategy
+  // Navigations are network-first so a deploy's new HTML (and its new chunk
+  // references) always wins. Cached HTML + a 404'd old chunk was causing
+  // intermittently broken CSS after deploys.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  // Hashed assets (CSS/JS/fonts) are immutable: stale-while-revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
