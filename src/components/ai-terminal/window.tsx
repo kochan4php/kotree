@@ -33,12 +33,20 @@ export default function TerminalWindow({
         role="dialog"
         aria-modal="true"
         aria-label="AI Terminal"
+        onKeyDown={(e) => {
+          // Keep Tab inside the dialog (close button + input are the only focusables)
+          if (e.key !== 'Tab') return;
+          const els = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button, input, [tabindex]:not([tabindex="-1"])'));
+          if (els.length < 2) return;
+          if (e.shiftKey && document.activeElement === els[0]) { e.preventDefault(); els[els.length - 1].focus(); }
+          else if (!e.shiftKey && document.activeElement === els[els.length - 1]) { e.preventDefault(); els[0].focus(); }
+        }}
         className="fluid-glass bg-black/5! border-white/10! text-green-500 font-mono text-sm shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-xl relative"
       >
         <div className="absolute inset-0 pointer-events-none scanlines opacity-30 mix-blend-overlay z-10"></div>
 
         {/* Window Controls Header */}
-        <div className="bg-black/10 px-4 py-3 flex items-center gap-2 border-b border-white/10 cursor-move relative z-20">
+        <div className="bg-black/10 px-4 py-3 flex items-center gap-2 border-b border-white/10 relative z-20">
           <div className="flex gap-1.5">
             <button type="button" aria-label="Close terminal" className="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer hover:bg-red-500" onClick={onClose} />
             <div className="w-3 h-3 rounded-full bg-yellow-500/80" />

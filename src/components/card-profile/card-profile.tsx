@@ -15,8 +15,10 @@ export default function CardProfile() {
   const [isRendered, setIsRendered] = useState(false);
   const [url, setUrl] = useState('');
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
 
   const openQR = () => {
+    prevFocusRef.current = document.activeElement as HTMLElement | null;
     setIsFlipped(true);
     setIsRendered(true);
   };
@@ -25,6 +27,7 @@ export default function CardProfile() {
     setIsFlipped(false);
     // Keep it mounted briefly so the exit animation plays
     setTimeout(() => setIsRendered(false), 300);
+    prevFocusRef.current?.focus(); // WCAG 2.4.3: return focus to the trigger
   };
 
   // Focus moves into the dialog on open — handled inside QRModal (lazy chunk may not be mounted yet when isRendered flips)

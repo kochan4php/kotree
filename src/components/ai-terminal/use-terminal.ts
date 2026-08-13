@@ -11,8 +11,10 @@ export function useTerminal() {
   const [history, setHistory] = useState(INITIAL_HISTORY);
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
 
   const openTerminal = () => {
+    prevFocusRef.current = document.activeElement as HTMLElement | null;
     setIsOpen(true);
     setIsRendered(true);
   };
@@ -20,6 +22,7 @@ export function useTerminal() {
   const closeTerminal = () => {
     setIsOpen(false);
     setTimeout(() => setIsRendered(false), 300); // keep mounted for the exit animation
+    prevFocusRef.current?.focus(); // WCAG 2.4.3: return focus to the trigger
   };
 
   // Keyboard shortcuts: ` / ~ toggles, Escape closes

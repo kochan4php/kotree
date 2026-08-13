@@ -26,7 +26,7 @@ export default function SocialLinkItem({ link, clickCount, token }: SocialLinkIt
       className="fluid-glass group p-0 transition-all duration-300 hover:border-accent/30 hover:bg-accent/[0.02] hover:shadow-lg active:scale-[0.99]"
     >
       <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
-      <Link href={link.url} onClick={handleClick} target="_blank">
+      <Link href={link.url} onClick={handleClick} target="_blank" rel="noopener noreferrer">
           <div className="relative z-10 flex items-center gap-4 p-4">
           <span
             className="w-12 h-12 shrink-0 rounded-xl bg-linear-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-sm"

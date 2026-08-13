@@ -20,6 +20,14 @@ export default function TelepathyModal({ isOpen, value, onInput, onSubmit, onClo
       <form
         onSubmit={onSubmit}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          // Keep Tab inside the dialog (input + Cancel + Transmit)
+          if (e.key !== 'Tab') return;
+          const els = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button, input, [tabindex]:not([tabindex="-1"])'));
+          if (els.length < 2) return;
+          if (e.shiftKey && document.activeElement === els[0]) { e.preventDefault(); els[els.length - 1].focus(); }
+          else if (!e.shiftKey && document.activeElement === els[els.length - 1]) { e.preventDefault(); els[0].focus(); }
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Telepathy Mode"

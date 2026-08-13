@@ -16,6 +16,11 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
   const [isSearching, setIsSearching] = useState(false);
   const linkCounts = useLinkCounts();
 
+  // Mirror search state to the dock icon (header-bar listens for this)
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('kotree:search-state', { detail: isSearching }));
+  }, [isSearching]);
+
   useEffect(() => {
     // Sync any pending offline clicks on mount and whenever the connection returns
     syncOfflineClicks(token);

@@ -45,3 +45,4 @@ package-lock.json
 certificates
 
 /.ideatest-results
+/test-results*
