@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { SocialLink } from '@/interfaces';
 import { trackLinkClick } from '@/lib/track-click';
+import { refreshLinkCounts } from '@/hooks/use-link-counts';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useSensory } from '@/hooks/use-sensory';
@@ -18,6 +19,8 @@ export default function SocialLinkItem({ link, clickCount, token }: SocialLinkIt
   const handleClick = async () => {
     playFeedback();
     trackLinkClick(link.name, token); // Fire and forget with offline support
+    // Update badges/stats without a reload (no-op while offline)
+    if (navigator.onLine) refreshLinkCounts();
   };
 
   return (

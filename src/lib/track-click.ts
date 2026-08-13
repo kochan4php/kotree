@@ -37,7 +37,8 @@ export async function trackLinkClick(name: string, token?: string): Promise<void
     try {
       const offlineClicks: string[] = (await get('offline-clicks')) || [];
       offlineClicks.push(name.toLowerCase());
-      await set('offline-clicks', offlineClicks);
+      // Cap the queue: an offline streak shouldn't grow it forever
+      await set('offline-clicks', offlineClicks.slice(-100));
     } catch {
       // Ignore idb errors in incognito mode
     }

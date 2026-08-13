@@ -37,7 +37,7 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
     const target = cmd.replace('open ', '').trim();
     const link = links.find(l => l.name.toLowerCase() === target);
     if (link) {
-      window.open(link.url, '_blank');
+      window.open(link.url, '_blank', 'noopener');
       return { reply: `Opening ${link.name}...` };
     }
     return { reply: `Error: Link '${target}' not found.` };
