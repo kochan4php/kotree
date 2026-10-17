@@ -77,7 +77,7 @@ export default function Guestbook({ token }: { token?: string }) {
   };
 
   return (
-    <Card className="fluid-glass rounded-xl p-6 mt-6 transition-all duration-300">
+    <Card className="fluid-glass rounded-xl p-6 transition-all duration-300">
       <div className="liquid-gradient"></div>
       <div className="relative z-10 w-full h-full">
         <div className="flex items-start justify-between gap-2 mb-4">
@@ -90,7 +90,7 @@ export default function Guestbook({ token }: { token?: string }) {
           </div>
         </div>
 
-        <div className="h-40 overflow-y-auto space-y-3 mb-4 pr-2">
+        <div className="h-40 md:h-52 overflow-y-auto space-y-3 mb-4 pr-2">
           <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} />
         </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { decryptMessage } from './obfuscation';
+import { LockKeyhole } from 'lucide-react';
 
 interface EntryListProps {
   entries: { message: string; createdAt: string }[];
@@ -10,7 +11,12 @@ interface EntryListProps {
 
 export default function EntryList({ entries, decryptedIndexes, onToggle }: EntryListProps) {
   if (entries.length === 0) {
-    return <p className="text-sm text-muted-foreground italic text-center py-4">No secrets yet. Be the first!</p>;
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+        <LockKeyhole className="w-5 h-5 text-accent-ink" aria-hidden="true" />
+        <p className="text-sm text-muted-foreground italic">No secrets yet. Be the first!</p>
+      </div>
+    );
   }
 
   return (

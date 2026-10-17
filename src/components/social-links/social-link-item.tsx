@@ -12,9 +12,10 @@ interface SocialLinkItemProps {
   link: SocialLink;
   clickCount: number;
   token?: string;
+  index?: number;
 }
 
-export default function SocialLinkItem({ link, clickCount, token }: SocialLinkItemProps) {
+export default function SocialLinkItem({ link, clickCount, token, index = 0 }: SocialLinkItemProps) {
   const { playFeedback, playHoverFeedback } = useSensory();
   const handleClick = async () => {
     playFeedback();
@@ -24,7 +25,11 @@ export default function SocialLinkItem({ link, clickCount, token }: SocialLinkIt
   };
 
   return (
-    <Card onMouseEnter={playHoverFeedback} className="fluid-glass neo-press group p-0">
+    <Card
+      onMouseEnter={playHoverFeedback}
+      style={{ animationDelay: `${Math.min(index * 45, 360)}ms` }}
+      className="fluid-glass neo-press group p-0 kt-rise"
+    >
       <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
       <Link href={link.url} onClick={handleClick} target="_blank" rel="noopener noreferrer">
         <div className="relative z-10 flex items-center gap-4 p-4">

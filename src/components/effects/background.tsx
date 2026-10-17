@@ -86,9 +86,12 @@ export default function Background() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
       {/* Flat color shapes instead of glassy blobs — canvas fallback */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-[#ffd93d]/25 rounded-full opacity-70"></div>
-      <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-[#ff90e8]/20 rounded-full opacity-60"></div>
-      <div className="absolute top-1/2 right-10 w-40 h-40 bg-[#4cc9f0]/20 rounded-3xl opacity-60 rotate-12"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-[#ffd93d]/25 rounded-full opacity-70 md:top-16 md:left-24 md:w-96 md:h-96"></div>
+      <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-[#ff90e8]/20 rounded-full opacity-60 md:w-80 md:h-80"></div>
+      <div className="absolute top-1/2 right-10 w-40 h-40 bg-[#4cc9f0]/20 rounded-3xl opacity-60 rotate-12 md:right-24 md:w-52 md:h-52"></div>
+
+      {/* Dotted paper texture fills the wide margins on tablets and desktops */}
+      <div className="dot-grid absolute inset-0 hidden opacity-[0.045] md:block"></div>
 
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>

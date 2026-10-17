@@ -11,16 +11,16 @@ export default function NotFound() {
   return (
     <StateCard>
       <div className="">
-        <p className="text-[120px] leading-none font-display tracking-tighter text-accent-ink [text-shadow:6px_6px_0_#14110f] mb-4">404</p>
+        <p className="text-[120px] md:text-[160px] leading-none font-display tracking-tighter text-accent-ink [text-shadow:6px_6px_0_#14110f] md:[text-shadow:9px_9px_0_#14110f] mb-4">404</p>
       </div>
       <div>
         <h1 className="text-3xl font-black tracking-tight text-foreground mb-2 uppercase">Sanctuary Lost</h1>
-        <p className="text-muted-foreground leading-relaxed mb-8">
+        <p className="text-muted-foreground leading-relaxed mb-8 max-w-md mx-auto text-balance">
           The link you followed might be broken, or the page may have been removed.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-center gap-3">
         <PageButton href="/">
           <Home size={20} />
           Back to Home

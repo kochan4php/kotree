@@ -94,11 +94,11 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
         </div>
       )}
 
-      <div className="space-y-3 link-deck">
+      <div className="link-grid link-deck">
         {filteredLinks.length > 0 ? (
-          filteredLinks.map((link) => {
+          filteredLinks.map((link, i) => {
             const clickCount = linkCounts.find((item) => item.name === link.name.toLowerCase())?.count ?? 0;
-            return <SocialLinkItem key={link.name} link={link} clickCount={clickCount} token={token} />;
+            return <SocialLinkItem key={link.name} link={link} clickCount={clickCount} token={token} index={i} />;
           })
         ) : (
           <div className="text-center py-8 text-muted-foreground text-sm">

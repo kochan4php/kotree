@@ -10,7 +10,7 @@ export default function StatsCard() {
   const totalClicks = linkCounts.reduce((total, item) => total + item.count, 0);
 
   return (
-    <Card className="fluid-glass mt-6 neo-press">
+    <Card className="fluid-glass neo-press">
       <div className="liquid-gradient"></div>
       <div className="relative z-10 grid grid-cols-3 divide-x-[3px] divide-foreground text-center py-1">
         <Stat value={totalClicks} label="Total Clicks" />

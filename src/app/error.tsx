@@ -17,7 +17,7 @@ export default function Error({ error }: { error: Error & { digest?: string } })
       </div>
 
       <h1 className="text-3xl font-black tracking-tight text-foreground mb-2 uppercase">System Collapse</h1>
-      <p className="text-muted-foreground leading-relaxed mb-6 font-medium">An unexpected critical failure occurred in the matrix. Reboot sequence initiated.</p>
+      <p className="text-muted-foreground leading-relaxed mb-6 font-medium max-w-md mx-auto text-balance">An unexpected critical failure occurred in the matrix. Reboot sequence initiated.</p>
 
       {error.digest && (
         <p className="text-xs font-mono text-muted-foreground bg-secondary border-2 border-foreground rounded-lg px-3 py-2 shadow-[2px_2px_0_0_var(--foreground)] mb-6 break-all">
@@ -25,7 +25,7 @@ export default function Error({ error }: { error: Error & { digest?: string } })
         </p>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-center gap-3">
         <PageButton onClick={() => window.location.reload()}>
           <RefreshCw size={20} />
           Try Again

@@ -69,3 +69,27 @@
   mask-image: linear-gradient(to top, black 0%, transparent 100%);
   -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
 }
+
+/* Link cards: one column on phones; two-up from xl (80rem) where the
+   content column is wide enough. A lone trailing card spans the full row. */
+@utility link-grid {
+  display: grid;
+  gap: 0.75rem;
+  @media (width >= 80rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    & > *:last-child:nth-child(odd) {
+      grid-column: span 2;
+    }
+  }
+}
+
+/* Entry animation for link cards (delay set inline per card) */
+@utility kt-rise {
+  animation: kt-rise 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Faint dotted paper texture — desktop rooms only, pure CSS */
+@utility dot-grid {
+  background-image: radial-gradient(var(--foreground) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+}

@@ -48,7 +48,7 @@ export default function CardProfile() {
 
   return (
     <>
-      <Card className="fluid-glass text-center p-6 relative z-10 gap-4 mb-6">
+      <Card className="fluid-glass text-center p-6 relative z-10 gap-4">
         <div className="liquid-gradient"></div>
         <div className="relative w-fit mx-auto mb-1 z-10">
           <div className="relative flex justify-center">
@@ -68,7 +68,7 @@ export default function CardProfile() {
           <p className="text-base text-muted-foreground">{profile.handle}</p>
         </div>
 
-        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base font-bold w-fit mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
+        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base md:text-sm lg:text-base font-bold w-fit max-w-full mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
           <Code2 className="w-4 h-4" />
           {profile.role}
         </span>
