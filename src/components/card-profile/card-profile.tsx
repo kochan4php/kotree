@@ -48,10 +48,15 @@ export default function CardProfile() {
 
   return (
     <>
-      <Card className="fluid-glass text-center p-6 relative z-10 gap-4">
+      <Card className="fluid-glass text-center relative z-10 gap-0 p-0">
         <div className="liquid-gradient"></div>
-        <div className="relative w-fit mx-auto mb-1 z-10">
-          <div className="relative flex justify-center">
+        {/* Hero banner: accent strip the avatar sits on */}
+        <div className="relative h-14 shrink-0 overflow-hidden border-b-[3px] border-foreground bg-accent">
+          <div className="liquid-gradient opacity-25"></div>
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center gap-3 px-6 pb-6">
+          <div className="relative -mt-12 mb-1 w-fit">
             <Image
               src={profile.avatarUrl}
               alt={profile.name}
@@ -61,21 +66,19 @@ export default function CardProfile() {
               className="rounded-full object-cover border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] pointer-events-none w-24 h-24"
             />
           </div>
-        </div>
 
-        <div className="relative z-10 flex flex-col gap-0.5">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
-          <p className="text-base text-muted-foreground">{profile.handle}</p>
-        </div>
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
+            <p className="text-base text-muted-foreground">{profile.handle}</p>
+          </div>
 
-        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base md:text-sm lg:text-base font-bold w-fit max-w-full mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
-          <Code2 className="w-4 h-4" />
-          {profile.role}
-        </span>
+          <span className="inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base md:text-sm lg:text-base font-bold w-fit max-w-full mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
+            <Code2 className="w-4 h-4" />
+            {profile.role}
+          </span>
 
-        <p className="relative z-10 text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
+          <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
 
-        <div className="relative z-20">
           <ProfileActions onToggleQR={openQR} />
         </div>
       </Card>

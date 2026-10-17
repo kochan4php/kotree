@@ -90,7 +90,7 @@ export default function Guestbook({ token }: { token?: string }) {
           </div>
         </div>
 
-        <div className="h-40 md:h-52 overflow-y-auto space-y-3 mb-4 pr-2">
+        <div className="h-40 overflow-y-auto space-y-3 mb-4 pr-2">
           <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} />
         </div>
 

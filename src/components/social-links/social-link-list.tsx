@@ -60,37 +60,35 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Search floats under the dock as an overlay: opening it must never
+          shift the link grid (the dock button, X and Escape all close it). */}
       {isSearching && (
-        <div className="relative duration-200">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            autoFocus
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search links..."
-            aria-label="Search links"
-            className="w-full bg-card border-[3px] border-foreground rounded-xl py-3 pl-10 pr-12 text-sm font-bold text-foreground placeholder:text-muted-foreground shadow-[3px_3px_0_0_var(--foreground)] focus:outline-none focus:shadow-[5px_5px_0_0_var(--foreground)] transition-shadow"
-          />
-          {/* Close affordance: mobile keyboards have no Escape key */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSearching(false);
-              setSearchQuery('');
-            }}
-            aria-label="Close search"
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-      
-      {!isSearching && (
-        <div className="text-xs text-center text-muted-foreground hidden md:block">
-          Press <kbd className="px-1.5 py-0.5 bg-foreground text-background rounded font-bold">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-foreground text-background rounded font-bold">K</kbd> to search
+        <div className="fixed left-4 right-4 top-[calc(4.75rem+env(safe-area-inset-top))] z-50 mx-auto max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              autoFocus
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search links..."
+              aria-label="Search links"
+              className="w-full bg-card border-[3px] border-foreground rounded-xl py-3 pl-10 pr-12 text-sm font-bold text-foreground placeholder:text-muted-foreground shadow-[4px_4px_0_0_var(--foreground)] focus:outline-none focus:shadow-[6px_6px_0_0_var(--foreground)] transition-shadow"
+            />
+            {/* Close affordance: mobile keyboards have no Escape key */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsSearching(false);
+                setSearchQuery('');
+              }}
+              aria-label="Close search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

@@ -68,7 +68,7 @@ export default function AdminDashboard() {
 
   return (
     <main className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2">
-      <div className="relative max-w-2xl md:max-w-3xl mx-auto space-y-6">
+      <div className="relative max-w-2xl md:max-w-3xl mx-auto space-y-3">
         <Card className="fluid-glass">
           <div className="liquid-gradient"></div>
           <div className="relative z-10 space-y-4">
