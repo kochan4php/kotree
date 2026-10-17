@@ -43,6 +43,14 @@ export function resolveTheme(theme: Theme): 'light' | 'dark' {
 
 const THEME_COLORS = { light: '#fff7e9', dark: '#1a1613' } as const;
 
+// K15: the mobile URL bar follows the resolved theme AND the accent — the
+// accent swatch in light mode, the calm dark background at night. The inline
+// bootstrap script in the layout mirrors this mapping before first paint.
+function themeColor(prefs: Prefs): string {
+  if (resolveTheme(prefs.theme) === 'dark') return THEME_COLORS.dark;
+  return ACCENTS.find((accent) => accent.id === prefs.accent)?.swatch ?? THEME_COLORS.light;
+}
+
 export function applyPrefs(prefs: Prefs): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
@@ -50,8 +58,8 @@ export function applyPrefs(prefs: Prefs): void {
   root.dataset.theme = resolved;
   root.dataset.accent = prefs.accent;
   root.dataset.fx = prefs.fx ? 'on' : 'off';
-  // Keep the browser chrome (mobile URL bar) in step with the theme
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[resolved]);
+  // Keep the browser chrome (mobile URL bar) in step with theme + accent
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor(prefs));
 }
 
 export function writePrefs(patch: Partial<Prefs>): Prefs {

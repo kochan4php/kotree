@@ -11,6 +11,8 @@ import { queueMessage, queuedMessages, flushQueue } from './offline';
 import type { GuestbookEntry } from './types';
 
 const PAGE_SIZE = 10;
+// K14: what you typed survives a reload (private mode just loses it)
+const DRAFT_KEY = 'kotree-guestbook-draft';
 
 // Confetti on the very first secret sent from this device (once)
 function celebrateFirstSend() {
@@ -55,6 +57,16 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
       setHasMore(entries.length === PAGE_SIZE);
     });
     queuedMessages().then(setPendingCount);
+
+    // Restore an unsent draft from a previous visit
+    (async () => {
+      try {
+        const draft = localStorage.getItem(DRAFT_KEY);
+        if (draft) setInput(draft);
+      } catch {
+        // private mode — nothing to restore
+      }
+    })();
 
     // Deliver anything queued while offline as soon as we're back
     const onOnline = async () => {
@@ -147,12 +159,21 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     const tempCreatedAt = new Date().toISOString();
     const offline = !navigator.onLine;
     setInput('');
+    // The draft stays until the message is sent or safely queued (K14)
+    const clearDraft = () => {
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        // private mode — there was no draft to begin with
+      }
+    };
 
     // Optimistic UI update
     setEntries((prev) => [{ message: encryptedMessage, createdAt: tempCreatedAt, pending: offline }, ...prev]);
 
     if (offline) {
       await queueMessage(encryptedMessage);
+      clearDraft();
       setPendingCount((c) => c + 1);
       toast.info("You're offline — saved on this device and will send itself later.");
       setIsSubmitting(false);
@@ -161,6 +182,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
 
     try {
       const result = await postEntry(encryptedMessage, token);
+      clearDraft();
       if (result === 'sent') {
         celebrateFirstSend();
       } else if (result === 'queued') {
@@ -169,8 +191,10 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         toast.info("Couldn't reach the server — saved on this device and will send itself later.");
       }
     } catch (err) {
-      // Revert the optimistic entry if the POST was rejected
+      // Revert the optimistic entry if the POST was rejected, and hand the
+      // text back so nothing the visitor typed is lost
       setEntries((prev) => prev.filter((e) => e.createdAt !== tempCreatedAt));
+      setInput(message);
       if (err instanceof GuestbookHttpError && err.status === 429) {
         setCooldownUntil(Date.now() + 30_000);
         toast.error('Whoa, slow down! Try again in 30 seconds. 🐢');
@@ -237,7 +261,16 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value.substring(0, 100))}
+            onChange={(e) => {
+              const value = e.target.value.substring(0, 100);
+              setInput(value);
+              try {
+                if (value) localStorage.setItem(DRAFT_KEY, value);
+                else localStorage.removeItem(DRAFT_KEY);
+              } catch {
+                // private mode — the draft just won't survive a reload
+              }
+            }}
             placeholder="Leave a secret encrypted message..."
             aria-label="Secret message"
             className="flex-1 rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"

@@ -1,5 +1,5 @@
 import { get, set } from 'idb-keyval';
-import { stashToken, requestBackgroundSync } from './offline-sync';
+import { stashToken, requestBackgroundSync, updateAppBadge } from './offline-sync';
 
 export async function syncOfflineClicks(token?: string): Promise<void> {
   if (typeof window === 'undefined' || !navigator.onLine) return;
@@ -26,6 +26,7 @@ export async function syncOfflineClicks(token?: string): Promise<void> {
       }
     }
     if (remaining.length > 0) await set('offline-clicks', remaining);
+    await updateAppBadge();
   } catch {
     console.error('Failed to sync offline clicks');
   }
@@ -56,5 +57,6 @@ export async function trackLinkClick(name: string, token?: string): Promise<void
     // Let the service worker retry even if the tab is closed
     await stashToken(token);
     await requestBackgroundSync();
+    await updateAppBadge();
   }
 }

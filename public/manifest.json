@@ -31,16 +31,16 @@
   ],
   "screenshots": [
     {
-      "src": "screenshots/home-wide.png",
+      "src": "screenshots/home-wide.jpg",
       "sizes": "1280x720",
-      "type": "image/png",
+      "type": "image/jpeg",
       "form_factor": "wide",
       "label": "Kotree home page on desktop"
     },
     {
-      "src": "screenshots/home-narrow.png",
+      "src": "screenshots/home-narrow.jpg",
       "sizes": "540x720",
-      "type": "image/png",
+      "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Kotree home page on mobile"
     }

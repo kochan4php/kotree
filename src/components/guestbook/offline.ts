@@ -1,5 +1,5 @@
 import { get, set } from 'idb-keyval';
-import { stashToken, requestBackgroundSync } from '@/lib/offline-sync';
+import { stashToken, requestBackgroundSync, updateAppBadge } from '@/lib/offline-sync';
 
 // Same raw-idb shape the service worker reads for background sync.
 const KEY = 'offline-guestbook';
@@ -15,6 +15,7 @@ export async function queueMessage(message: string): Promise<void> {
   // Let the service worker retry even if the tab is closed
   await stashToken();
   await requestBackgroundSync();
+  await updateAppBadge();
 }
 
 export async function queuedMessages(): Promise<number> {
@@ -49,6 +50,7 @@ export async function flushQueue(token?: string): Promise<number> {
       }
     }
     if (remaining.length > 0) await set(KEY, remaining);
+    await updateAppBadge();
     return remaining.length;
   } catch {
     return 0;

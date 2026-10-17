@@ -80,9 +80,20 @@ test.describe('offline', () => {
     await page.goto('/');
     await waitHydrated(page);
 
+    // K14: text typed into the guestbook survives a reload
+    await page.getByLabel('Secret message').fill('draft survives reload');
+    await page.reload();
+    await waitHydrated(page);
+    await expect(page.getByLabel('Secret message')).toHaveValue('draft survives reload');
+
     await context.setOffline(true);
     await page.getByLabel('Secret message').fill('queued while offline');
     await page.getByRole('button', { name: 'Send message' }).click();
+
+    // K14: once the message is safely queued the draft is gone
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem('kotree-guestbook-draft')), { timeout: 5000 })
+      .toBeNull();
 
     // The optimistic entry is marked pending and the counter appears
     await expect(page.getByText('waiting to send…')).toBeVisible({ timeout: 5000 });

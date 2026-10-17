@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { updateAppBadge } from '@/lib/offline-sync';
 
 // K8 — service worker registration with an honest update flow. The worker no
 // longer calls skipWaiting() on install, so an update sits in the waiting
@@ -70,6 +71,8 @@ export default function PwaRegister() {
       navigator.serviceWorker.register('/sw.js').then(watchForUpdates).catch((error) => {
         console.error('Service worker registration failed:', error);
       });
+      // K12: clear/refresh the app-icon badge with whatever is still queued
+      updateAppBadge();
     };
 
     // Don't register from inside a speculative prerender — defer to the real

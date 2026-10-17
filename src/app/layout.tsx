@@ -42,7 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             wrong theme. Logic mirrors src/lib/prefs.ts. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=d?'dark':'light';r.dataset.accent=p.accent||'orange';r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';}catch(e){}})();`,
+            __html: `(function(){try{var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=d?'dark':'light';r.dataset.accent=p.accent||'orange';r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';var a={orange:'#ff7c47',pink:'#ff90e8',blue:'#4cc9f0',green:'#a8e94d',violet:'#b39dfb',yellow:'#ffd93d'};var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#1a1613':(a[p.accent]||a.orange));}catch(e){}})();`,
           }}
         />
         {/* Prerender the static pages on hover (moderate eagerness) where the

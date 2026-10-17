@@ -1,4 +1,4 @@
-import { set } from 'idb-keyval';
+import { get, set } from 'idb-keyval';
 import { clientToken } from './csrf-client';
 
 // The service worker replays the offline queues in the background; it needs
@@ -26,5 +26,24 @@ export async function requestBackgroundSync(): Promise<void> {
     await reg.sync?.register('kotree-sync-queues');
   } catch {
     // Background Sync unsupported — the online event covers it
+  }
+}
+
+// K12: app-icon badge = how many things are still waiting to be sent (offline
+// link taps + queued guestbook messages). Feature-detected; Chromium/Android
+// only for now, silently skipped elsewhere.
+export async function updateAppBadge(): Promise<void> {
+  try {
+    const nav = navigator as Navigator & {
+      setAppBadge?: (contents?: number) => Promise<void>;
+      clearAppBadge?: () => Promise<void>;
+    };
+    if (!nav.setAppBadge || !nav.clearAppBadge) return;
+    const [clicks, messages] = await Promise.all([get('offline-clicks'), get('offline-guestbook')]);
+    const count = (Array.isArray(clicks) ? clicks.length : 0) + (Array.isArray(messages) ? messages.length : 0);
+    if (count > 0) await nav.setAppBadge(count);
+    else await nav.clearAppBadge();
+  } catch {
+    // badge unsupported or idb blocked — badges are decoration
   }
 }
