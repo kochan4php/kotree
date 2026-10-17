@@ -20,7 +20,7 @@
     "clsx": "^2.1.1",
     "ethers": "^6.17.0",
     "idb-keyval": "^6.3.0",
-    "lucide-react": "^1.31.0",
+    "lucide-react": "^1.57.0",
     "mongodb": "^7.5.0",
     "next": "16.3.0",
     "react": "19.2.8",
