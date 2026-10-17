@@ -50,3 +50,6 @@ playwright-report/
 
 # local data backups (scripts/backup-data.mjs)
 /backups
+
+# local-only admin notes (token how-to, keep out of the public repo)
+/ADMIN_SETUP.local.md
