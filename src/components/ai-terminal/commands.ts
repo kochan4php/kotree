@@ -1,4 +1,5 @@
 import type { SocialLink } from '@/interfaces';
+import { discoverSecret } from '@/lib/secrets';
 
 export const INITIAL_HISTORY: { type: 'user' | 'bot'; text: string }[] = [
   { type: 'bot', text: 'Initializing Kochan AI Clone v1.0.0...' },
@@ -23,13 +24,16 @@ export interface CommandResult {
 // Returns a reply for known commands; undefined means "ask the AI"
 export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
   if (cmd === 'win95') {
+    discoverSecret('win95');
     window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));
     return { reply: 'Booting Windows 95...' };
   }
   if (cmd === 'doom') {
+    discoverSecret('doom');
     window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
     return { reply: 'IDDQD. Initializing DOOM Engine...' };
   }
+  if (cmd === 'sudo') discoverSecret('sudo');
   if (cmd === 'ls') {
     return { reply: links.map(l => `- ${l.name.toLowerCase()} (${l.url})`).join('\n') };
   }

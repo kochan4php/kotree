@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import { socialLinks } from '@/data/social-links';
+import { discoverSecret } from '@/lib/secrets';
 
 // Match a spoken (or typed) transcript to a link / easter egg
 export function processCommand(transcript: string) {
@@ -17,10 +18,13 @@ export function processCommand(transcript: string) {
   if (found) return;
 
   if (text.includes('doom')) {
+    discoverSecret('doom');
     window.dispatchEvent(new CustomEvent('ACTIVATE_DOOM'));
   } else if (text.includes('windows') || text.includes('win95')) {
+    discoverSecret('win95');
     window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));
   } else if (text.includes('kaca') || text.includes('mirror')) {
+    discoverSecret('mirror');
     window.dispatchEvent(new CustomEvent('ACTIVATE_MIRROR'));
   } else {
     toast.error('Thought not recognized.');

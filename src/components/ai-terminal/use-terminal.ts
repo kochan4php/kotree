@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { socialLinks } from '@/data/social-links';
 import { runCommand, INITIAL_HISTORY } from './commands';
+import { discoverSecret } from '@/lib/secrets';
 
 // All AI-terminal state, effects and the command/AI submit flow
 export function useTerminal() {
@@ -14,6 +15,7 @@ export function useTerminal() {
   const prevFocusRef = useRef<HTMLElement | null>(null);
 
   const openTerminal = () => {
+    discoverSecret('terminal');
     prevFocusRef.current = document.activeElement as HTMLElement | null;
     setIsOpen(true);
     setIsRendered(true);

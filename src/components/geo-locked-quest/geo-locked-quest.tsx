@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Copy } from 'lucide-react';
 import { ALLOWED_RADIUS, checkDistance, fallbackToIP } from './geo';
+import { discoverSecret } from '@/lib/secrets';
 
 export default function GeoLockedQuest() {
   const [distance, setDistance] = useState<number | null>(null);
@@ -14,6 +15,7 @@ export default function GeoLockedQuest() {
     onDistance: setDistance,
     onUnlocked: () => {
       setUnlocked(true);
+      discoverSecret('monas');
       // Celebratory confetti — loaded on demand, honours reduced motion
       import('@/components/effects/confetti').then((m) => m.fireConfetti());
     },

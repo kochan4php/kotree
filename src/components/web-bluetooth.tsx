@@ -2,6 +2,7 @@
 
 import { Bluetooth } from 'lucide-react';
 import { toast } from 'sonner';
+import { discoverSecret } from '@/lib/secrets';
 
 type BluetoothNavigator = {
   bluetooth?: {
@@ -11,6 +12,7 @@ type BluetoothNavigator = {
 
 export default function WebBluetooth() {
   const handleBluetooth = async () => {
+    discoverSecret('bluetooth');
     try {
       const bluetooth = (navigator as unknown as BluetoothNavigator).bluetooth;
       if (!bluetooth) {

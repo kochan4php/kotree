@@ -8,6 +8,7 @@ import { startListening } from './listener';
 import { processCommand } from './commands';
 import { useTelepathy } from './use-telepathy';
 import TelepathyModal from './telepathy-modal';
+import { discoverSecret } from '@/lib/secrets';
 
 export default function VoiceCommand() {
   const [isListening, setIsListening] = useState(false);
@@ -29,6 +30,7 @@ export default function VoiceCommand() {
   };
 
   const handleListen = async () => {
+    discoverSecret('voice');
     if (typeof window === 'undefined' || !getSpeechRecognitionCtor()) {
       handleTelepathyFallback();
       return;

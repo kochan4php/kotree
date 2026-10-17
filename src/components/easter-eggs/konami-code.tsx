@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { discoverSecret } from '@/lib/secrets';
 
 const KONAMI_CODE = [
   'ArrowUp', 'ArrowUp', 
@@ -38,6 +39,7 @@ export default function KonamiCode() {
       
       if (isMatch && inputSequence.length === KONAMI_CODE.length) {
         setActivated(true);
+        discoverSecret('konami');
         toast.success("⚠️ WARNING: BOSS FIGHT INITIATED ⚠️");
         
         window.dispatchEvent(new CustomEvent('ACTIVATE_BOSS_FIGHT'));
