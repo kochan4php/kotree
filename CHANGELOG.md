@@ -4,33 +4,27 @@ A log of every update to Kotree, from the newest to the oldest.
 
 ## [3.1.0]
 
-A bold new look and a big round of behind-the-scenes upgrades.
+A bold new look and a pile of small fixes.
 
 ### Added
 
-- Brand-new neobrutalist design — a cream and ink palette, bold borders, hard shadows, and a colorful tinted link deck
-- New typography (Space Grotesk + Archivo Black) with a refreshed logo, favicon, and app icons
-- Admin dashboard at `/admin` — click stats and guestbook moderation, protected by a private token
-- Keyboard shortcut help — press `?` to see every shortcut
-- "Load more" button in Secret Confessions, so older entries are one click away
-- Health endpoint (`/api/health`) for uptime monitoring
-- Automated accessibility checks (axe) now run with the test suite
-- Backup script for click counts and guestbook data
+- A colorful redesign — cream paper, ink borders, hard shadows, and a rainbow of link cards
+- New fonts, a refreshed logo, and matching browser and app icons
+- Keyboard shortcut help — press `?` to see them all
+- A "Load more" button in Secret Confessions, so older messages are one click away
 
 ### Changed
 
-- The page is no longer permanently dark — the new look is light, colorful, and high-contrast
-- Terminal restyled to match the new look; the classic Windows 95 desktop stays classic on purpose
-- No more low-contrast text — orange accents on light surfaces were darkened to pass WCAG AA
-- The boss fight gives you a moment before shooting back — no more near-instant death after the Konami code
-- Continuous integration: lint, typecheck, and end-to-end tests now run on every push and pull request
-- Smooth fade transitions between pages
-- Social share image now uses the Archivo Black brand font
-- Guestbook entries are paginated instead of capped at the latest 50
+- The page is no longer permanently dark — it is light, colorful, and much easier to read
+- The terminal matches the new look; the Windows 95 desktop stays classic, on purpose
+- Text that was hard to read is fixed — nothing blends into the background anymore
+- The boss fight now gives you a moment before it starts firing back
+- Page changes fade in smoothly
+- The image shown when you share the page got a fresh coat of paint
 
 ### Removed
 
-- Frosted-glass effects and glows from the old design
+- The old frosted-glass and glow effects
 
 ## [3.0.0-lts]
 
