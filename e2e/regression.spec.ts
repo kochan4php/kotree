@@ -153,14 +153,14 @@ test('guestbook load more appends the next page', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
 
-  await expect(page.getByText('cipher-9')).toBeVisible();
-  await expect(page.getByText('cipher-10')).toHaveCount(0);
+  await expect(page.getByText('cipher-9', { exact: true })).toBeVisible();
+  await expect(page.getByText('cipher-10', { exact: true })).toHaveCount(0);
 
   const loadMore = page.getByRole('button', { name: 'Load more secrets' });
   await expect(loadMore).toBeVisible();
   await loadMore.click();
 
-  await expect(page.getByText('cipher-11')).toBeVisible();
+  await expect(page.getByText('cipher-11', { exact: true })).toBeVisible();
   // 12 < 20 loaded so far → the button must retire
   await expect(loadMore).toHaveCount(0);
 });

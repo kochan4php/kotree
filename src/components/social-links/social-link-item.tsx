@@ -45,7 +45,7 @@ export default function SocialLinkItem({ link, clickCount, token, index = 0 }: S
           </div>
 
           {clickCount > 0 && (
-            <span className="inline-flex items-center justify-center shrink-0 rounded-full bg-foreground text-background border-2 border-foreground px-2.5 py-0.5 text-xs font-bold" aria-label={`${clickCount} clicks`}>
+            <span role="status" className="inline-flex items-center justify-center shrink-0 rounded-full bg-foreground text-background border-2 border-foreground px-2.5 py-0.5 text-xs font-bold" aria-label={`${clickCount} clicks`}>
               {clickCount} clicks
             </span>
           )}

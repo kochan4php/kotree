@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getGuestbookEntries, addGuestbookEntry } from '@/connections/mongodb';
+import { getGuestbookEntries, addGuestbookEntry, reactToGuestbookEntry } from '@/connections/mongodb';
 import { guardOrigin, validateToken } from '@/lib/security';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
@@ -56,5 +56,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Failed to add entry' }, { status: 500 });
+  }
+}
+
+// Reactions: { id, reaction } — one extra count on a message.
+const ALLOWED_REACTIONS = ['👍', '❤️', '🔥'];
+
+export async function PATCH(request: Request) {
+  try {
+    const forbidden = guardOrigin(request);
+    if (forbidden) return forbidden;
+
+    const body = await request.json();
+    if (!validateToken(body._token)) {
+      return new NextResponse('Invalid CSRF Token', { status: 403 });
+    }
+    if (typeof body.id !== 'string' || !ALLOWED_REACTIONS.includes(body.reaction)) {
+      return new NextResponse('Bad Request', { status: 400 });
+    }
+
+    const ip = getClientIp(request);
+    if (isRateLimited(`guestbook-react:${ip}`)) {
+      return new NextResponse('Too Many Requests', { status: 429 });
+    }
+
+    const ok = await reactToGuestbookEntry(body.id, body.reaction);
+    if (!ok) return new NextResponse('Not Found', { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Failed to react' }, { status: 500 });
   }
 }

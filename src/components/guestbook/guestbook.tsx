@@ -1,31 +1,80 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { encryptMessage } from './obfuscation';
 import EntryList from './entry-list';
-import { fetchEntries, postEntry } from './api';
+import { fetchEntries, postEntry, GuestbookHttpError } from './api';
+import { queueMessage, queuedMessages, flushQueue } from './offline';
+import type { GuestbookEntry } from './types';
 
 const PAGE_SIZE = 10;
 
 export default function Guestbook({ token }: { token?: string }) {
-  const [entries, setEntries] = useState<{ message: string; createdAt: string }[]>([]);
+  const [entries, setEntries] = useState<GuestbookEntry[]>([]);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [decryptedIndexes, setDecryptedIndexes] = useState<Set<number>>(new Set());
+  const [pendingCount, setPendingCount] = useState(0);
+  const [newSince, setNewSince] = useState<Set<string>>(new Set());
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [cooldown, setCooldown] = useState(0);
+  const [nearEnd, setNearEnd] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchEntries(PAGE_SIZE).then((entries) => {
+      // "New since your last visit": compare, then stamp this visit
+      try {
+        const lastVisit = localStorage.getItem('kotree-gb-last-visit');
+        if (lastVisit) {
+          setNewSince(new Set(entries.filter((e) => e.createdAt > lastVisit).map((e) => e.createdAt)));
+        }
+        localStorage.setItem('kotree-gb-last-visit', new Date().toISOString());
+      } catch {
+        // private mode — no marker, no harm
+      }
       setEntries(entries);
       setHasMore(entries.length === PAGE_SIZE);
     });
-  }, []);
+    queuedMessages().then(setPendingCount);
 
-  const loadMore = async () => {
+    // Deliver anything queued while offline as soon as we're back
+    const onOnline = async () => {
+      const before = await queuedMessages();
+      if (before === 0) return;
+      const remaining = await flushQueue(token);
+      setPendingCount(remaining);
+      if (remaining < before) {
+        const delivered = before - remaining;
+        toast.success(`${delivered} secret${delivered > 1 ? 's' : ''} delivered`);
+        setEntries((prev) => prev.map((e) => (e.pending ? { ...e, pending: false } : e)));
+      }
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [token]);
+
+  // Rate-limit countdown after a 429
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- timer-driven countdown
+    setCooldown(Math.ceil((cooldownUntil - Date.now()) / 1000));
+    const id = setInterval(() => {
+      const left = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      setCooldown(Math.max(0, left));
+      if (left <= 0) clearInterval(id);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
+
+  const loadMore = useCallback(async () => {
     if (isLoadingMore || entries.length === 0) return;
     setIsLoadingMore(true);
     const next = await fetchEntries(PAGE_SIZE, entries[entries.length - 1].createdAt);
@@ -35,7 +84,30 @@ export default function Guestbook({ token }: { token?: string }) {
     });
     setHasMore(next.length === PAGE_SIZE);
     setIsLoadingMore(false);
-  };
+  }, [entries, isLoadingMore]);
+
+  // Infinite scroll: the sentinel only counts once the visitor has actually
+  // scrolled it — otherwise a tall viewport would load pages on its own.
+  useEffect(() => {
+    const onScroll = (e: Event) => {
+      if (e.target === listRef.current) setHasScrolled(true);
+    };
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', onScroll, true);
+  }, []);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setNearEnd(entry.isIntersecting), { rootMargin: '120px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- infinite scroll: the sentinel was reached by a real scroll, so load the next page
+    if (nearEnd && hasScrolled && hasMore && !isLoadingMore) loadMore();
+  }, [nearEnd, hasScrolled, hasMore, isLoadingMore, loadMore]);
 
   const toggleDecrypt = (index: number) => {
     const newSet = new Set(decryptedIndexes);
@@ -46,7 +118,8 @@ export default function Guestbook({ token }: { token?: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isSubmitting) return;
+    const message = input.trim();
+    if (!message || isSubmitting || cooldown > 0) return;
 
     // Spam protection
     const lastSubmit = localStorage.getItem('kotree_guestbook_last');
@@ -58,19 +131,38 @@ export default function Guestbook({ token }: { token?: string }) {
     setIsSubmitting(true);
     localStorage.setItem('kotree_guestbook_last', Date.now().toString());
 
-    const tempMessage = input.trim();
+    const encryptedMessage = encryptMessage(message);
+    const tempCreatedAt = new Date().toISOString();
+    const offline = !navigator.onLine;
     setInput('');
 
     // Optimistic UI update
-    const encryptedMessage = encryptMessage(tempMessage);
-    const tempCreatedAt = new Date().toISOString();
-    setEntries((prev) => [{ message: encryptedMessage, createdAt: tempCreatedAt }, ...prev]);
+    setEntries((prev) => [{ message: encryptedMessage, createdAt: tempCreatedAt, pending: offline }, ...prev]);
+
+    if (offline) {
+      await queueMessage(encryptedMessage);
+      setPendingCount((c) => c + 1);
+      toast.info("You're offline — saved on this device and will send itself later.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      await postEntry(encryptedMessage, token);
-    } catch {
-      // Revert the optimistic entry if the POST failed
+      const result = await postEntry(encryptedMessage, token);
+      if (result === 'queued') {
+        setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, pending: true } : e)));
+        setPendingCount((c) => c + 1);
+        toast.info("Couldn't reach the server — saved on this device and will send itself later.");
+      }
+    } catch (err) {
+      // Revert the optimistic entry if the POST was rejected
       setEntries((prev) => prev.filter((e) => e.createdAt !== tempCreatedAt));
+      if (err instanceof GuestbookHttpError && err.status === 429) {
+        setCooldownUntil(Date.now() + 30_000);
+        toast.error('Whoa, slow down! Try again in 30 seconds. 🐢');
+      } else {
+        toast.error('Could not save your secret — try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -90,8 +182,24 @@ export default function Guestbook({ token }: { token?: string }) {
           </div>
         </div>
 
-        <div className="h-40 xl:flex-auto overflow-y-auto space-y-3 mb-4 pr-2">
-          <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} />
+        {(newSince.size > 0 || pendingCount > 0) && (
+          <div className="space-y-1 mb-2">
+            {newSince.size > 0 && (
+              <p role="status" className="text-[10px] font-mono font-bold text-accent-ink">
+                {newSince.size} new since your last visit — marked below
+              </p>
+            )}
+            {pendingCount > 0 && (
+              <p role="status" className="text-[10px] font-mono font-bold text-accent-ink">
+                ⏳ {pendingCount} waiting to send — we&apos;ll deliver automatically
+              </p>
+            )}
+          </div>
+        )}
+
+        <div ref={listRef} className="h-40 xl:flex-auto overflow-y-auto space-y-3 mb-4 pr-2">
+          <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} newSince={newSince} />
+          {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
         </div>
 
         {hasMore && (
@@ -104,6 +212,9 @@ export default function Guestbook({ token }: { token?: string }) {
             {isLoadingMore ? 'Loading…' : 'Load more secrets'}
           </button>
         )}
+        <span role="status" className="sr-only">
+          {isLoadingMore ? 'Loading more secrets' : ''}
+        </span>
 
         <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
           <input
@@ -113,18 +224,30 @@ export default function Guestbook({ token }: { token?: string }) {
             placeholder="Leave a secret encrypted message..."
             aria-label="Secret message"
             className="flex-1 rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
-            disabled={isSubmitting}
+            disabled={isSubmitting || cooldown > 0}
             suppressHydrationWarning
           />
           <button
             type="submit"
-            disabled={!input.trim() || isSubmitting}
+            disabled={!input.trim() || isSubmitting || cooldown > 0}
             aria-label="Send message"
             className="inline-flex items-center justify-center rounded-lg bg-destructive border-[3px] border-foreground px-4 py-2 text-sm font-bold text-[#14110f] shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0_0_var(--foreground)] transition-all min-h-11"
           >
             <Send className="w-4 h-4" />
           </button>
         </form>
+
+        <div className="flex items-center justify-between mt-1 px-1">
+          <span className="text-[10px] font-mono text-muted-foreground">
+            {cooldown > 0 ? `Rate limited — try again in ${cooldown}s` : ''}
+          </span>
+          <span
+            aria-hidden="true"
+            className={`text-[10px] font-mono ${input.length >= 90 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}
+          >
+            {input.length}/100
+          </span>
+        </div>
       </div>
     </Card>
   );

@@ -44,16 +44,38 @@ export interface GuestbookEntry {
   createdAt: Date;
   ip?: string;
   userAgent?: string;
+  reactions?: Record<string, number>;
+}
+
+// Public shape: id is exposed so entries can be permalinked and reacted to.
+export interface PublicGuestbookEntry {
+  id: string;
+  message: string;
+  createdAt: Date;
+  reactions?: Record<string, number>;
 }
 
 const guestbookCollection = () =>
   getClientPromise().then((client) => client.db('kotreedb').collection<GuestbookEntry>('guestbook'));
 
-export async function getGuestbookEntries(limit = 50, before?: string): Promise<GuestbookEntry[]> {
+export async function getGuestbookEntries(limit = 50, before?: string): Promise<PublicGuestbookEntry[]> {
   const collection = await guestbookCollection();
   // ip/userAgent are moderation data, never exposed to clients (privacy)
   const filter = before ? { createdAt: { $lt: new Date(before) } } : {};
-  return collection.find(filter, { projection: { _id: 0, ip: 0, userAgent: 0 } }).sort({ createdAt: -1 }).limit(limit).toArray();
+  const docs = await collection.find(filter, { projection: { ip: 0, userAgent: 0 } }).sort({ createdAt: -1 }).limit(limit).toArray();
+  return docs.map((d) => ({ id: d._id.toString(), message: d.message, createdAt: d.createdAt, reactions: d.reactions }));
+}
+
+// Caller must validate `reaction` against a whitelist before calling —
+// it is used as a Mongo update path.
+export async function reactToGuestbookEntry(id: string, reaction: string): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await guestbookCollection();
+  const { matchedCount } = await collection.updateOne(
+    { _id: new ObjectId(id) },
+    { $inc: { [`reactions.${reaction}`]: 1 } },
+  );
+  return matchedCount === 1;
 }
 
 export async function addGuestbookEntry(message: string, ip?: string, userAgent?: string): Promise<void> {
