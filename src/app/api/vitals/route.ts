@@ -15,7 +15,7 @@ const THRESHOLDS: Record<string, { poor: number; good: number }> = {
 };
 
 export async function POST(request: Request) {
-  if (isRateLimited(`vitals:${getClientIp(request)}`, 60)) {
+  if (await isRateLimited(`vitals:${getClientIp(request)}`, 60)) {
     return new NextResponse(null, { status: 429, headers: { 'Retry-After': '60' } });
   }
 

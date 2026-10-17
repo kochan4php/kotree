@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const forbidden = guardOrigin(request);
   if (forbidden) return forbidden;
 
-  if (isRateLimited(`log:${getClientIp(request)}`, 10)) {
+  if (await isRateLimited(`log:${getClientIp(request)}`, 10)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 

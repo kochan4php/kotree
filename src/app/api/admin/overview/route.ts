@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   // Throttle before the token check: slows down brute force
-  if (isRateLimited(`admin:${getClientIp(request)}`, 20)) {
+  if (await isRateLimited(`admin:${getClientIp(request)}`, 20)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 

@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     }
 
     const ip = getClientIp(request);
-    if (isRateLimited(`guestbook:${ip}`)) {
+    if (await isRateLimited(`guestbook:${ip}`)) {
       return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 
@@ -76,7 +76,7 @@ export async function PATCH(request: Request) {
     }
 
     const ip = getClientIp(request);
-    if (isRateLimited(`guestbook-react:${ip}`)) {
+    if (await isRateLimited(`guestbook-react:${ip}`)) {
       return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 

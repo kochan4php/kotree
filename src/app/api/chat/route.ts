@@ -43,10 +43,10 @@ export async function POST(request: Request) {
   const ip = getClientIp(request);
   // Tighter per-IP cap for chat (burns Gemini quota) + a global budget so a
   // flood spread across many IPs can't drain the quota either
-  if (isRateLimited(`chat:${ip}`, 10)) {
+  if (await isRateLimited(`chat:${ip}`, 10)) {
     return new Response('Too Many Requests', { status: 429 });
   }
-  if (isGloballyRateLimited('chat', 60)) {
+  if (await isGloballyRateLimited('chat', 60)) {
     return new Response('Too Many Requests', { status: 429 });
   }
   // Cross-instance daily spend cap (survives cold starts and instance recycling)

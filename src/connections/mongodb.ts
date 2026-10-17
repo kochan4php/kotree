@@ -14,16 +14,46 @@ function getClientPromise(): Promise<MongoClient> {
 
     if (!globalWithMongo._mongoClientPromise) {
       client = new MongoClient(uri);
-      globalWithMongo._mongoClientPromise = client.connect();
+      globalWithMongo._mongoClientPromise = connect(client);
     }
     return globalWithMongo._mongoClientPromise;
   } else {
     if (!clientPromise) {
       client = new MongoClient(uri);
-      clientPromise = client.connect();
+      clientPromise = connect(client);
     }
     return clientPromise;
   }
+}
+
+function connect(mongo: MongoClient): Promise<MongoClient> {
+  return mongo.connect().then((connected) => {
+    // Fire-and-forget: index setup must not delay the first request
+    void ensureIndexes(connected).catch(() => {});
+    return connected;
+  });
+}
+
+// K5: TTLs keep the operational collections tiny and indexes match the
+// queries the app actually runs. Best effort — a failure here never breaks
+// requests (the app still works, just without the cleanups).
+let indexesPromise: Promise<void> | null = null;
+function ensureIndexes(connected: MongoClient): Promise<void> {
+  indexesPromise ??= (async () => {
+    const db = connected.db('kotreedb');
+    const DAY = 86_400;
+    await Promise.all([
+      db.collection('rate_limits').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      db.collection('vitals').createIndex({ createdAt: 1 }, { expireAfterSeconds: 90 * DAY }),
+      db.collection('vitals').createIndex({ day: 1, page: 1 }),
+      db.collection('client_errors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 7 * DAY }),
+      db.collection('click_visitors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 35 * DAY }),
+      db.collection('guestbook').createIndex({ createdAt: -1 }),
+      db.collection('daily_clicks').createIndex({ day: 1 }),
+      db.collection('link_counter').createIndex({ name: 1 }),
+    ]);
+  })();
+  return indexesPromise;
 }
 
 const linkCounterCollection = () =>
@@ -176,9 +206,8 @@ const clientErrorsCollection = () =>
 
 export async function addClientError(entry: { message: string; source: string; stack?: string; url?: string }): Promise<void> {
   const collection = await clientErrorsCollection();
+  // Retention is handled by the TTL index (K5) — no manual pruning needed
   await collection.insertOne({ ...entry, createdAt: new Date() });
-  // Keep the collection tiny: error reports older than a week are noise
-  await collection.deleteMany({ createdAt: { $lt: new Date(Date.now() - 7 * 86_400_000) } });
 }
 
 export async function getClientErrors(limit = 20): Promise<ClientError[]> {
@@ -201,6 +230,30 @@ export async function pingDb(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// ---------- Cross-instance rate limiting (K6) ----------
+
+interface RateBucket {
+  _id: string;
+  count: number;
+  expiresAt: Date;
+}
+
+const rateLimitsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<RateBucket>('rate_limits'));
+
+// Fixed-window counter: one small doc per key per bucket. The TTL index on
+// expiresAt removes stale buckets; callers compare the returned count.
+export async function consumeRateHit(key: string, windowMs = 60_000): Promise<number> {
+  const bucket = Math.floor(Date.now() / windowMs);
+  const collection = await rateLimitsCollection();
+  const doc = await collection.findOneAndUpdate(
+    { _id: `${bucket}:${key}` },
+    { $inc: { count: 1 }, $setOnInsert: { expiresAt: new Date((bucket + 2) * windowMs) } },
+    { upsert: true, returnDocument: 'after' }
+  );
+  return doc?.count ?? 1;
 }
 
 // ---------- RUM Web Vitals (K1) ----------

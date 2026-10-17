@@ -17,7 +17,7 @@ const tooMany = () => new NextResponse('Too Many Requests', { status: 429, heade
 // CSRF cookie. The token itself is never stored client-side afterwards.
 export async function POST(request: Request) {
   // Tighter limit than the generic admin bucket: slows down token guessing
-  if (isRateLimited(`admin-login:${getClientIp(request)}`, 10)) return tooMany();
+  if (await isRateLimited(`admin-login:${getClientIp(request)}`, 10)) return tooMany();
 
   const forbidden = guardOrigin(request);
   if (forbidden) return forbidden;

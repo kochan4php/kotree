@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     // Honeypot trap
     if (body._honeypot) {
-      isRateLimited(`banned:${ip}`); // Add to rate limit permanently (or max hits immediately)
+      await isRateLimited(`banned:${ip}`); // Add to rate limit permanently (or max hits immediately)
       return new Response('Go away bot', { status: 403 });
     }
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       return new Response('Invalid name', { status: 400 });
     }
     
-    if (isRateLimited(`click-counter:${name}:${ip}`)) {
+    if (await isRateLimited(`click-counter:${name}:${ip}`)) {
       return new Response('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 

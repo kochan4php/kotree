@@ -7,7 +7,7 @@ import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(request: Request) {
-  if (isRateLimited(`admin:${getClientIp(request)}`, 20)) {
+  if (await isRateLimited(`admin:${getClientIp(request)}`, 20)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 
