@@ -60,7 +60,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
   );
 
   return (
-    <div className="space-y-3">
+    <div>
       {/* Search floats under the dock as an overlay: opening it must never
           shift the link grid (the dock button, X and Escape all close it). */}
       {isSearching && (
