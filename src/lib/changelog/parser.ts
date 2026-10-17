@@ -35,7 +35,8 @@ export function parseChangelog(content: string): Changelog {
     }
   };
 
-  for (const line of content.split('\n')) {
+  // CRLF files (CHANGELOG is one) would otherwise leak \r into every line
+  for (const line of content.split(/\r?\n/)) {
     const level = headingLevel(line);
 
     if (line.startsWith('## ')) {

@@ -21,6 +21,7 @@ import ThemeSync from '@/components/layout/theme-sync';
 import CommandPalette from '@/components/layout/command-palette';
 import SelfDestruct from '@/components/self-destruct';
 import EasterEggLauncher from '@/components/easter-eggs';
+import WhatsNew from '@/components/layout/whats-new';
 
 import { Viewport } from 'next';
 
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <VitalsReporter />
         <PageViewReporter />
         <ThemeSync />
+        <WhatsNew />
         <KonamiCode />
         <KeyboardHelp />
         <GhostCursor />

@@ -211,3 +211,41 @@ test('articles show reading time, a table of contents and related links', async 
 
   await expect(page.getByRole('heading', { name: 'Related' })).toBeVisible();
 });
+
+test.describe('changelog permalinks', () => {
+  test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+
+  test('version anchors exist and copy a shareable link', async ({ page }) => {
+    await page.goto('/changelog');
+    await page.waitForLoadState('networkidle');
+
+    // K25: every version has a copy-link button and a plain-number anchor
+    await page.getByRole('button', { name: /^Copy link to version/ }).first().click();
+    // Windows clipboard appends a trailing CRLF
+    const copied = (await page.evaluate(() => navigator.clipboard.readText())).trim();
+    expect(copied).toMatch(/\/changelog#\d+\.\d+\.\d+$/);
+
+    const version = copied.split('#')[1];
+    await expect(page.locator(`[id="${version}"]`)).toHaveCount(1);
+  });
+});
+
+test("returning visitors get a one-time what's-new toast", async ({ page }) => {
+  // Seed an old seen version, once — the reload below must not re-seed
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem('seen-seeded')) {
+      localStorage.setItem('kotree-seen-version', '0.0.1');
+      sessionStorage.setItem('seen-seeded', '1');
+    }
+  });
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  // K24: the toast shows up a moment after the page settles
+  await expect(page.getByText(/see what changed/)).toBeVisible({ timeout: 8000 });
+
+  // Seen now — a reload stays quiet
+  await page.reload();
+  await page.waitForTimeout(2500);
+  await expect(page.getByText(/see what changed/)).toHaveCount(0);
+});

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Card } from '@/components/ui/card';
+import CopyVersionLink from '@/components/content/copy-version-link';
 import { parseChangelog } from '@/lib/changelog';
 import { renderChangelog } from '@/lib/changelog';
 import { site } from '@/lib/site';
@@ -16,8 +17,13 @@ export const metadata: Metadata = {
   ...pageOg('changelog', 'Kotree changelog — every update, newest first'),
 };
 
-const slugify = (title: string) =>
-  title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// K25: versions get a plain-number anchor (/changelog#3.3.0) so the "what's
+// new" toast and shared links point somewhere stable and human-readable.
+const versionId = (title: string) =>
+  title
+    .replace(/[[\]]/g, '')
+    .trim()
+    .split(/\s+/)[0];
 
 export default function ChangelogPage() {
   const filePath = path.join(process.cwd(), 'CHANGELOG.md');
@@ -57,7 +63,7 @@ export default function ChangelogPage() {
               {versions.map((version, i) => (
                 <li key={version.title}>
                   <a
-                    href={`#v${slugify(version.title)}`}
+                    href={`#${versionId(version.title)}`}
                     className="flex items-center justify-between gap-2 rounded-lg border-2 border-transparent px-3 py-2 text-sm font-bold text-muted-foreground transition-colors hover:border-foreground hover:bg-secondary hover:text-foreground"
                   >
                     <span className="font-mono tracking-tight">{version.title.replace(/[[\]]/g, '')}</span>
@@ -76,11 +82,14 @@ export default function ChangelogPage() {
             {versions.map((version) => (
               <Card
                 key={version.title}
-                id={`v${slugify(version.title)}`}
+                id={versionId(version.title)}
                 className="gap-3 fluid-glass neo-press scroll-mt-24 cv-auto-lg"
               >
                 <div className="relative z-10 max-w-[65ch]">
-                  <h2 className="text-2xl font-black tracking-tight text-accent-ink">{version.title}</h2>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-2xl font-black tracking-tight text-accent-ink">{version.title}</h2>
+                    <CopyVersionLink version={versionId(version.title)} />
+                  </div>
                   <div className="text-muted-foreground leading-relaxed font-medium">{version.body}</div>
                 </div>
               </Card>

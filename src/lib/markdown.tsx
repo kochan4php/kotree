@@ -60,7 +60,7 @@ export function parseMarkdown(content: string): MarkdownBlock[] {
     }
   };
 
-  for (const line of content.split('\n')) {
+  for (const line of content.split(/\r?\n/)) {
     const level = headingLevel(line);
     if (level) {
       flushList();
