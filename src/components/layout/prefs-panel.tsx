@@ -42,6 +42,13 @@ export default function PrefsPanel() {
     };
   }, [open]);
 
+  // Opened from the command palette
+  useEffect(() => {
+    const onRequest = () => setOpen(true);
+    window.addEventListener('kotree:prefs-open', onRequest);
+    return () => window.removeEventListener('kotree:prefs-open', onRequest);
+  }, []);
+
   const patch = (p: Partial<Prefs>) => setPrefs(writePrefs(p));
 
   return (

@@ -35,7 +35,7 @@ test('service worker registers (PWA)', async ({ page }) => {
   expect(registered).toBe(true);
 });
 
-test('search: X closes on mobile, Esc still works, hidden on changelog', async ({ page }) => {
+test('search: X closes on mobile, Esc works, and the palette is global', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
   await page.getByRole('button', { name: 'Search links' }).click();
@@ -48,10 +48,12 @@ test('search: X closes on mobile, Esc still works, hidden on changelog', async (
   await expect(page.getByRole('textbox', { name: 'Search links' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('textbox', { name: 'Search links' })).toHaveCount(0);
-  // changelog has no search button (nothing to search there)
+  // the command palette now lives on every page, changelog included
   await page.getByRole('link', { name: /changelog/i }).click();
   await expect(page).toHaveURL(/.*changelog/);
-  await expect(page.getByRole('button', { name: 'Search links' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await expect(page.getByRole('textbox', { name: 'Search links' })).toBeVisible();
+  await page.keyboard.press('Escape');
 });
 
 test('QR modal lazy-loads and focuses close button', async ({ page }) => {

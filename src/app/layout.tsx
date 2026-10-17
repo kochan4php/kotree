@@ -15,6 +15,7 @@ import { ScrollFades } from '@/components/effects';
 import HeaderBar from '@/components/layout/header-bar';
 import KeyboardHelp from '@/components/layout/keyboard-help';
 import ThemeSync from '@/components/layout/theme-sync';
+import CommandPalette from '@/components/layout/command-palette';
 import SelfDestruct from '@/components/self-destruct';
 import EasterEggLauncher from '@/components/easter-eggs';
 
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <KeyboardHelp />
         <GhostCursor />
         <HeaderBar />
+        <CommandPalette />
 
         <SelfDestruct />
         <EasterEggLauncher />

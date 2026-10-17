@@ -4,7 +4,6 @@ import HeaderLeft from './header-left';
 import PrefsPanel from './prefs-panel';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 const AITerminal = dynamic(() => import('@/components/ai-terminal'));
@@ -14,17 +13,13 @@ const WebBluetooth = dynamic(() => import('@/components/web-bluetooth'));
 // Fixed top bar: logo left, dock icons right
 export default function HeaderBar() {
   const [searchOpen, setSearchOpen] = useState(false);
-  const pathname = usePathname();
 
-  // Mirror the search state from SocialLinkList so the dock icon shows active styling
+  // Mirror the command palette state so the dock icon shows active styling
   useEffect(() => {
     const onSearchState = (e: Event) => setSearchOpen((e as CustomEvent<boolean>).detail);
     window.addEventListener('kotree:search-state', onSearchState);
     return () => window.removeEventListener('kotree:search-state', onSearchState);
   }, []);
-
-  // Search only makes sense on the homepage (nothing to search on /changelog)
-  const showSearch = pathname === '/';
 
   return (
     <div className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 z-60 flex items-center justify-between pointer-events-none">
@@ -33,18 +28,16 @@ export default function HeaderBar() {
         <AITerminal />
         <VoiceCommand />
         <WebBluetooth />
-        {showSearch && (
-          <button
-            onClick={() => window.dispatchEvent(new Event('kotree:search'))}
-            aria-label="Search links"
-            aria-pressed={searchOpen}
-            className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
-              searchOpen ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'
-            }`}
-          >
-            <Search className="w-5 h-5 text-accent-ink" />
-          </button>
-        )}
+        <button
+          onClick={() => window.dispatchEvent(new Event('kotree:search'))}
+          aria-label="Search links"
+          aria-pressed={searchOpen}
+          className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
+            searchOpen ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'
+          }`}
+        >
+          <Search className="w-5 h-5 text-accent-ink" />
+        </button>
         <PrefsPanel />
       </div>
     </div>

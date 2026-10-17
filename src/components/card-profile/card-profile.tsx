@@ -46,6 +46,13 @@ export default function CardProfile() {
     setUrl(window.location.href);
   }, []);
 
+  // Opened from the command palette
+  useEffect(() => {
+    const onRequest = () => openQR();
+    window.addEventListener('kotree:qr', onRequest);
+    return () => window.removeEventListener('kotree:qr', onRequest);
+  }, []);
+
   return (
     <>
       <Card className="fluid-glass text-center relative z-10 gap-0 p-0">

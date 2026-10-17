@@ -40,8 +40,14 @@ export function useTerminal() {
         else openTerminal();
       }
     };
+    // Opened from the command palette
+    const onRequest = () => openTerminal();
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('kotree:terminal', onRequest);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('kotree:terminal', onRequest);
+    };
   }, [isOpen]);
 
   useEffect(() => {
