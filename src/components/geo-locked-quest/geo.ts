@@ -19,10 +19,12 @@ function getDistanceFromLatLonInM(lat1: number, lon1: number, lat2: number, lon2
 interface QuestCallbacks {
   onDistance: (distance: number) => void;
   onUnlocked: () => void;
+  onCoords?: (lat: number, lon: number) => void;
 }
 
-export function checkDistance(lat: number, lon: number, { onDistance, onUnlocked }: QuestCallbacks) {
+export function checkDistance(lat: number, lon: number, { onDistance, onUnlocked, onCoords }: QuestCallbacks) {
   const dist = getDistanceFromLatLonInM(lat, lon, TARGET_LAT, TARGET_LNG);
+  onCoords?.(lat, lon);
   onDistance(dist);
   if (dist <= ALLOWED_RADIUS) {
     onUnlocked();

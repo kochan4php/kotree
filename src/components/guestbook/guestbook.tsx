@@ -12,6 +12,17 @@ import type { GuestbookEntry } from './types';
 
 const PAGE_SIZE = 10;
 
+// Confetti on the very first secret sent from this device (once)
+function celebrateFirstSend() {
+  try {
+    if (localStorage.getItem('kotree-gb-first')) return;
+    localStorage.setItem('kotree-gb-first', '1');
+    import('@/components/effects/confetti').then((m) => m.fireConfetti());
+  } catch {
+    // private mode — just skip the party
+  }
+}
+
 export default function Guestbook({ token }: { token?: string }) {
   const [entries, setEntries] = useState<GuestbookEntry[]>([]);
   const [input, setInput] = useState('');
@@ -55,6 +66,7 @@ export default function Guestbook({ token }: { token?: string }) {
         const delivered = before - remaining;
         toast.success(`${delivered} secret${delivered > 1 ? 's' : ''} delivered`);
         setEntries((prev) => prev.map((e) => (e.pending ? { ...e, pending: false } : e)));
+        celebrateFirstSend();
       }
     };
     window.addEventListener('online', onOnline);
@@ -149,7 +161,9 @@ export default function Guestbook({ token }: { token?: string }) {
 
     try {
       const result = await postEntry(encryptedMessage, token);
-      if (result === 'queued') {
+      if (result === 'sent') {
+        celebrateFirstSend();
+      } else if (result === 'queued') {
         setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, pending: true } : e)));
         setPendingCount((c) => c + 1);
         toast.info("Couldn't reach the server — saved on this device and will send itself later.");

@@ -5,7 +5,7 @@ type EthereumWindow = { ethereum?: Eip1193Provider };
 
 const getEthereum = () => (window as unknown as EthereumWindow).ethereum;
 
-export async function connectWallet(onConnected: () => void, onConnecting: (v: boolean) => void) {
+export async function connectWallet(onConnected: (address: string) => void, onConnecting: (v: boolean) => void) {
   const ethereum = getEthereum();
   if (!ethereum) {
     toast.error('Web3 Wallet not found! Install MetaMask or Phantom.');
@@ -18,8 +18,8 @@ export async function connectWallet(onConnected: () => void, onConnecting: (v: b
     const { BrowserProvider } = await import('ethers');
     // Request account access
     const provider = new BrowserProvider(ethereum);
-    await provider.send('eth_requestAccounts', []);
-    onConnected();
+    const accounts = (await provider.send('eth_requestAccounts', [])) as string[];
+    onConnected(accounts[0] ?? '');
     toast.success('Wallet Connected!');
   } catch (error) {
     console.error(error);

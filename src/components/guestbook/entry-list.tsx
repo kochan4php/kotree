@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { decryptMessage } from './obfuscation';
 import { relativeTime } from '@/lib/relative-time';
-import { LockKeyhole, Link2 } from 'lucide-react';
+import { LockKeyhole, Link2, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { reactToEntry } from './api';
 import { clientToken } from '@/lib/csrf-client';
@@ -78,6 +78,25 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
       () => toast.success('Permalink copied!'),
       () => toast.error('Could not copy the permalink'),
     );
+  };
+
+  const shareEntry = async (entry: GuestbookEntry, anchorKey: string) => {
+    const url = `${location.origin}${location.pathname}#secret-${anchorKey}`;
+    const text = decryptMessage(entry.message);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'A secret from Kotree', text, url });
+        return;
+      } catch {
+        return; // user cancelled the share sheet
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} — ${url}`);
+      toast.success('Secret copied!');
+    } catch {
+      toast.error('Could not copy the secret');
+    }
   };
 
   const react = (entry: GuestbookEntry, anchorKey: string, emoji: string) => {
@@ -158,6 +177,14 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                   className="p-1 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <Link2 className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => shareEntry(entry, anchorKey)}
+                  aria-label="Share secret"
+                  className="p-1 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Share2 className="w-3 h-3" />
                 </button>
               </div>
             </div>

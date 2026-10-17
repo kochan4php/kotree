@@ -14,8 +14,22 @@ export default function CardProfile() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
   const [url, setUrl] = useState('');
+  // Time-of-day greeting + seasonal accent — computed after mount so the
+  // pre-rendered HTML and visual snapshots stay deterministic.
+  const [greet, setGreet] = useState<{ text: string; season: string } | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    const h = now.getHours();
+    const text =
+      h < 5 ? 'Burning the midnight oil' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    const md = (now.getMonth() + 1) * 100 + now.getDate();
+    const season = md >= 1025 && md <= 1031 ? '🎃 Spooky season' : md >= 1201 && md <= 1226 ? '🎄 Festive season' : '';
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- date-driven text, applied after mount by design
+    setGreet({ text, season });
+  }, []);
 
   const openQR = () => {
     prevFocusRef.current = document.activeElement as HTMLElement | null;
@@ -77,6 +91,12 @@ export default function CardProfile() {
           <div className="flex flex-col gap-0.5">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
             <p className="text-base text-muted-foreground">{profile.handle}</p>
+            {greet && (
+              <p className="text-xs font-mono font-bold text-muted-foreground">
+                {greet.text}
+                {greet.season && <span className="ml-1.5">{greet.season}</span>}
+              </p>
+            )}
           </div>
 
           <span className="inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base md:text-sm lg:text-base font-bold w-fit max-w-full mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
