@@ -1,8 +1,10 @@
 import type { GuestbookEntry } from './types';
 
-export async function fetchEntries(): Promise<GuestbookEntry[]> {
+export async function fetchEntries(limit = 10, before?: string): Promise<GuestbookEntry[]> {
   try {
-    const res = await fetch('/api/guestbook');
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (before) params.set('before', before);
+    const res = await fetch(`/api/guestbook?${params}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   } catch {

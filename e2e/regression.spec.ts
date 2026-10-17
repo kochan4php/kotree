@@ -5,6 +5,7 @@ import { test, expect } from '@playwright/test';
 // (its effect only runs post-hydration) as a deterministic hydration gate.
 async function waitHydrated(page: import('@playwright/test').Page) {
   await page.waitForLoadState('networkidle');
+  let swConfirmed = true;
   await page
     .waitForFunction(
       () => navigator.serviceWorker.getRegistration().then((r) => Boolean(r)),
@@ -13,8 +14,10 @@ async function waitHydrated(page: import('@playwright/test').Page) {
     )
     .catch(() => {
       /* SW is not the point of most tests — fall through to a grace wait */
+      swConfirmed = false;
     });
-  await page.waitForTimeout(300);
+  // SW registration is the strongest hydration signal; without it, wait longer
+  await page.waitForTimeout(swConfirmed ? 300 : 2500);
 }
 
 test('service worker registers (PWA)', async ({ page }) => {
@@ -76,14 +79,24 @@ test('boss fight can be exited (no trap)', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
   // Konami code triggers the boss fight
-  for (const k of ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']) {
-    await page.keyboard.press(k);
+  const konami = async () => {
+    for (const k of ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']) {
+      await page.keyboard.press(k);
+    }
+  };
+  const exit = page.getByRole('button', { name: 'EXIT BOSS FIGHT' });
+  await konami();
+  if (!(await exit.isVisible())) {
+    // First sequence raced a slow hydration commit — one more attempt.
+    // (Harmless if the fight is already on: extra keys are ignored.)
+    await page.waitForTimeout(500);
+    await konami();
   }
-  await page.waitForTimeout(1500);
-  await expect(page.getByRole('button', { name: 'EXIT BOSS FIGHT' })).toBeVisible();
-  await page.getByRole('button', { name: 'EXIT BOSS FIGHT' }).click();
-  await page.waitForTimeout(400);
-  await expect(page.getByRole('button', { name: 'EXIT BOSS FIGHT' })).toHaveCount(0);
+  // Assert the moment it appears: the fight ends on death/win, so sleeping a
+  // fixed interval first made this flaky (stationary players used to die ~1.5s in)
+  await expect(exit).toBeVisible({ timeout: 10000 });
+  await exit.click();
+  await expect(exit).toHaveCount(0);
 });
 
 test('guestbook removes the optimistic entry when the server rejects', async ({ page }) => {
@@ -119,4 +132,33 @@ test('clicking a link triggers a counts refresh', async ({ page }) => {
   await popup.close();
   await page.waitForTimeout(600);
   expect(gets).toBe(before + 1);
+});
+
+test('guestbook load more appends the next page', async ({ page }) => {
+  // Stub the API with 12 entries served in pages of 10 + 2
+  const all = Array.from({ length: 12 }, (_, i) => ({
+    message: `cipher-${i}`,
+    createdAt: new Date(Date.now() - i * 60_000).toISOString(),
+  }));
+  await page.route('**/api/guestbook?*', async (route) => {
+    const url = new URL(route.request().url());
+    const limit = Number(url.searchParams.get('limit') ?? 10);
+    const before = url.searchParams.get('before');
+    const start = before ? all.findIndex((e) => e.createdAt === before) + 1 : 0;
+    await route.fulfill({ json: all.slice(start, start + limit) });
+  });
+
+  await page.goto('/');
+  await waitHydrated(page);
+
+  await expect(page.getByText('cipher-9')).toBeVisible();
+  await expect(page.getByText('cipher-10')).toHaveCount(0);
+
+  const loadMore = page.getByRole('button', { name: 'Load more secrets' });
+  await expect(loadMore).toBeVisible();
+  await loadMore.click();
+
+  await expect(page.getByText('cipher-11')).toBeVisible();
+  // 12 < 20 loaded so far → the button must retire
+  await expect(loadMore).toHaveCount(0);
 });

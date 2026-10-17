@@ -8,17 +8,34 @@ import { encryptMessage } from './obfuscation';
 import EntryList from './entry-list';
 import { fetchEntries, postEntry } from './api';
 
-const MAX_ENTRIES = 50;
+const PAGE_SIZE = 10;
 
 export default function Guestbook({ token }: { token?: string }) {
   const [entries, setEntries] = useState<{ message: string; createdAt: string }[]>([]);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [decryptedIndexes, setDecryptedIndexes] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    fetchEntries().then(setEntries);
+    fetchEntries(PAGE_SIZE).then((entries) => {
+      setEntries(entries);
+      setHasMore(entries.length === PAGE_SIZE);
+    });
   }, []);
+
+  const loadMore = async () => {
+    if (isLoadingMore || entries.length === 0) return;
+    setIsLoadingMore(true);
+    const next = await fetchEntries(PAGE_SIZE, entries[entries.length - 1].createdAt);
+    setEntries((prev) => {
+      const seen = new Set(prev.map((e) => e.createdAt + e.message));
+      return [...prev, ...next.filter((e) => !seen.has(e.createdAt + e.message))];
+    });
+    setHasMore(next.length === PAGE_SIZE);
+    setIsLoadingMore(false);
+  };
 
   const toggleDecrypt = (index: number) => {
     const newSet = new Set(decryptedIndexes);
@@ -47,7 +64,7 @@ export default function Guestbook({ token }: { token?: string }) {
     // Optimistic UI update
     const encryptedMessage = encryptMessage(tempMessage);
     const tempCreatedAt = new Date().toISOString();
-    setEntries([{ message: encryptedMessage, createdAt: tempCreatedAt }, ...entries].slice(0, MAX_ENTRIES));
+    setEntries((prev) => [{ message: encryptedMessage, createdAt: tempCreatedAt }, ...prev]);
 
     try {
       await postEntry(encryptedMessage, token);
@@ -65,7 +82,7 @@ export default function Guestbook({ token }: { token?: string }) {
       <div className="relative z-10 w-full h-full">
         <div className="flex items-start justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-accent" />
+            <MessageSquare className="w-5 h-5 text-accent-ink" />
             <h2 className="text-lg font-bold text-foreground leading-tight">Secret Confessions</h2>
           </div>
           <div className="bg-destructive text-foreground text-[10px] px-2 py-1 rounded border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)] font-mono font-bold whitespace-nowrap">
@@ -76,6 +93,17 @@ export default function Guestbook({ token }: { token?: string }) {
         <div className="h-40 overflow-y-auto space-y-3 mb-4 pr-2">
           <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} />
         </div>
+
+        {hasMore && (
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            className="w-full mb-4 rounded-lg border-[3px] border-foreground bg-secondary px-3 py-2 text-xs font-bold uppercase tracking-wide text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[2px_2px_0_0_var(--foreground)] transition-all"
+          >
+            {isLoadingMore ? 'Loading…' : 'Load more secrets'}
+          </button>
+        )}
 
         <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
           <input

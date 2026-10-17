@@ -26,7 +26,7 @@ function renderInline(text: string): React.ReactNode {
 const blockClasses: Record<string, string> = {
   h1: 'text-3xl font-bold tracking-tight text-foreground',
   h2: 'text-2xl font-bold tracking-tight text-foreground',
-  h3: 'text-sm font-semibold uppercase tracking-wider text-accent mt-6 mb-3 first:mt-0',
+  h3: 'text-sm font-semibold uppercase tracking-wider text-accent-ink mt-6 mb-3 first:mt-0',
   p: 'text-muted-foreground leading-relaxed mt-4 first:mt-0',
 };
 

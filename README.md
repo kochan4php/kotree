@@ -1,5 +1,7 @@
 # Kotree
 
+[![CI](https://github.com/kochan4php/kotree/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kochan4php/kotree/actions/workflows/ci.yml)
+
 A link-in-bio page for Deo Subarno (Kochan). One page, all social links, click counters backed by MongoDB.
 
 Built with Next.js, Tailwind CSS, and a small set of dependencies.
@@ -26,7 +28,9 @@ Built with Next.js, Tailwind CSS, and a small set of dependencies.
 - QR code popup, share button, RSS feed
 - PWA — installable, works offline, clicks sync when you're back online
 - SEO metadata (JSON-LD, Open Graph, sitemap, RSS)
-- Dark theme with warm coffee palette
+- Neobrutalist design — cream and ink palette with colorful card tints
+- Admin dashboard at `/admin` (token-protected) for click stats and guestbook moderation
+- Keyboard shortcut help — press `?`
 
 ## Requirements
 
@@ -53,12 +57,17 @@ Open https://localhost:3000 (the dev server runs with HTTPS).
 
 ## Scripts
 
-| Command       | What it does             |
-| ------------- | ------------------------ |
-| `pnpm dev`    | Start dev server (HTTPS) |
-| `pnpm build`  | Production build         |
-| `pnpm start`  | Serve the build          |
-| `pnpm lint`   | Run ESLint               |
+| Command          | What it does                      |
+| ---------------- | --------------------------------- |
+| `pnpm dev`       | Start dev server (HTTPS)          |
+| `pnpm build`     | Production build                  |
+| `pnpm start`     | Serve the build                   |
+| `pnpm lint`      | Run ESLint                        |
+| `pnpm typecheck` | TypeScript check (`tsc --noEmit`) |
+| `pnpm test:e2e`  | Playwright e2e + axe a11y tests   |
+| `pnpm backup`    | Export MongoDB data to `backups/` |
+
+`pnpm test:e2e` builds and starts the app itself; a local MongoDB is required. CI runs lint, typecheck, and the full e2e suite (including the axe accessibility audit) on every push and pull request.
 
 ## Environment variables
 
@@ -70,6 +79,7 @@ Open https://localhost:3000 (the dev server runs with HTTPS).
 | `NEXT_PUBLIC_BING_SITE_VERIFICATION`  | no       | -                             | Bing Webmaster token           |
 | `GEMINI_API_KEY`                      | no       | -                             | Real AI answers in the terminal (falls back to mock) |
 | `DISCORD_WEBHOOK_URL` / `TELEGRAM_WEBHOOK_URL` | no | -                     | Notify when a link is clicked  |
+| `ADMIN_TOKEN`                         | no       | -                             | Unlocks the `/admin` dashboard |
 
 Set `NEXT_PUBLIC_BASE_URL` to your real domain before deploying. Without it, SEO links (canonical, sitemap, Open Graph) point to localhost.
 
@@ -77,8 +87,11 @@ Set `NEXT_PUBLIC_BASE_URL` to your real domain before deploying. Without it, SEO
 
 - `POST /api/click-link-counter` — increments a link counter. Body: `{ "name": "github", "count": 1 }`.
 - `POST /api/guestbook` — adds a guestbook entry. Body: `{ "message": "...", "_token": "..." }`.
-- `GET /api/guestbook` — reads the latest entries (no IPs or user agents).
+- `GET /api/guestbook?limit=10&before=<ISO date>` — reads entries, newest first (no IPs or user agents).
 - `POST /api/chat` — AI terminal endpoint (guarded by origin + rate limit).
+- `GET /api/health` — uptime check (`200` when Mongo is reachable, `503` otherwise).
+- `GET /api/admin/overview` — click stats + guestbook for moderation. Requires `Authorization: Bearer $ADMIN_TOKEN`.
+- `DELETE /api/admin/guestbook?id=<id>` — deletes a guestbook entry. Same auth.
 
 Write endpoints reject requests that:
 - come from a different origin (checked via `Origin` and `Sec-Fetch-Site`)

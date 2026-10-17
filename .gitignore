@@ -47,3 +47,6 @@ certificates
 
 /test-results*
 playwright-report/
+
+# local data backups (scripts/backup-data.mjs)
+/backups

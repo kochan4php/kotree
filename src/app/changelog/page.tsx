@@ -36,7 +36,7 @@ export default function ChangelogPage() {
                 className="gap-3 fluid-glass neo-press"
               >
                 <div className="relative z-10">
-                  <h2 className="text-xl font-black tracking-tight text-accent">{version.title}</h2>
+                  <h2 className="text-xl font-black tracking-tight text-accent-ink">{version.title}</h2>
                   <div className="text-muted-foreground leading-relaxed font-medium">{version.body}</div>
                 </div>
               </Card>

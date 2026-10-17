@@ -41,7 +41,7 @@ export default function HeaderBar() {
               searchOpen ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'
             }`}
           >
-            <Search className="w-5 h-5 text-accent" />
+            <Search className="w-5 h-5 text-accent-ink" />
           </button>
         )}
       </div>

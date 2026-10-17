@@ -3,9 +3,14 @@ import { getGuestbookEntries, addGuestbookEntry } from '@/connections/mongodb';
 import { guardOrigin, validateToken } from '@/lib/security';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const entries = await getGuestbookEntries();
+    const { searchParams } = new URL(request.url);
+    const limitRaw = Number(searchParams.get('limit') ?? 10);
+    const limit = Number.isFinite(limitRaw) ? Math.min(50, Math.max(1, Math.floor(limitRaw))) : 10;
+    const beforeRaw = searchParams.get('before');
+    const before = beforeRaw && !Number.isNaN(Date.parse(beforeRaw)) ? beforeRaw : undefined;
+    const entries = await getGuestbookEntries(limit, before);
     return NextResponse.json(entries);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 });

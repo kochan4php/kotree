@@ -1,10 +1,13 @@
-const CACHE_NAME = 'kotree-offline-cache-v3';
+const CACHE_NAME = 'kotree-offline-cache-v4';
 
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
   '/favicon.ico',
+  '/favicon-32x32.png',
   '/icon.svg',
+  '/apple-touch-icon.png',
+  '/icons/icon-192x192.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -52,7 +55,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Hashed assets (CSS/JS/fonts) are immutable: stale-while-revalidate
+  // Hashed build assets are immutable: cache-first, never revalidate —
+  // repeat visits (and offline) are instant. Everything else: stale-while-revalidate.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(event.request).then(
+        (cached) =>
+          cached ||
+          fetch(event.request).then((networkResponse) => {
+            if (networkResponse.ok) {
+              const copy = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            }
+            return networkResponse;
+          })
+      )
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {

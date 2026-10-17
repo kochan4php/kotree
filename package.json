@@ -1,6 +1,6 @@
 {
   "name": "kotree",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "packageManager": "pnpm@11.18.0",
   "engines": {
@@ -11,7 +11,10 @@
     "prebuild": "node scripts/gen-og.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "backup": "node scripts/backup-data.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -29,6 +32,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@netlify/edge-functions": "^3.0.8",
     "@netlify/plugin-nextjs": "^5.15.13",
     "@playwright/test": "^1.62.1",

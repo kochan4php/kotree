@@ -1,3 +1,5 @@
+import { createHash, timingSafeEqual } from 'crypto';
+
 const allowedOrigins = new Set(
   [
     process.env.NEXT_PUBLIC_BASE_URL,
@@ -31,4 +33,19 @@ export function validateToken(token: string | undefined): boolean {
   const expected2 = btoa(`${timeSlicePrev}:${secret}`).substring(0, 15);
   
   return token === expected1 || token === expected2;
+}
+
+// Constant-time string comparison via SHA-256 digests (equal length by definition)
+function safeEqual(a: string, b: string): boolean {
+  return timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
+}
+
+// Bearer-token guard for admin API routes. Returns null when the request is
+// valid; a Response otherwise (503 = ADMIN_TOKEN not configured, 401 = bad token).
+export function guardAdmin(request: Request): Response | null {
+  const expected = process.env.ADMIN_TOKEN;
+  if (!expected) return new Response('Admin not configured', { status: 503 });
+  const header = request.headers.get('authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  return token && safeEqual(token, expected) ? null : new Response('Unauthorized', { status: 401 });
 }

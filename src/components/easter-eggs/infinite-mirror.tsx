@@ -42,7 +42,7 @@ export default function InfiniteMirror() {
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-black">
+    <div className="fixed inset-0 z-[-1] overflow-hidden bg-black" aria-hidden="true">
       <video 
         ref={videoRef} 
         className="w-full h-full object-cover opacity-50 sepia-[0.3] hue-rotate-180 scale-105 pointer-events-none"

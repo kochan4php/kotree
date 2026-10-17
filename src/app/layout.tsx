@@ -10,10 +10,10 @@ import PwaRegister from '@/components/pwa/pwa-register';
 import { KonamiCode } from '@/components/easter-eggs';
 import { GhostCursor } from '@/components/effects';
 import dynamic from 'next/dynamic';
-
 const Background = dynamic(() => import('@/components/effects'));
 import { ScrollFades } from '@/components/effects';
 import HeaderBar from '@/components/layout/header-bar';
+import KeyboardHelp from '@/components/layout/keyboard-help';
 import SelfDestruct from '@/components/self-destruct';
 import EasterEggLauncher from '@/components/easter-eggs';
 
@@ -79,6 +79,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PwaInstallPrompt />
         <PwaRegister />
         <KonamiCode />
+        <KeyboardHelp />
         <GhostCursor />
         <HeaderBar />
 

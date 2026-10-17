@@ -16,7 +16,7 @@ export default function StatsCard() {
         <Stat value={totalClicks} label="Total Clicks" />
         <Stat value={socialLinks.length} label="Links" />
         <div className="flex flex-col items-center justify-center gap-1">
-          <Heart className="w-5 h-5 text-accent fill-accent/20" />
+          <Heart className="w-5 h-5 text-accent-ink fill-accent/20" />
           <span className="text-muted-foreground text-sm">Kotree</span>
         </div>
       </div>

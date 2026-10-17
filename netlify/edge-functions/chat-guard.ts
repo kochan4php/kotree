@@ -13,7 +13,7 @@ const EDGE_MAX = 20; // per IP per minute
 const WINDOW_MS = 60_000;
 const hits = new Map<string, number[]>();
 
-export default async (request: Request, context: Context) => {
+const handler = async (request: Request, context: Context) => {
   const ip = context.ip ?? 'unknown';
   const now = Date.now();
   const window = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
@@ -27,3 +27,5 @@ export default async (request: Request, context: Context) => {
   hits.set(ip, window);
   return context.next();
 };
+
+export default handler;

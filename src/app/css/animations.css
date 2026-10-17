@@ -47,3 +47,23 @@
     transform: scale(0.95) translateY(20px);
   }
 }
+
+/* Global "reduce motion" gate. The canvas effects already check matchMedia;
+   this covers CSS animations/transitions (ping/pulse, modals, view transitions). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* SPA route changes: app/template.tsx re-mounts on navigation and plays this
+   (guaranteed in every browser; ::view-transition-* in globals.css covers
+   cross-document loads where the View Transitions API exists) */
+.kt-page-enter {
+  animation: kt-fade-in 220ms ease-out both;
+}

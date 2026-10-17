@@ -11,7 +11,7 @@ export default function NotFound() {
   return (
     <StateCard>
       <div className="">
-        <p className="text-[120px] leading-none font-display tracking-tighter text-accent [text-shadow:6px_6px_0_#14110f] mb-4">404</p>
+        <p className="text-[120px] leading-none font-display tracking-tighter text-accent-ink [text-shadow:6px_6px_0_#14110f] mb-4">404</p>
       </div>
       <div>
         <h1 className="text-3xl font-black tracking-tight text-foreground mb-2 uppercase">Sanctuary Lost</h1>

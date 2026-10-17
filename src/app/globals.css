@@ -9,3 +9,24 @@
 @view-transition {
   navigation: auto;
 }
+
+/* SPA route navigations (React/Next integration): soft crossfade */
+::view-transition-old(root) {
+  animation: 150ms ease-in both kt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 220ms ease-out both kt-fade-in;
+}
+
+@keyframes kt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes kt-fade-in {
+  from {
+    opacity: 0;
+  }
+}

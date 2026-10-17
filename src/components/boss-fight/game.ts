@@ -24,9 +24,14 @@ export interface GameState {
   keys: { ArrowLeft: boolean; ArrowRight: boolean; Space: boolean };
   lastShot: number;
   lastBossShot: number;
+  startedAt: number;
 }
 
 export type GameOutcome = 'playing' | 'player-dead' | 'boss-defeated';
+
+// Boss holds fire while the player gets their bearings — dying ~1.5s after
+// spawn (before you can react) was a trap, not a game.
+const SPAWN_GRACE_MS = 2500;
 
 export function createGameState(width: number, height: number): GameState {
   return {
@@ -36,6 +41,7 @@ export function createGameState(width: number, height: number): GameState {
     keys: { ArrowLeft: false, ArrowRight: false, Space: false },
     lastShot: 0,
     lastBossShot: 0,
+    startedAt: Date.now(),
   };
 }
 
@@ -57,8 +63,8 @@ export function updateGame(state: GameState, width: number, height: number): Gam
   boss.x += boss.dx;
   if (boss.x < 0 || boss.x > width - boss.width) boss.dx *= -1;
 
-  // Boss shooting
-  if (now - state.lastBossShot > 500) {
+  // Boss shooting (skipped during the spawn grace)
+  if (now - state.startedAt > SPAWN_GRACE_MS && now - state.lastBossShot > 500) {
     bullets.push({ x: boss.x + boss.width / 2, y: boss.y + boss.height, speed: 7, radius: 8, isEnemy: true });
     state.lastBossShot = now;
   }

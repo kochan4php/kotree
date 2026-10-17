@@ -28,7 +28,7 @@ export default function Footer() {
           className="relative z-10 group/btn flex items-center gap-2 px-6 py-2.5 fluid-glass rounded-full! text-xs font-black uppercase tracking-wider text-foreground hover:bg-secondary! hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--foreground)]! transition-all duration-300 min-h-11"
         >
           <div className="relative z-10 flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-accent" />
+            <Sparkles className="w-3.5 h-3.5 text-accent-ink" />
             <span>Changelog</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
           </div>
