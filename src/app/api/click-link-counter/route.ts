@@ -1,5 +1,6 @@
 import { after } from 'next/server';
-import { getLinkCounts, incrementLinkCount } from '@/connections/mongodb';
+import { createHash } from 'crypto';
+import { getLinkCounts, incrementLinkCount, claimDailyClick } from '@/connections/mongodb';
 import { socialLinks } from '@/data/social-links';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 import { guardOrigin, validateToken } from '@/lib/security';
@@ -47,16 +48,26 @@ export async function POST(request: Request) {
     }
     
     if (isRateLimited(`click-counter:${name}:${ip}`)) {
-      return new Response('Too Many Requests', { status: 429 });
+      return new Response('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 
     const count =
       typeof body.count === 'number' && Number.isFinite(body.count) ? Math.min(MAX_COUNT, Math.max(0, Math.floor(body.count))) : 1;
 
+    // Dedupe key: one visitor = IP + UA hash (the IP never leaves this function)
+    const visitorHash = createHash('sha256')
+      .update(`${ip}:${request.headers.get('user-agent') ?? ''}`)
+      .digest('hex')
+      .slice(0, 32);
+
     // Use Next.js after() to defer the DB write until after the response is sent
     // This makes the API incredibly fast for the user.
     after(async () => {
       try {
+        // R15: one click per visitor per link per day keeps the charts honest
+        const firstToday = await claimDailyClick(name, visitorHash);
+        if (!firstToday) return;
+
         await incrementLinkCount(name, count);
         
         // Dispatch Webhook Notification if env exists

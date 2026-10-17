@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     const ip = getClientIp(request);
     if (isRateLimited(`guestbook:${ip}`)) {
-      return new NextResponse('Too Many Requests', { status: 429 });
+      return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 
     const cleanMessage = body.message.trim().substring(0, 100); // Max 100 chars
@@ -77,7 +77,7 @@ export async function PATCH(request: Request) {
 
     const ip = getClientIp(request);
     if (isRateLimited(`guestbook-react:${ip}`)) {
-      return new NextResponse('Too Many Requests', { status: 429 });
+      return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 
     const ok = await reactToGuestbookEntry(body.id, body.reaction);

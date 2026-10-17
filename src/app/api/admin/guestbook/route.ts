@@ -8,10 +8,10 @@ export const dynamic = 'force-dynamic';
 
 export async function DELETE(request: Request) {
   if (isRateLimited(`admin:${getClientIp(request)}`, 20)) {
-    return new NextResponse('Too Many Requests', { status: 429 });
+    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 
-  const forbidden = guardAdmin(request);
+  const forbidden = guardAdmin(request, { csrf: true });
   if (forbidden) return forbidden;
 
   const id = new URL(request.url).searchParams.get('id') ?? '';

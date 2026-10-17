@@ -37,6 +37,60 @@ export async function getLinkCounts(): Promise<LinkCounter[]> {
 export async function incrementLinkCount(name: string, count: number = 1): Promise<void> {
   const collection = await linkCounterCollection();
   await collection.updateOne({ name }, { $inc: { count } }, { upsert: true });
+  // Daily rollup for the admin trend chart — one small doc per link per day
+  const day = new Date().toISOString().slice(0, 10);
+  const daily = await dailyClicksCollection();
+  await daily.updateOne({ day, name }, { $inc: { count } }, { upsert: true });
+}
+
+interface DailyClick {
+  day: string;
+  name: string;
+  count: number;
+}
+
+const dailyClicksCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<DailyClick>('daily_clicks'));
+
+// Last N days of click totals, zero-filled so quiet days show as gaps
+export async function getDailyClickCounts(days = 14): Promise<{ day: string; count: number }[]> {
+  const since = new Date(Date.now() - (days - 1) * 86_400_000).toISOString().slice(0, 10);
+  const collection = await dailyClicksCollection();
+  const rows = await collection
+    .aggregate<{ _id: string; count: number }>([
+      { $match: { day: { $gte: since } } },
+      { $group: { _id: '$day', count: { $sum: '$count' } } },
+    ])
+    .toArray();
+  const byDay = new Map(rows.map((row) => [row._id, row.count]));
+  const out: { day: string; count: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const day = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    out.push({ day, count: byDay.get(day) ?? 0 });
+  }
+  return out;
+}
+
+// One click per visitor per link per day: the unique _id makes repeats cheap
+// no-ops, so click counts reflect distinct daily visitors. Fails open.
+interface VisitorClaim {
+  _id: string;
+  createdAt: Date;
+}
+
+const visitorClaimsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<VisitorClaim>('click_visitors'));
+
+export async function claimDailyClick(linkName: string, visitorHash: string): Promise<boolean> {
+  const collection = await visitorClaimsCollection();
+  const day = new Date().toISOString().slice(0, 10);
+  try {
+    await collection.insertOne({ _id: `${day}:${linkName}:${visitorHash}`, createdAt: new Date() });
+    return true;
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) return false; // already counted today
+    return true; // DB hiccup — count the click rather than losing it
+  }
 }
 
 export interface GuestbookEntry {
@@ -104,6 +158,40 @@ export async function deleteGuestbookEntry(id: string): Promise<boolean> {
   const collection = await guestbookCollection();
   const { deletedCount } = await collection.deleteOne({ _id: new ObjectId(id) });
   return deletedCount === 1;
+}
+
+// ---------- Client error reports (R41) ----------
+
+export interface ClientError {
+  id: string;
+  message: string;
+  source: string;
+  stack?: string;
+  url?: string;
+  createdAt: Date;
+}
+
+const clientErrorsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<Omit<ClientError, 'id'>>('client_errors'));
+
+export async function addClientError(entry: { message: string; source: string; stack?: string; url?: string }): Promise<void> {
+  const collection = await clientErrorsCollection();
+  await collection.insertOne({ ...entry, createdAt: new Date() });
+  // Keep the collection tiny: error reports older than a week are noise
+  await collection.deleteMany({ createdAt: { $lt: new Date(Date.now() - 7 * 86_400_000) } });
+}
+
+export async function getClientErrors(limit = 20): Promise<ClientError[]> {
+  const collection = await clientErrorsCollection();
+  const docs = await collection.find({}).sort({ createdAt: -1 }).limit(limit).toArray();
+  return docs.map((d) => ({
+    id: d._id.toString(),
+    message: d.message,
+    source: d.source,
+    stack: d.stack,
+    url: d.url,
+    createdAt: d.createdAt,
+  }));
 }
 
 export async function pingDb(): Promise<boolean> {
