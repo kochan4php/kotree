@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { site } from '@/lib/site';
-import { breadcrumbLd } from '@/lib/seo';
+import { breadcrumbLd, pageOg } from '@/lib/seo';
 import { Lock } from 'lucide-react';
 import type { Metadata } from 'next';
 import SecretsList from './secrets-list';
@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   description: 'Every easter egg hidden inside Kotree — spoilers ahead.',
   alternates: { canonical: `${site.baseUrl}/secrets` },
   robots: { index: true, follow: true },
+  ...pageOg('secrets', 'Kotree secrets — nine hidden easter eggs'),
 };
 
 export default function SecretsPage() {

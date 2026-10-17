@@ -42,13 +42,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             __html: `(function(){try{var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=d?'dark':'light';r.dataset.accent=p.accent||'orange';r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';}catch(e){}})();`,
           }}
         />
-        {/* Prerender /changelog on hover (moderate eagerness) where the
+        {/* Prerender the static pages on hover (moderate eagerness) where the
             Speculation Rules API exists; the block is inert everywhere else. */}
         <script
           type="speculationrules"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
-              prerender: [{ where: { href_matches: '/changelog' }, eagerness: 'moderate' }],
+              prerender: ['/changelog', '/about', '/now', '/projects', '/notes', '/guestbook', '/secrets'].map(
+                (href) => ({ where: { href_matches: href }, eagerness: 'moderate' })
+              ),
             }),
           }}
         />

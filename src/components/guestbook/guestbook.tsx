@@ -23,7 +23,7 @@ function celebrateFirstSend() {
   }
 }
 
-export default function Guestbook({ token }: { token?: string }) {
+export default function Guestbook({ token, full = false }: { token?: string; full?: boolean }) {
   const [entries, setEntries] = useState<GuestbookEntry[]>([]);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -211,7 +211,10 @@ export default function Guestbook({ token }: { token?: string }) {
           </div>
         )}
 
-        <div ref={listRef} className="h-40 xl:flex-auto overflow-y-auto space-y-3 mb-4 pr-2">
+        <div
+          ref={listRef}
+          className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-40 xl:flex-auto'}`}
+        >
           <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} newSince={newSince} />
           {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
         </div>

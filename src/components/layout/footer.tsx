@@ -22,7 +22,24 @@ export default function Footer() {
             &copy; 2022-{new Date().getFullYear()} Deo Subarno
           </p>
         </div>
-        
+
+        <nav aria-label="Site" className="relative z-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-bold text-muted-foreground">
+          {(
+            [
+              ['About', '/about'],
+              ['Now', '/now'],
+              ['Projects', '/projects'],
+              ['Notes', '/notes'],
+              ['Guestbook', '/guestbook'],
+              ['Secrets', '/secrets'],
+            ] as const
+          ).map(([label, href]) => (
+            <Link key={href} href={href} className="hover:text-foreground hover:underline underline-offset-2 transition-colors">
+              {label}
+            </Link>
+          ))}
+        </nav>
+
         <Link 
           href="/changelog" 
           className="relative z-10 group/btn flex items-center gap-2 px-6 py-2.5 fluid-glass rounded-full! text-xs font-black uppercase tracking-wider text-foreground hover:bg-secondary! hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--foreground)]! transition-all duration-300 min-h-11"

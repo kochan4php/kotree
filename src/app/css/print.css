@@ -1,0 +1,74 @@
+/* Print: keep the content, drop the chrome. Aimed at the changelog (R31)
+   but the rules are global and harmless on any page. */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Fixed/overlay chrome: dock, scroll fades, cursors, dialogs, skip link */
+  .fixed,
+  [class*='sticky'],
+  [role='dialog'],
+  a[href='#main'],
+  canvas {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Single column, whatever the on-screen layout does */
+  main [class*='grid'] {
+    display: block !important;
+  }
+
+  main [class*='grid'] > * {
+    margin-bottom: 10px;
+  }
+
+  /* Neobrutalist surfaces flatten to ink on paper */
+  .fluid-glass {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  .liquid-gradient {
+    display: none !important;
+  }
+
+  * {
+    text-shadow: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Every lazy-rendered block must print in full */
+  .cv-auto,
+  .cv-auto-lg {
+    content-visibility: visible !important;
+  }
+
+  /* Keep cards whole across page breaks */
+  [data-slot='card'] {
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  /* Show where external links point */
+  main a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75em;
+    font-weight: 400;
+    color: #444;
+  }
+}

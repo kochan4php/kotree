@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { parseChangelog } from '@/lib/changelog';
 import { renderChangelog } from '@/lib/changelog';
 import { site } from '@/lib/site';
-import { breadcrumbLd } from '@/lib/seo';
+import { breadcrumbLd, pageOg } from '@/lib/seo';
 import { History, Rss } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   description: 'All notable changes to Kotree, grouped by version.',
   alternates: { canonical: `${site.baseUrl}/changelog` },
   robots: { index: true, follow: true },
+  ...pageOg('changelog', 'Kotree changelog — every update, newest first'),
 };
 
 const slugify = (title: string) =>

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { execSync } from 'child_process';
+import { getNotes, getProjects } from '@/lib/content';
 import { site } from '@/lib/site';
 
 // Real last-modified dates from git (falls back to build time on shallow clones)
@@ -18,6 +19,24 @@ function lastModified(file?: string): string {
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: site.baseUrl, lastModified: lastModified(), changeFrequency: 'weekly', priority: 1 },
+    { url: `${site.baseUrl}/projects`, lastModified: lastModified(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${site.baseUrl}/notes`, lastModified: lastModified(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${site.baseUrl}/about`, lastModified: lastModified('src/app/about/page.tsx'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${site.baseUrl}/now`, lastModified: lastModified('src/app/now/page.tsx'), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${site.baseUrl}/guestbook`, lastModified: lastModified('src/app/guestbook/page.tsx'), changeFrequency: 'daily', priority: 0.6 },
     { url: `${site.baseUrl}/changelog`, lastModified: lastModified('CHANGELOG.md'), changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${site.baseUrl}/secrets`, lastModified: lastModified('src/lib/secrets.ts'), changeFrequency: 'monthly', priority: 0.5 },
+    ...getProjects().map((project) => ({
+      url: `${site.baseUrl}/projects/${project.slug}`,
+      lastModified: project.date ? new Date(project.date).toISOString() : lastModified(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
+    ...getNotes().map((note) => ({
+      url: `${site.baseUrl}/notes/${note.slug}`,
+      lastModified: note.date ? new Date(note.date).toISOString() : lastModified(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
   ];
 }

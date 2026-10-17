@@ -18,6 +18,7 @@ import {
   Share2,
   Sparkles,
   Terminal,
+  Trophy,
   User,
   Volume2,
   VolumeX,
@@ -172,7 +173,8 @@ export default function CommandPalette() {
     [
       ['Changelog', '/changelog', History, 'Every update, newest first'],
       ['Guestbook', '/guestbook', MessageSquare, 'The full confession wall'],
-      ['Stats', '/stats', BarChart3, 'Clicks, views and secrets'],
+      ['Stats', '/#stats', BarChart3, 'Clicks, links and secrets found'],
+      ['Secrets', '/secrets', Trophy, 'Easter eggs and spoilers'],
       ['Projects', '/projects', FolderGit2, 'Things I have built'],
       ['Notes', '/notes', NotebookPen, 'Short notes, newest first'],
       ['About', '/about', User, 'Who is behind Kotree'],
