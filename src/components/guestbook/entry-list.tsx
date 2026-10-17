@@ -3,18 +3,29 @@
 import { useEffect, useState } from 'react';
 import { decryptMessage } from './obfuscation';
 import { relativeTime } from '@/lib/relative-time';
-import { LockKeyhole, Link2, Share2 } from 'lucide-react';
+import { Flag, LockKeyhole, Link2, Pin, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { reactToEntry } from './api';
+import { reactToEntry, reportEntry } from './api';
 import { clientToken } from '@/lib/csrf-client';
 import type { GuestbookEntry } from './types';
 
 const REACTIONS = ['👍', '❤️', '🔥'] as const;
 const REACTED_KEY = 'kotree-gb-reactions';
+// K30: one report per entry per device
+const REPORTED_KEY = 'kotree-gb-reported';
 
 function readReacted(): Record<string, string> {
   try {
     const raw = JSON.parse(localStorage.getItem(REACTED_KEY) ?? '{}');
+    return raw && typeof raw === 'object' ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+function readReported(): Record<string, boolean> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(REPORTED_KEY) ?? '{}');
     return raw && typeof raw === 'object' ? raw : {};
   } catch {
     return {};
@@ -32,12 +43,14 @@ interface EntryListProps {
 export default function EntryList({ entries, decryptedIndexes, onToggle, newSince }: EntryListProps) {
   const [now, setNow] = useState(() => Date.now());
   const [reacted, setReacted] = useState<Record<string, string>>({});
+  const [reported, setReported] = useState<Record<string, boolean>>({});
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [highlightKey, setHighlightKey] = useState<string | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the browser-only store happens after mount by design (SSR has no localStorage)
     setReacted(readReacted());
+    setReported(readReported());
     // Keep "3 minutes ago" honest without a reload
     const tick = setInterval(() => setNow(Date.now()), 30_000);
     const onVisible = () => {
@@ -96,6 +109,35 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
       toast.success('Secret copied!');
     } catch {
       toast.error('Could not copy the secret');
+    }
+  };
+
+  // K30: report an entry — counted server-side, hidden after enough reports
+  const report = async (entry: GuestbookEntry, anchorKey: string) => {
+    if (!entry.id || reported[anchorKey]) return;
+    const next = { ...reported, [anchorKey]: true };
+    setReported(next);
+    const persist = (value: Record<string, boolean>) => {
+      try {
+        localStorage.setItem(REPORTED_KEY, JSON.stringify(value));
+      } catch {
+        // private mode — the report just won't stick across reloads
+      }
+    };
+    persist(next);
+    try {
+      const result = await reportEntry(entry.id, clientToken());
+      toast.success(
+        result.hidden
+          ? 'Reported — the entry is hidden while a human reviews it.'
+          : 'Reported — thanks for keeping the wall tidy.',
+      );
+    } catch {
+      const rolledBack = { ...next };
+      delete rolledBack[anchorKey];
+      setReported(rolledBack);
+      persist(rolledBack);
+      toast.error('Could not send the report');
     }
   };
 
@@ -186,11 +228,29 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                 >
                   <Share2 className="w-3 h-3" />
                 </button>
+                {entry.id && (
+                  <button
+                    type="button"
+                    onClick={() => report(entry, anchorKey)}
+                    aria-label="Report secret"
+                    title={reported[anchorKey] ? 'Already reported' : 'Report this secret'}
+                    disabled={Boolean(reported[anchorKey])}
+                    className="p-1 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:cursor-default disabled:opacity-40"
+                  >
+                    <Flag className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             </div>
 
             <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground pb-0.5">
               <time dateTime={entry.createdAt}>{relativeTime(entry.createdAt, now)}</time>
+              {entry.pinned && (
+                <span className="inline-flex items-center gap-0.5 text-accent-ink font-bold">
+                  <Pin className="w-3 h-3" aria-hidden="true" />
+                  FEATURED
+                </span>
+              )}
               {newSince?.has(entry.createdAt) && <span className="text-accent-ink font-bold">NEW</span>}
               {entry.pending && (
                 <span role="status" className="text-accent-ink font-bold">

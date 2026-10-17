@@ -1,16 +1,46 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { socialLinks } from '@/data/social-links';
-import { runCommand, INITIAL_HISTORY } from './commands';
+import { COMMAND_NAMES, THEME_VALUES, runCommand, INITIAL_HISTORY } from './commands';
 import { discoverSecret } from '@/lib/secrets';
+
+// K32: tab-completion for command names and the `theme` values
+function complete(value: string): string | null {
+  const raw = value.trimStart();
+  if (raw.startsWith('theme ')) {
+    const partial = raw.slice('theme '.length).toLowerCase();
+    const matches = THEME_VALUES.filter((v) => v.startsWith(partial));
+    if (matches.length === 1 && matches[0] !== partial) return `theme ${matches[0]}`;
+    return null;
+  }
+  if (raw.includes(' ')) return null;
+  const partial = raw.toLowerCase();
+  if (!partial) return null;
+  const matches = COMMAND_NAMES.filter((c) => c.startsWith(partial));
+  if (matches.length === 1 && matches[0] !== partial) return matches[0];
+  if (matches.length > 1) {
+    // Extend to the shared prefix when that reveals something new
+    let prefix: string = matches[0];
+    for (const match of matches) {
+      while (!match.startsWith(prefix)) prefix = prefix.slice(0, -1);
+    }
+    if (prefix.length > partial.length) return prefix;
+  }
+  return null;
+}
 
 // All AI-terminal state, effects and the command/AI submit flow
 export function useTerminal() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
   const [history, setHistory] = useState(INITIAL_HISTORY);
   const [input, setInput] = useState('');
+  // K32: ↑/↓ walk back through what was typed this session
+  const [cmdHistory, setCmdHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
 
@@ -60,8 +90,13 @@ export function useTerminal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cmd = input.trim().toLowerCase();
+    const raw = input.trim();
+    const cmd = raw.toLowerCase();
     if (!cmd) return;
+
+    // K32: keep the raw text for ↑/↓ recall
+    setCmdHistory((prev) => (prev[prev.length - 1] === raw ? prev : [...prev, raw]).slice(-50));
+    setHistoryIndex(-1);
 
     const result = runCommand(cmd, socialLinks);
 
@@ -78,6 +113,14 @@ export function useTerminal() {
       setTimeout(() => {
         setHistory(prev => [...prev, { type: 'bot', text: result.reply as string }]);
       }, 400);
+      // K32: leave a beat so the reply is readable, then close and navigate
+      if (result.navigate) {
+        const target = result.navigate;
+        setTimeout(() => {
+          closeTerminal();
+          router.push(target);
+        }, 1200);
+      }
       return;
     }
 
@@ -106,5 +149,40 @@ export function useTerminal() {
     }
   };
 
-  return { isOpen, isRendered, history, input, bottomRef, setInput, openTerminal, closeTerminal, handleSubmit };
+  // K32: ↑/↓ history, Tab completion — falling through to the dialog's own
+  // Tab trap whenever there is nothing to complete (never a keyboard trap)
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (cmdHistory.length === 0) return;
+      const next = historyIndex === -1 ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1);
+      setHistoryIndex(next);
+      setInput(cmdHistory[next]);
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex === -1) return;
+      const next = historyIndex + 1;
+      if (next >= cmdHistory.length) {
+        setHistoryIndex(-1);
+        setInput('');
+      } else {
+        setHistoryIndex(next);
+        setInput(cmdHistory[next]);
+      }
+      return;
+    }
+    if (e.key === 'Tab') {
+      const completed = complete(input);
+      if (completed && completed !== input) {
+        e.preventDefault();
+        e.stopPropagation(); // keep the dialog's Tab trap out of it while completing
+        setInput(completed);
+      }
+      // otherwise: let Tab move focus as usual
+    }
+  };
+
+  return { isOpen, isRendered, history, input, bottomRef, setInput, openTerminal, closeTerminal, handleSubmit, handleInputKeyDown };
 }

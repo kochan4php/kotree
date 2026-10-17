@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { BarChart3, Bug, Check, Download, Eye, FileDown, Gauge, LogOut, RefreshCw, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
+import { BarChart3, Bug, Check, Download, Eye, FileDown, Gauge, LogOut, Pin, PinOff, RefreshCw, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
 
 interface Overview {
   totalClicks: number;
   links: { name: string; count: number }[];
-  guestbook: { id: string; message: string; createdAt: string; userAgent?: string }[];
+  guestbook: { id: string; message: string; createdAt: string; userAgent?: string; pinned?: boolean; reports?: number; hidden?: boolean }[];
   daily: { day: string; count: number }[];
   errors: { id: string; message: string; source: string; url?: string; count: number; createdAt: string; lastSeenAt?: string }[];
   vitals: { page: string; metric: string; p75: number; rating: 'good' | 'ni' | 'poor'; good: number; total: number }[];
@@ -184,6 +184,24 @@ export default function AdminDashboard() {
       toast.success('Entry deleted');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Delete failed');
+    }
+  };
+
+  // K30: feature an entry on the wall (or take it down again)
+  const togglePin = async (id: string, pinned: boolean) => {
+    try {
+      const res = await fetch('/api/admin/guestbook', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ id, pinned }),
+      });
+      if (!res.ok) throw new Error(`Pin failed (${res.status})`);
+      setOverview((prev) =>
+        prev ? { ...prev, guestbook: prev.guestbook.map((entry) => (entry.id === id ? { ...entry, pinned } : entry)) } : prev,
+      );
+      toast.success(pinned ? 'Entry pinned to the top' : 'Entry unpinned');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Pin failed');
     }
   };
 
@@ -490,7 +508,35 @@ export default function AdminDashboard() {
                             {new Date(entry.createdAt).toLocaleString()}
                             {entry.userAgent ? ` · ${entry.userAgent.slice(0, 60)}` : ''}
                           </p>
+                          {(entry.pinned || entry.hidden || (entry.reports ?? 0) > 0) && (
+                            <p className="flex flex-wrap items-center gap-1.5">
+                              {entry.pinned && (
+                                <span className="inline-block rounded border-2 border-foreground bg-yellow-200 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
+                                  pinned
+                                </span>
+                              )}
+                              {entry.hidden && (
+                                <span className="inline-block rounded border-2 border-foreground bg-red-300 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
+                                  hidden
+                                </span>
+                              )}
+                              {(entry.reports ?? 0) > 0 && (
+                                <span className="font-mono text-[10px] font-bold text-destructive">
+                                  {entry.reports} report{entry.reports === 1 ? '' : 's'}
+                                </span>
+                              )}
+                            </p>
+                          )}
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => togglePin(entry.id, !entry.pinned)}
+                          aria-label={entry.pinned ? 'Unpin entry' : 'Pin entry'}
+                          title={entry.pinned ? 'Unpin entry' : 'Pin entry'}
+                          className={iconButton}
+                        >
+                          {entry.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                        </button>
                         <button
                           type="button"
                           onClick={() => removeEntry(entry.id)}

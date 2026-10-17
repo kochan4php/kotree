@@ -86,7 +86,7 @@ writeImage(
 // One card per static page; pages advertise them via lib/seo pageOg()
 const pages = [
   ['changelog', 'Changelog', 'Every update, newest first'],
-  ['secrets', 'Secrets', 'Nine easter eggs are hidden in Kotree'],
+  ['secrets', 'Secrets', 'Eleven easter eggs are hidden in Kotree'],
   ['about', 'About', 'Who is behind Kotree'],
   ['now', 'Now', 'What I am up to right now'],
   ['projects', 'Projects', 'Things I have built'],

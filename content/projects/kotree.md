@@ -17,7 +17,7 @@ This site is a project in its own right. It started as a plain list of links and
 ## What is inside
 
 - A guestbook with optimistic updates, offline queueing and background sync
-- Nine discoverable secrets, tracked locally and listed on [/secrets](/secrets)
+- Eleven discoverable secrets, tracked locally and listed on [/secrets](/secrets)
 - Command palette, QR sharing, print-friendly changelog and per-page share cards
 - A service worker that serves an offline fallback instead of the browser dinosaur
 

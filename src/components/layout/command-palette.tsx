@@ -38,8 +38,16 @@ interface PaletteItem {
   description?: string;
   hint?: string;
   icon: ComponentType<{ className?: string }>;
-  group: 'Recent' | 'Links' | 'Go to' | 'Content' | 'Actions';
+  group: 'Recent' | 'Links' | 'Go to' | 'Notes' | 'Projects' | 'Actions';
   run: () => void;
+}
+
+// K31: search results are grouped, in this order
+const GROUP_ORDER = ['Recent', 'Go to', 'Notes', 'Projects', 'Actions', 'Links'] as const;
+
+function groupRank(group: PaletteItem['group']): number {
+  const index = GROUP_ORDER.indexOf(group);
+  return index === -1 ? GROUP_ORDER.length : index;
 }
 
 // K17: the build writes a small index of note/project titles, summaries and
@@ -335,7 +343,7 @@ export default function CommandPalette() {
     description: entry.summary,
     hint: entry.type === 'note' ? 'note' : 'project',
     icon: entry.type === 'note' ? NotebookPen : FolderGit2,
-    group: 'Content' as const,
+    group: entry.type === 'note' ? ('Notes' as const) : ('Projects' as const),
     run: () => router.push(entry.url),
   }));
 
@@ -354,10 +362,18 @@ export default function CommandPalette() {
         const descMatch = item.description ? fuzzy(trimmed, item.description) : null;
         if (!labelMatch && !descMatch) return null;
         if (labelMatch) scored.set(item.id, labelMatch.indices);
-        return { item, score: labelMatch ? labelMatch.score + 10 : descMatch!.score };
+        return { item, score: labelMatch ? labelMatch.score + 10 : descMatch!.score, labelMatch: Boolean(labelMatch) };
       })
-      .filter((m): m is { item: PaletteItem; score: number } => m !== null)
-      .sort((a, b) => b.score - a.score)
+      .filter((m): m is { item: PaletteItem; score: number; labelMatch: boolean } => m !== null)
+      // K31: grouped results — name matches always outrank summary matches
+      // (a summary that happens to spell the query must not bury the command),
+      // then groups order them: pages, notes, projects, actions, links.
+      .sort(
+        (a, b) =>
+          Number(b.labelMatch) - Number(a.labelMatch) ||
+          groupRank(a.item.group) - groupRank(b.item.group) ||
+          b.score - a.score,
+      )
       .slice(0, 9);
     shown = matches.map((m) => m.item);
   } else {
@@ -370,11 +386,9 @@ export default function CommandPalette() {
 
   const clampedIndex = Math.min(activeIndex, Math.max(0, shown.length - 1));
 
-  // Group headers only in the un-scored (empty query) view
+  // K31: groups are labelled in both views — results and the idle list
   const groupHeaderAt = (index: number): string | null =>
-    !trimmed && (index === 0 || shown[index - 1].group !== shown[index].group)
-      ? shown[index].group
-      : null;
+    index === 0 || shown[index - 1].group !== shown[index].group ? shown[index].group : null;
 
   const execute = (item: PaletteItem) => {
     pushRecent(item.id);
@@ -460,7 +474,7 @@ export default function CommandPalette() {
           return (
             <li key={item.id}>
               {header && (
-                <div className="px-4 pt-3 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <div data-group={header} className="px-4 pt-3 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   {header}
                 </div>
               )}

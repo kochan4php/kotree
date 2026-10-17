@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient, ObjectId, type WithId } from 'mongodb';
 import { createHash } from 'crypto';
 import { LinkCounter } from '@/interfaces';
 import { rateVital, type VitalRating } from '@/lib/vitals';
@@ -134,6 +134,9 @@ export interface GuestbookEntry {
   ip?: string;
   userAgent?: string;
   reactions?: Record<string, number>;
+  pinned?: boolean; // K30: admin-featured, floats to the top of the wall
+  reports?: number; // K30: visitor reports pending review
+  hidden?: boolean; // K30: auto-hidden once enough reports pile up
 }
 
 // Public shape: id is exposed so entries can be permalinked and reacted to.
@@ -142,17 +145,86 @@ export interface PublicGuestbookEntry {
   message: string;
   createdAt: Date;
   reactions?: Record<string, number>;
+  pinned?: boolean;
 }
 
 const guestbookCollection = () =>
   getClientPromise().then((client) => client.db('kotreedb').collection<GuestbookEntry>('guestbook'));
 
-export async function getGuestbookEntries(limit = 50, before?: string): Promise<PublicGuestbookEntry[]> {
+const toPublicEntry = (d: WithId<GuestbookEntry>): PublicGuestbookEntry => ({
+  id: d._id.toString(),
+  message: d.message,
+  createdAt: d.createdAt,
+  reactions: d.reactions,
+  pinned: d.pinned,
+});
+
+// K30 sort modes: 'newest' (pinned float to the top of page 1 only) and
+// 'top' (most ❤️ first). Hidden entries never leave the moderation queue.
+export type GuestbookSort = 'newest' | 'top';
+
+export async function getGuestbookEntries(
+  limit = 50,
+  before?: string,
+  sort: GuestbookSort = 'newest',
+): Promise<PublicGuestbookEntry[]> {
   const collection = await guestbookCollection();
   // ip/userAgent are moderation data, never exposed to clients (privacy)
-  const filter = before ? { createdAt: { $lt: new Date(before) } } : {};
-  const docs = await collection.find(filter, { projection: { ip: 0, userAgent: 0 } }).sort({ createdAt: -1 }).limit(limit).toArray();
-  return docs.map((d) => ({ id: d._id.toString(), message: d.message, createdAt: d.createdAt, reactions: d.reactions }));
+  const projection = { ip: 0, userAgent: 0 };
+
+  if (sort === 'top') {
+    const docs = await collection
+      .find({ hidden: { $ne: true } }, { projection })
+      .sort({ 'reactions.❤️': -1, createdAt: -1 })
+      .limit(limit)
+      .toArray();
+    return docs.map(toPublicEntry);
+  }
+
+  if (before) {
+    // Pinned entries only ride along on page 1, so later pages skip them
+    const docs = await collection
+      .find({ hidden: { $ne: true }, pinned: { $ne: true }, createdAt: { $lt: new Date(before) } }, { projection })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .toArray();
+    return docs.map(toPublicEntry);
+  }
+
+  const docs = await collection
+    .find({ hidden: { $ne: true } }, { projection })
+    .sort({ pinned: -1, createdAt: -1 })
+    .limit(limit)
+    .toArray();
+  return docs.map(toPublicEntry);
+}
+
+// K30: three reports (one per device — the button dedupes locally) hide the
+// entry until an admin reviews it. A pinned entry is admin-curated, so
+// reports never hide it.
+const REPORTS_TO_HIDE = 3;
+
+export async function reportGuestbookEntry(id: string): Promise<'ok' | 'hidden' | 'missing'> {
+  if (!ObjectId.isValid(id)) return 'missing';
+  const collection = await guestbookCollection();
+  const updated = await collection.findOneAndUpdate(
+    { _id: new ObjectId(id) },
+    { $inc: { reports: 1 } },
+    { returnDocument: 'after' },
+  );
+  if (!updated) return 'missing';
+  if ((updated.reports ?? 0) >= REPORTS_TO_HIDE && !updated.pinned) {
+    await collection.updateOne({ _id: updated._id }, { $set: { hidden: true } });
+    return 'hidden';
+  }
+  return 'ok';
+}
+
+export async function setGuestbookPinned(id: string, pinned: boolean): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await guestbookCollection();
+  const { matchedCount } = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { pinned } });
+  return matchedCount === 1;
 }
 
 // Caller must validate `reaction` against a whitelist before calling —
@@ -179,6 +251,9 @@ export interface GuestbookAdminEntry {
   message: string;
   createdAt: Date;
   userAgent?: string;
+  pinned?: boolean;
+  reports?: number;
+  hidden?: boolean;
 }
 
 // Admin-only view: includes the internal id (for moderation deletes) and
@@ -186,7 +261,15 @@ export interface GuestbookAdminEntry {
 export async function getGuestbookAdminEntries(limit = 100): Promise<GuestbookAdminEntry[]> {
   const collection = await guestbookCollection();
   const docs = await collection.find({}, { projection: { ip: 0 } }).sort({ createdAt: -1 }).limit(limit).toArray();
-  return docs.map((d) => ({ id: d._id.toString(), message: d.message, createdAt: d.createdAt, userAgent: d.userAgent }));
+  return docs.map((d) => ({
+    id: d._id.toString(),
+    message: d.message,
+    createdAt: d.createdAt,
+    userAgent: d.userAgent,
+    pinned: d.pinned,
+    reports: d.reports,
+    hidden: d.hidden,
+  }));
 }
 
 export async function deleteGuestbookEntry(id: string): Promise<boolean> {

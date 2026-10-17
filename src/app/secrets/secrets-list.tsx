@@ -2,14 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { Lock, Trophy, Unlock } from 'lucide-react';
-import { SECRETS, discoveredSecrets } from '@/lib/secrets';
+import { SECRETS, VETERAN_KEY, discoveredSecrets } from '@/lib/secrets';
 
 export default function SecretsList() {
   const [found, setFound] = useState<string[]>([]);
+  const [veteran, setVeteran] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only store, applied after mount by design
     setFound(discoveredSecrets());
+    try {
+      setVeteran(Boolean(localStorage.getItem(VETERAN_KEY)));
+    } catch {
+      // private mode — no badge to show
+    }
     const onSecrets = () => setFound(discoveredSecrets());
     window.addEventListener('kotree:secrets', onSecrets);
     return () => window.removeEventListener('kotree:secrets', onSecrets);
@@ -31,6 +37,11 @@ export default function SecretsList() {
         <span role="status" className="sr-only">
           {found.length} of {SECRETS.length} secrets found
         </span>
+        {veteran && (
+          <span className="inline-flex items-center gap-1.5 rounded-lg border-[3px] border-foreground bg-yellow-200 px-2.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-[#14110f] shadow-[3px_3px_0_0_var(--foreground)]">
+            🎖️ Konami veteran
+          </span>
+        )}
       </div>
 
       <ul className="space-y-2">

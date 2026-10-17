@@ -329,3 +329,103 @@ test('Minesweeper opens in the Win95 shell and plays from the keyboard', async (
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('gridcell', { name: /, row 1 column 2$/ })).toBeFocused();
 });
+
+test('guestbook sorts by newest and top hearts', async ({ page }) => {
+  await page.goto('/guestbook');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('group', { name: 'Sort secrets' })).toBeVisible();
+  const topTab = page.getByRole('button', { name: 'Top hearts' });
+  await topTab.click();
+  await expect(topTab).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('most ❤️ first')).toBeVisible();
+
+  const newestTab = page.getByRole('button', { name: 'Newest' });
+  await newestTab.click();
+  await expect(newestTab).toHaveAttribute('aria-pressed', 'true');
+
+  // The report endpoint is live and rejects ids it cannot know
+  const status = await page.evaluate(async () => {
+    const token = btoa(`${Math.floor(Date.now() / 3600000)}:kotree`).substring(0, 15);
+    const res = await fetch('/api/guestbook/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'not-an-id', _token: token }),
+    });
+    return res.status;
+  });
+  expect(status).toBe(404);
+});
+
+test('palette groups its results', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await page.getByRole('textbox', { name: 'Search links' }).fill('sec');
+  // A group header can appear once per match tier (name matches, then summary
+  // matches), so target the first occurrence of each.
+  await expect(page.locator('#kt-palette-list [data-group="Go to"]').first()).toBeVisible();
+  await expect(page.locator('#kt-palette-list [data-group="Notes"]').first()).toBeVisible();
+});
+
+test('terminal completes commands, keeps history and navigates', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  await page.getByRole('button', { name: 'Open AI Terminal' }).click();
+  const input = page.getByRole('textbox', { name: 'Terminal command' });
+
+  // ↑ recalls what was typed this session
+  await input.fill('whoami');
+  await input.press('Enter');
+  await expect(page.getByText('I am Deo Subarno (Kochan).')).toBeVisible();
+  await input.press('ArrowUp');
+  await expect(input).toHaveValue('whoami');
+
+  // Tab completes 'wra' → 'wrapped', and the command opens the page
+  await input.fill('wra');
+  await input.press('Tab');
+  await expect(input).toHaveValue('wrapped');
+  await input.press('Enter');
+  await expect(page.getByText('Opening Kotree Wrapped...')).toBeVisible();
+  await page.waitForURL('**/wrapped', { timeout: 10000 });
+});
+
+test('holding the logo and typing the site name find two secrets', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+
+  const logo = page.getByText('<k/>', { exact: true });
+  await logo.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(1500);
+  await page.mouse.up();
+  await expect(page.getByText('Gentle Touch')).toBeVisible();
+
+  // Type the site's name outside any input
+  await page.keyboard.type('kotree', { delay: 40 });
+  await expect(page.getByText('True Name')).toBeVisible();
+});
+
+test('seasonal greetings follow the calendar', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-03-20T12:00:00'));
+  await page.goto('/');
+  await waitHydrated(page);
+  await expect(page.getByText('🌙 Eid Mubarak')).toBeVisible();
+});
+
+test('the first konami earns the veteran badge', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  for (const k of ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']) {
+    await page.keyboard.press(k);
+  }
+  await expect(page.getByText('Veteran badge earned')).toBeVisible();
+
+  // The boss fight still arrives, a confetti beat later
+  const exit = page.getByRole('button', { name: 'EXIT BOSS FIGHT' });
+  await expect(exit).toBeVisible({ timeout: 10000 });
+  await exit.click();
+
+  await page.goto('/secrets');
+  await expect(page.getByText('Konami veteran')).toBeVisible();
+});

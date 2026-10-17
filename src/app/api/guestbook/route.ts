@@ -10,7 +10,8 @@ export async function GET(request: Request) {
     const limit = Number.isFinite(limitRaw) ? Math.min(50, Math.max(1, Math.floor(limitRaw))) : 10;
     const beforeRaw = searchParams.get('before');
     const before = beforeRaw && !Number.isNaN(Date.parse(beforeRaw)) ? beforeRaw : undefined;
-    const entries = await getGuestbookEntries(limit, before);
+    const sort = searchParams.get('sort') === 'top' ? ('top' as const) : ('newest' as const);
+    const entries = await getGuestbookEntries(limit, before, sort);
     return NextResponse.json(entries);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 });

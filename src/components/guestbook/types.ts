@@ -4,6 +4,8 @@ export interface GuestbookEntry {
   message: string;
   createdAt: string;
   reactions?: Record<string, number>;
+  /** K30: featured by the admin — floats to the top of the wall. */
+  pinned?: boolean;
   /** Stored offline and waiting to be delivered. */
   pending?: boolean;
 }

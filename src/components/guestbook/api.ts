@@ -9,16 +9,28 @@ export class GuestbookHttpError extends Error {
   }
 }
 
-export async function fetchEntries(limit = 10, before?: string): Promise<GuestbookEntry[]> {
+export async function fetchEntries(limit = 10, before?: string, sort: 'newest' | 'top' = 'newest'): Promise<GuestbookEntry[]> {
   try {
     const params = new URLSearchParams({ limit: String(limit) });
     if (before) params.set('before', before);
+    if (sort === 'top') params.set('sort', 'top');
     const res = await fetch(`/api/guestbook?${params}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }
+}
+
+// K30: reports are counted server-side and never shown publicly
+export async function reportEntry(id: string, token?: string): Promise<{ reported: boolean; hidden: boolean }> {
+  const res = await fetch('/api/guestbook/report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, _token: token }),
+  });
+  if (!res.ok) throw new Error(`guestbook report failed: ${res.status}`);
+  return res.json();
 }
 
 // 'queued' means the network was unreachable and the message was stored

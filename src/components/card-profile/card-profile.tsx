@@ -3,6 +3,7 @@
 import ProfileActions from './profile-actions';
 import { Card } from '@/components/ui/card';
 import { profile } from '@/data/profile';
+import { seasonFor } from '@/lib/season';
 import { useEffect, useRef, useState } from 'react';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
@@ -25,8 +26,8 @@ export default function CardProfile() {
     const h = now.getHours();
     const text =
       h < 5 ? 'Burning the midnight oil' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    const md = (now.getMonth() + 1) * 100 + now.getDate();
-    const season = md >= 1025 && md <= 1031 ? '🎃 Spooky season' : md >= 1201 && md <= 1226 ? '🎄 Festive season' : '';
+    // K34: windows live in lib/season.ts (New Year, Halloween, Christmas, Ramadan/Eid)
+    const season = seasonFor(now);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- date-driven text, applied after mount by design
     setGreet({ text, season });
   }, []);

@@ -9,7 +9,7 @@ import { useTerminal } from './use-terminal';
 const TerminalWindow = dynamic(() => import('./window'));
 
 export default function AITerminal() {
-  const { isOpen, isRendered, history, input, bottomRef, setInput, openTerminal, closeTerminal, handleSubmit } =
+  const { isOpen, isRendered, history, input, bottomRef, setInput, openTerminal, closeTerminal, handleSubmit, handleInputKeyDown } =
     useTerminal();
 
   return (
@@ -33,6 +33,7 @@ export default function AITerminal() {
           input={input}
           bottomRef={bottomRef}
           onInput={setInput}
+          onInputKeyDown={handleInputKeyDown}
           onSubmit={handleSubmit}
           onClose={closeTerminal}
         />

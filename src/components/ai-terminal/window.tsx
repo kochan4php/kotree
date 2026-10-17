@@ -9,6 +9,7 @@ interface TerminalWindowProps {
   input: string;
   bottomRef: React.RefObject<HTMLDivElement | null>;
   onInput: (value: string) => void;
+  onInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
 }
@@ -19,6 +20,7 @@ export default function TerminalWindow({
   input,
   bottomRef,
   onInput,
+  onInputKeyDown,
   onSubmit,
   onClose,
 }: TerminalWindowProps) {
@@ -71,6 +73,7 @@ export default function TerminalWindow({
             type="text"
             value={input}
             onChange={(e) => onInput(e.target.value)}
+            onKeyDown={onInputKeyDown}
             className="flex-1 bg-transparent border-none outline-none text-[#14110f] focus:ring-0 p-0 placeholder:text-[#14110f]/60 font-bold cursor-text"
             placeholder="Execute command..."
             aria-label="Terminal command"

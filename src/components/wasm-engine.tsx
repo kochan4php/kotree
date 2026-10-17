@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { discoverSecret } from '@/lib/secrets';
 
 // Minimal WebAssembly module bytecode (exports 'add' function: a + b)
 // Compiled by hand for maximum over-engineering
@@ -13,6 +14,21 @@ const WASM_BYTECODE = new Uint8Array([
 ]);
 
 export default function WasmEngine() {
+  // K33: press and hold the logo (or press Enter on it) to find a secret
+  const holdTimer = useRef<number | null>(null);
+  const startHold = () => {
+    if (holdTimer.current !== null) return;
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = null;
+      discoverSecret('logo');
+    }, 1200);
+  };
+  const cancelHold = () => {
+    if (holdTimer.current !== null) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+  };
 
   useEffect(() => {
     let addFunc: ((a: number, b: number) => number) | null = null;
@@ -36,8 +52,17 @@ export default function WasmEngine() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 pointer-events-none">
-      <div className="flex items-center justify-center w-12 h-12 fluid-glass rounded-full! hover:bg-secondary! transition-colors">
+    <div className="flex items-center gap-2 pointer-events-auto">
+      {/* K33: decorative logo — press and hold to find a secret. Deliberately
+          not a button: a role="button" whose name differs from the visible
+          "<k/>" mark trips axe's label-content-name-mismatch. */}
+      <div
+        onPointerDown={startHold}
+        onPointerUp={cancelHold}
+        onPointerLeave={cancelHold}
+        onPointerCancel={cancelHold}
+        className="flex items-center justify-center w-12 h-12 fluid-glass rounded-full! hover:bg-secondary! transition-colors cursor-pointer select-none"
+      >
         <span className="text-sm font-mono text-accent-ink font-bold tracking-tighter relative z-10">{'<k/>'}</span>
       </div>
     </div>

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Every easter egg hidden inside Kotree — spoilers ahead.',
   alternates: { canonical: `${site.baseUrl}/secrets` },
   robots: { index: true, follow: true },
-  ...pageOg('secrets', 'Kotree secrets — nine hidden easter eggs'),
+  ...pageOg('secrets', 'Kotree secrets — eleven hidden easter eggs'),
 };
 
 export default function SecretsPage() {
@@ -29,7 +29,7 @@ export default function SecretsPage() {
               Secrets
             </h1>
             <p className="mt-2 text-muted-foreground leading-relaxed font-medium">
-              Nine easter eggs are hidden in Kotree. This page spoils how to find each one — your discoveries are
+              Eleven easter eggs are hidden in Kotree. This page spoils how to find each one — your discoveries are
               stored in this browser only.
             </p>
           </div>

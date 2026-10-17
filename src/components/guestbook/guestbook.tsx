@@ -35,6 +35,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   const [decryptedIndexes, setDecryptedIndexes] = useState<Set<number>>(new Set());
   const [pendingCount, setPendingCount] = useState(0);
   const [newSince, setNewSince] = useState<Set<string>>(new Set());
+  const [sort, setSort] = useState<'newest' | 'top'>('newest');
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [cooldown, setCooldown] = useState(0);
   const [nearEnd, setNearEnd] = useState(false);
@@ -123,6 +124,17 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     setHasMore(next.length === PAGE_SIZE);
     setIsLoadingMore(false);
   }, [entries, isLoadingMore]);
+
+  // K30: swap between chronological and most-hearted. Only 'newest' pages —
+  // the top list is a single leaderboard page.
+  const changeSort = async (next: 'newest' | 'top') => {
+    if (next === sort) return;
+    setSort(next);
+    setNewSince(new Set());
+    const fresh = await fetchEntries(PAGE_SIZE, undefined, next);
+    setEntries(fresh);
+    setHasMore(next === 'newest' && fresh.length === PAGE_SIZE);
+  };
 
   // Infinite scroll: the sentinel only counts once the visitor has actually
   // scrolled it — otherwise a tall viewport would load pages on its own.
@@ -232,6 +244,24 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           <div className="bg-destructive text-[#14110f] text-[10px] px-2 py-1 rounded border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)] font-mono font-bold whitespace-nowrap">
             OBFUSCATED
           </div>
+        </div>
+
+        {/* K30: sort tabs — newest first, or the most-hearted on top */}
+        <div role="group" aria-label="Sort secrets" className="mb-3 flex items-center gap-1.5">
+          {([['newest', 'Newest'], ['top', 'Top hearts']] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => changeSort(value)}
+              aria-pressed={sort === value}
+              className={`rounded-lg border-2 border-foreground px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_0_var(--foreground)] transition-all cursor-pointer active:translate-y-0.5 active:shadow-none ${
+                sort === value ? 'bg-accent text-accent-foreground' : 'bg-card text-foreground hover:bg-secondary'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+          {sort === 'top' && <span className="ml-1 text-[10px] font-mono text-muted-foreground">most ❤️ first</span>}
         </div>
 
         {(newSince.size > 0 || pendingCount > 0) && (

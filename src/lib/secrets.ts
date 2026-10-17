@@ -17,7 +17,12 @@ export const SECRETS: Secret[] = [
   { id: 'voice', name: 'Telepathy', hint: 'Open the voice command from the dock' },
   { id: 'bluetooth', name: 'Short-Range Sorcery', hint: 'Scan for nearby devices with the Bluetooth button' },
   { id: 'monas', name: 'The Sanctuary', hint: 'Stand within 100 m of the hidden target in Jakarta' },
+  { id: 'logo', name: 'Gentle Touch', hint: 'Press and hold the little <k/> logo for a moment' },
+  { id: 'spell', name: 'True Name', hint: 'Type the name of this site — once, anywhere, outside any input' },
 ];
+
+// K35: earned (once per visitor) on the first Konami code; shown on /secrets.
+export const VETERAN_KEY = 'kotree-konami-veteran';
 
 const KEY = 'kotree-secrets';
 
