@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev --experimental-https",
-    "prebuild": "node scripts/gen-og.mjs",
+    "prebuild": "node scripts/gen-og.mjs && node scripts/gen-search-index.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

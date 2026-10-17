@@ -69,6 +69,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Feeds are advertised here so every page carries them, including the
+            ones whose own metadata replaces the root alternates (K21). */}
+        <link rel="alternate" type="application/rss+xml" title="Kotree RSS" href="/rss.xml" />
+        <link rel="alternate" type="application/feed+json" title="Kotree JSON Feed" href="/feed.json" />
         <Script
           id="silence-threejs"
           strategy="beforeInteractive"

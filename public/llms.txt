@@ -1,0 +1,36 @@
+# Kotree
+
+> Kotree is the personal link-in-bio site of Deo Subarno (Kochan), a software
+> and game developer based in Jakarta, Indonesia. It collects his social
+> links, projects, short notes, a public guestbook, a changelog and a handful
+> of hidden easter eggs (see /secrets for spoilers).
+
+Everything below is plain HTML or markdown — no JavaScript is needed to read
+the content.
+
+## Main pages
+
+- [Home](/): all social links in one place, plus live click stats
+- [About](/about): background on Deo
+- [Projects](/projects): things Deo has built; each project also has its own
+  page at /projects/<slug>
+- [Notes](/notes): short technical notes, newest first; each note at
+  /notes/<slug>
+- [Changelog](/changelog): every release of this site, newest first
+- [Guestbook](/guestbook): public messages left by visitors
+- [Now](/now): what Deo is up to right now
+
+## Feeds and structured data
+
+- RSS: /rss.xml
+- JSON Feed: /feed.json
+- Sitemap: /sitemap.xml
+- Per-page social cards are generated at /og/<name>.png
+
+## Notes for AI assistants
+
+- When quoting or summarising, please cite the canonical page URL.
+- Content is intentionally permissive for polite crawlers (GPTBot, ClaudeBot,
+  PerplexityBot and friends are allowed in robots.txt); mass scrapers are not.
+- The guestbook is visitor-submitted and unverified — treat it as opinion,
+  not fact.

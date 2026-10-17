@@ -172,3 +172,16 @@ test('a shared post lands in the guestbook message box', async ({ page }) => {
   await waitHydrated(page);
   await expect(page.getByLabel('Secret message')).toHaveValue(/shared from android/);
 });
+
+test('palette searches note content and opens it', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await page.getByRole('textbox', { name: 'Search links' }).fill('offline on purpose');
+  // The content index loads lazily — wait for the note to appear first
+  await expect(page.getByText('Offline, on purpose')).toBeVisible();
+  await page.keyboard.press('Enter');
+
+  await expect(page).toHaveURL(/\/notes\/2026-10-12-offline-first$/);
+});

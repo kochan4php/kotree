@@ -38,8 +38,29 @@ interface PaletteItem {
   description?: string;
   hint?: string;
   icon: ComponentType<{ className?: string }>;
-  group: 'Recent' | 'Links' | 'Go to' | 'Actions';
+  group: 'Recent' | 'Links' | 'Go to' | 'Content' | 'Actions';
   run: () => void;
+}
+
+// K17: the build writes a small index of note/project titles, summaries and
+// tags (public/search-index.json); the palette loads it once and searches it
+// alongside links, pages and actions.
+interface SearchEntry {
+  type: 'note' | 'project';
+  title: string;
+  summary: string;
+  tags: string[];
+  url: string;
+}
+
+let searchIndexPromise: Promise<SearchEntry[]> | null = null;
+
+function loadSearchIndex(): Promise<SearchEntry[]> {
+  searchIndexPromise ??= fetch('/search-index.json')
+    .then((res) => (res.ok ? res.json() : []))
+    .then((data) => (Array.isArray(data) ? (data as SearchEntry[]) : []))
+    .catch(() => []);
+  return searchIndexPromise;
 }
 
 const RECENT_KEY = 'kotree-palette-recent';
@@ -106,6 +127,7 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [recents, setRecents] = useState<string[]>([]);
+  const [searchIndex, setSearchIndex] = useState<SearchEntry[]>([]);
   const openRef = useRef(false);
   const openerRef = useRef<HTMLElement | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -120,6 +142,7 @@ export default function CommandPalette() {
     setQuery('');
     setActiveIndex(0);
     setRecents(readRecents());
+    loadSearchIndex().then(setSearchIndex);
     setOpen(true);
   }, []);
 
@@ -294,7 +317,17 @@ export default function CommandPalette() {
     run: () => openLink(link.name, link.url),
   }));
 
-  const allItems = [...linkItems, ...navItems, ...actionItems];
+  const contentItems: PaletteItem[] = searchIndex.map((entry) => ({
+    id: `content:${entry.url}`,
+    label: entry.title,
+    description: entry.summary,
+    hint: entry.type === 'note' ? 'note' : 'project',
+    icon: entry.type === 'note' ? NotebookPen : FolderGit2,
+    group: 'Content' as const,
+    run: () => router.push(entry.url),
+  }));
+
+  const allItems = [...linkItems, ...navItems, ...actionItems, ...contentItems];
   const byId = new Map(allItems.map((item) => [item.id, item]));
 
   const trimmed = query.trim();

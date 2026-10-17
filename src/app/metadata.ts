@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(site.baseUrl),
   alternates: {
     canonical: site.baseUrl,
-    types: { 'application/rss+xml': `${site.baseUrl}/rss.xml` },
   },
   openGraph: {
     type: 'profile',

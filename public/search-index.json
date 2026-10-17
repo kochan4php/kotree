@@ -1,0 +1,38 @@
+[
+  {
+    "type": "project",
+    "title": "Kotree",
+    "summary": "The link-in-bio you are standing on — neobrutalist UI, an obfuscated guestbook, hidden easter eggs and an offline-first shell.",
+    "tags": [
+      "next.js",
+      "typescript",
+      "pwa"
+    ],
+    "url": "/projects/kotree"
+  },
+  {
+    "type": "project",
+    "title": "Portfolio",
+    "summary": "My work showcase — selected projects, case studies and a downloadable resume, built as a static site with a Deno backend.",
+    "tags": [
+      "web",
+      "deno",
+      "design"
+    ],
+    "url": "/projects/portfolio"
+  },
+  {
+    "type": "note",
+    "title": "Secrets everywhere",
+    "summary": "Nine easter eggs hide in Kotree, and a small counter now keeps score of how many you have found.",
+    "tags": [],
+    "url": "/notes/2026-09-30-secrets-everywhere"
+  },
+  {
+    "type": "note",
+    "title": "Offline, on purpose",
+    "summary": "Kotree now survives a dropped connection — cached pages, a proper offline fallback and a queue that delivers your secrets later.",
+    "tags": [],
+    "url": "/notes/2026-10-12-offline-first"
+  }
+]
