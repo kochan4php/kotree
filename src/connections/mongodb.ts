@@ -55,6 +55,7 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       db.collection('guestbook').createIndex({ createdAt: -1 }),
       db.collection('daily_clicks').createIndex({ day: 1 }),
       db.collection('link_counter').createIndex({ name: 1 }),
+      db.collection('boss_scores').createIndex({ score: -1 }),
     ]);
   })();
   return indexesPromise;
@@ -554,4 +555,30 @@ export async function getYearStats(year: number): Promise<YearStats> {
   } catch {
     return { year, yearClicks: 0, topLink: null, busiestDay: null, guestbookCount: 0, topReaction: null };
   }
+}
+
+// ---------- Boss fight leaderboard (K27) ----------
+
+export interface BossScore {
+  name: string;
+  score: number;
+  createdAt: Date;
+}
+
+const bossScoreCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<BossScore>('boss_scores'));
+
+export async function getBossLeaderboard(limit = 5): Promise<{ name: string; score: number }[]> {
+  const collection = await bossScoreCollection();
+  return collection
+    .find({}, { projection: { _id: 0, name: 1, score: 1 } })
+    .sort({ score: -1, createdAt: 1 })
+    .limit(limit)
+    .toArray();
+}
+
+export async function submitBossScore(name: string, score: number): Promise<{ name: string; score: number }[]> {
+  const collection = await bossScoreCollection();
+  await collection.insertOne({ name, score, createdAt: new Date() });
+  return getBossLeaderboard();
 }

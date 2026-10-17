@@ -26,6 +26,7 @@ const CHECKS = [
   ['/feed.json', 200, ['jsonfeed.org/version/1.1', '/notes/', '"tags"']],
   ['/llms.txt', 200, ['Kotree', 'AI assistants']],
   ['/search-index.json', 200, ['"title"', '/projects/']],
+  ['/api/boss-scores', 200, []],
   ['/sitemap.xml', 200, ['/projects/kotree', '/notes/', '<image:image>', '/notes/tags/']],
   ['/robots.txt', 200, ['Sitemap:', 'GPTBot']],
   ['/manifest.json', 200, ['Kotree']],

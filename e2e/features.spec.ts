@@ -270,3 +270,62 @@ test('wrapped recaps the year', async ({ page }) => {
   await expect(page.getByText('Messages on the wall')).toBeVisible();
   await expect(page.locator('circle.kt-ring')).toBeVisible();
 });
+
+test('boss leaderboard accepts a score and rejects junk', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  const outcome = await page.evaluate(async () => {
+    // Same token the app builds client-side. Locally NEXT_PUBLIC_BASE_URL is
+    // unset, so the secret is the 'kotree' fallback (see lib/csrf-client.ts).
+    const token = btoa(`${Math.floor(Date.now() / 3600000)}:kotree`).substring(0, 15);
+    const res = await fetch('/api/boss-scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'E2E', score: 1000000, _token: token }),
+    });
+    const body = await res.json();
+    return { status: res.status, top: body[0] };
+  });
+  // 1000000 is the ceiling, so the row is guaranteed to sit on top
+  expect(outcome.status).toBe(200);
+  expect(outcome.top).toEqual({ name: 'E2E', score: 1000000 });
+
+  const junk = await page.evaluate(async () => {
+    const token = btoa(`${Math.floor(Date.now() / 3600000)}:kotree`).substring(0, 15);
+    const res = await fetch('/api/boss-scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'TOOLONG', score: -5, _token: token }),
+    });
+    return res.status;
+  });
+  expect(junk).toBe(400);
+});
+
+test('Minesweeper opens in the Win95 shell and plays from the keyboard', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+
+  // Same activation path as the terminal's `win95` command
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95')));
+  const icon = page.getByRole('button', { name: 'Minesweeper' });
+  await expect(icon).toBeVisible({ timeout: 10000 });
+  await icon.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('grid', { name: 'Minesweeper board' })).toBeVisible();
+
+  // Flag and unflag before any dig — deterministic, mines not planted yet
+  const first = page.getByRole('gridcell', { name: /row 1 column 1$/ });
+  await first.focus();
+  await page.keyboard.press('f');
+  await expect(page.getByRole('gridcell', { name: /Flagged, row 1 column 1$/ })).toBeVisible();
+  await page.keyboard.press('f');
+  await expect(page.getByRole('gridcell', { name: /Hidden, row 1 column 1$/ })).toBeVisible();
+
+  // First dig is never a mine; arrows move the roving focus
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('gridcell', { name: /Hidden, row 1 column 1$/ })).toHaveCount(0);
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('gridcell', { name: /, row 1 column 2$/ })).toBeFocused();
+});
