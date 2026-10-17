@@ -8,6 +8,7 @@ import { Toaster } from 'sonner';
 import PwaInstallPrompt from '@/components/pwa';
 import PwaRegister from '@/components/pwa/pwa-register';
 import ErrorReporter from '@/components/error-reporter';
+import VitalsReporter from '@/components/analytics/vitals-reporter';
 import { KonamiCode } from '@/components/easter-eggs';
 import { GhostCursor } from '@/components/effects';
 import dynamic from 'next/dynamic';
@@ -109,6 +110,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PwaInstallPrompt />
         <PwaRegister />
         <ErrorReporter />
+        <VitalsReporter />
         <ThemeSync />
         <KonamiCode />
         <KeyboardHelp />

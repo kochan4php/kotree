@@ -134,3 +134,13 @@ test('404 search finds a page and Enter opens it', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/projects$/);
 });
+
+test('status page reports live health', async ({ page }) => {
+  await page.goto('/status');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'System Status' })).toBeVisible();
+  await expect(page.getByText('Database')).toBeVisible();
+  await expect(page.getByText('Offline support')).toBeVisible();
+  await expect(page.getByText('App version')).toBeVisible();
+});

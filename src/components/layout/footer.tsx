@@ -32,6 +32,7 @@ export default function Footer() {
               ['Notes', '/notes'],
               ['Guestbook', '/guestbook'],
               ['Secrets', '/secrets'],
+              ['Status', '/status'],
             ] as const
           ).map(([label, href]) => (
             <Link key={href} href={href} className="hover:text-foreground hover:underline underline-offset-2 transition-colors">

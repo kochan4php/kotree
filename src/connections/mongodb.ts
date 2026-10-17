@@ -203,6 +203,64 @@ export async function pingDb(): Promise<boolean> {
   }
 }
 
+// ---------- RUM Web Vitals (K1) ----------
+
+export interface VitalSample {
+  page: string;
+  metric: string;
+  value: number;
+  rating: 'good' | 'ni' | 'poor';
+  day: string;
+}
+
+export interface VitalAggregate {
+  page: string;
+  metric: string;
+  p75: number;
+  good: number;
+  total: number;
+}
+
+const vitalsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<VitalSample & { createdAt: Date }>('vitals'));
+
+export async function addVitals(samples: VitalSample[]): Promise<void> {
+  const collection = await vitalsCollection();
+  await collection.insertMany(samples.map((sample) => ({ ...sample, createdAt: new Date() })));
+}
+
+// p75 per page+metric over the last N days. Raw rows are tiny (10% sampling
+// on a personal site), so grouping in Node beats aggregation gymnastics.
+export async function getVitalsP75(days = 7): Promise<VitalAggregate[]> {
+  const since = new Date(Date.now() - days * 86_400_000);
+  const collection = await vitalsCollection();
+  const docs = await collection
+    .find({ createdAt: { $gte: since } }, { projection: { _id: 0 } })
+    .limit(10_000)
+    .toArray();
+
+  const groups = new Map<string, { page: string; metric: string; values: number[]; good: number }>();
+  for (const doc of docs) {
+    const group = groups.get(`${doc.page}|${doc.metric}`) ?? {
+      page: doc.page,
+      metric: doc.metric,
+      values: [],
+      good: 0,
+    };
+    group.values.push(doc.value);
+    if (doc.rating === 'good') group.good++;
+    groups.set(`${doc.page}|${doc.metric}`, group);
+  }
+
+  return [...groups.values()]
+    .map((group) => {
+      const sorted = [...group.values].sort((a, b) => a - b);
+      const p75 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75))];
+      return { page: group.page, metric: group.metric, p75, good: group.good, total: group.values.length };
+    })
+    .sort((a, b) => (a.page === b.page ? a.metric.localeCompare(b.metric) : a.page.localeCompare(b.page)));
+}
+
 // Atomic cross-instance daily budget (spend control for the Gemini proxy).
 // Date-keyed doc + $inc upsert: safe under concurrent serverless instances.
 // Fails OPEN (returns true) when Mongo is unreachable — a DB hiccup must

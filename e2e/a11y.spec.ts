@@ -7,6 +7,7 @@ const PAGES = [
   { name: 'home', path: '/' },
   { name: 'changelog', path: '/changelog' },
   { name: 'admin', path: '/admin' },
+  { name: 'status', path: '/status' },
   { name: 'not-found', path: '/this-page-does-not-exist' },
 ];
 

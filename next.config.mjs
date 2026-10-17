@@ -1,7 +1,17 @@
 /** @type {import('next').NextConfig} */
+import { readFileSync } from 'node:fs';
+
+// Version + deploy commit are baked in at build time so /status can show them
+// without reading the filesystem at request time.
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'));
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  env: {
+    APP_VERSION: pkg.version,
+    COMMIT_REF: process.env.COMMIT_REF ?? '',
+  },
   async headers() {
     return [
       {
