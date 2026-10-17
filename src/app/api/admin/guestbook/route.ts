@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import { deleteGuestbookEntry } from '@/connections/mongodb';
+import { addAudit, deleteGuestbookEntry } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
@@ -19,6 +19,7 @@ export async function DELETE(request: Request) {
 
   try {
     const deleted = await deleteGuestbookEntry(id);
+    if (deleted) await addAudit('guestbook_delete', id, getClientIp(request)).catch(() => {});
     return deleted ? NextResponse.json({ success: true }) : new NextResponse('Not Found', { status: 404 });
   } catch {
     return NextResponse.json({ error: 'Failed to delete entry' }, { status: 500 });

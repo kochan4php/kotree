@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import { createHash } from 'crypto';
 import { LinkCounter } from '@/interfaces';
+import { rateVital, type VitalRating } from '@/lib/vitals';
 
 const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017';
 let client: MongoClient;
@@ -46,6 +47,9 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       db.collection('rate_limits').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       db.collection('vitals').createIndex({ createdAt: 1 }, { expireAfterSeconds: 90 * DAY }),
       db.collection('vitals').createIndex({ day: 1, page: 1 }),
+      db.collection('page_views').createIndex({ day: 1 }),
+      db.collection('audit_log').createIndex({ at: 1 }, { expireAfterSeconds: 180 * DAY }),
+      db.collection('client_errors').createIndex({ hash: 1 }),
       db.collection('client_errors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 7 * DAY }),
       db.collection('click_visitors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 35 * DAY }),
       db.collection('guestbook').createIndex({ createdAt: -1 }),
@@ -190,7 +194,7 @@ export async function deleteGuestbookEntry(id: string): Promise<boolean> {
   return deletedCount === 1;
 }
 
-// ---------- Client error reports (R41) ----------
+// ---------- Client error reports (R41, deduped in K7) ----------
 
 export interface ClientError {
   id: string;
@@ -198,28 +202,130 @@ export interface ClientError {
   source: string;
   stack?: string;
   url?: string;
-  createdAt: Date;
+  count: number;
+  resolved: boolean;
+  createdAt: Date; // first seen — also the TTL field (7 days)
+  lastSeenAt?: Date;
 }
 
 const clientErrorsCollection = () =>
   getClientPromise().then((client) => client.db('kotreedb').collection<Omit<ClientError, 'id'>>('client_errors'));
 
+// K7: identical errors collapse into one row (hash upsert) with a count, so
+// a broken image spamming every page load doesn't flood the admin. Retention
+// stays 7 days after first sight via the TTL index; a long-lived recurring
+// error is re-inserted after that, which is fine at this scale.
 export async function addClientError(entry: { message: string; source: string; stack?: string; url?: string }): Promise<void> {
   const collection = await clientErrorsCollection();
-  // Retention is handled by the TTL index (K5) — no manual pruning needed
-  await collection.insertOne({ ...entry, createdAt: new Date() });
+  const hash = createHash('sha256').update(`${entry.source}:${entry.message}`).digest('hex').slice(0, 32);
+  const now = new Date();
+  await collection.updateOne(
+    { hash },
+    {
+      $inc: { count: 1 },
+      $set: { message: entry.message, stack: entry.stack, url: entry.url, lastSeenAt: now },
+      // resolved is left alone on recurrence: the fix decision is the owner's
+      $setOnInsert: { hash, source: entry.source, createdAt: now, resolved: false },
+    },
+    { upsert: true }
+  );
 }
 
 export async function getClientErrors(limit = 20): Promise<ClientError[]> {
   const collection = await clientErrorsCollection();
-  const docs = await collection.find({}).sort({ createdAt: -1 }).limit(limit).toArray();
+  const docs = await collection
+    .find({ resolved: { $ne: true } })
+    .sort({ lastSeenAt: -1, createdAt: -1 })
+    .limit(limit)
+    .toArray();
   return docs.map((d) => ({
     id: d._id.toString(),
     message: d.message,
     source: d.source,
     stack: d.stack,
     url: d.url,
+    count: d.count ?? 1,
+    resolved: d.resolved ?? false,
     createdAt: d.createdAt,
+    lastSeenAt: d.lastSeenAt ?? d.createdAt,
+  }));
+}
+
+export async function resolveClientError(id: string, resolved: boolean): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await clientErrorsCollection();
+  const { matchedCount } = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { resolved } });
+  return matchedCount === 1;
+}
+
+// ---------- Pageviews (K3) ----------
+
+interface PageView {
+  _id: string;
+  day: string;
+  path: string;
+  count: number;
+}
+
+const pageViewsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<PageView>('page_views'));
+
+// One view per visitor per page per day, reusing the click-claim pattern
+// (unique _id insert = free dedupe).
+export async function recordPageView(path: string, visitorHash: string): Promise<void> {
+  const first = await claimDailyClick(`page:${path}`, visitorHash);
+  if (!first) return;
+  const day = new Date().toISOString().slice(0, 10);
+  const collection = await pageViewsCollection();
+  await collection.updateOne(
+    { _id: `${day}:${path}` },
+    { $inc: { count: 1 }, $setOnInsert: { day, path } },
+    { upsert: true }
+  );
+}
+
+export async function getPageViews(days = 7): Promise<{ path: string; count: number }[]> {
+  const since = new Date(Date.now() - (days - 1) * 86_400_000).toISOString().slice(0, 10);
+  const collection = await pageViewsCollection();
+  const rows = await collection
+    .aggregate<{ _id: string; count: number }>([
+      { $match: { day: { $gte: since } } },
+      { $group: { _id: '$path', count: { $sum: '$count' } } },
+      { $sort: { count: -1 } },
+      { $limit: 20 },
+    ])
+    .toArray();
+  return rows.map((row) => ({ path: row._id, count: row.count }));
+}
+
+// ---------- Admin audit log (K4) ----------
+
+export interface AuditEntry {
+  id: string;
+  event: string;
+  detail?: string;
+  ipHash?: string;
+  at: Date;
+}
+
+const auditCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<Omit<AuditEntry, 'id'>>('audit_log'));
+
+export async function addAudit(event: string, detail?: string, ip?: string): Promise<void> {
+  const collection = await auditCollection();
+  const ipHash = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 16) : undefined;
+  await collection.insertOne({ event, detail, ipHash, at: new Date() });
+}
+
+export async function getAuditLog(limit = 100): Promise<AuditEntry[]> {
+  const collection = await auditCollection();
+  const docs = await collection.find({}).sort({ at: -1 }).limit(limit).toArray();
+  return docs.map((d) => ({
+    id: d._id.toString(),
+    event: d.event,
+    detail: d.detail,
+    ipHash: d.ipHash,
+    at: d.at,
   }));
 }
 
@@ -270,6 +376,7 @@ export interface VitalAggregate {
   page: string;
   metric: string;
   p75: number;
+  rating: VitalRating;
   good: number;
   total: number;
 }
@@ -309,7 +416,14 @@ export async function getVitalsP75(days = 7): Promise<VitalAggregate[]> {
     .map((group) => {
       const sorted = [...group.values].sort((a, b) => a - b);
       const p75 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75))];
-      return { page: group.page, metric: group.metric, p75, good: group.good, total: group.values.length };
+      return {
+        page: group.page,
+        metric: group.metric,
+        p75,
+        rating: rateVital(group.metric, p75),
+        good: group.good,
+        total: group.values.length,
+      };
     })
     .sort((a, b) => (a.page === b.page ? a.metric.localeCompare(b.metric) : a.page.localeCompare(b.page)));
 }

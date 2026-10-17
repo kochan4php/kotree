@@ -9,6 +9,7 @@ import PwaInstallPrompt from '@/components/pwa';
 import PwaRegister from '@/components/pwa/pwa-register';
 import ErrorReporter from '@/components/error-reporter';
 import VitalsReporter from '@/components/analytics/vitals-reporter';
+import PageViewReporter from '@/components/analytics/pageview-reporter';
 import { KonamiCode } from '@/components/easter-eggs';
 import { GhostCursor } from '@/components/effects';
 import dynamic from 'next/dynamic';
@@ -111,6 +112,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PwaRegister />
         <ErrorReporter />
         <VitalsReporter />
+        <PageViewReporter />
         <ThemeSync />
         <KonamiCode />
         <KeyboardHelp />

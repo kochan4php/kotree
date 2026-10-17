@@ -7,6 +7,7 @@ import {
   guardOrigin,
   verifyAdminToken,
 } from '@/lib/security';
+import { addAudit } from '@/connections/mongodb';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -32,8 +33,12 @@ export async function POST(request: Request) {
   }
 
   const token = typeof body.token === 'string' ? body.token : '';
-  if (!verifyAdminToken(token)) return new NextResponse('Unauthorized', { status: 401 });
+  if (!verifyAdminToken(token)) {
+    await addAudit('login_failed', undefined, getClientIp(request)).catch(() => {});
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
 
+  await addAudit('login_ok', undefined, getClientIp(request)).catch(() => {});
   const values = createAdminSession();
   const res = NextResponse.json({ ok: true });
   for (const cookie of adminSessionCookies(request, values)) res.headers.append('Set-Cookie', cookie);
@@ -45,6 +50,7 @@ export async function DELETE(request: Request) {
   const forbidden = guardAdmin(request, { csrf: true });
   if (forbidden) return forbidden;
 
+  await addAudit('logout', undefined, getClientIp(request)).catch(() => {});
   const res = NextResponse.json({ ok: true });
   for (const cookie of clearAdminSessionCookies(request)) res.headers.append('Set-Cookie', cookie);
   return res;

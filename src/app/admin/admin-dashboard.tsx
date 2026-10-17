@@ -3,14 +3,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { BarChart3, Bug, Download, FileDown, LogOut, RefreshCw, Search, ShieldCheck, Trash2 } from 'lucide-react';
+import { BarChart3, Bug, Check, Download, Eye, FileDown, Gauge, LogOut, RefreshCw, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
 
 interface Overview {
   totalClicks: number;
   links: { name: string; count: number }[];
   guestbook: { id: string; message: string; createdAt: string; userAgent?: string }[];
   daily: { day: string; count: number }[];
-  errors: { id: string; message: string; source: string; url?: string; createdAt: string }[];
+  errors: { id: string; message: string; source: string; url?: string; count: number; createdAt: string; lastSeenAt?: string }[];
+  vitals: { page: string; metric: string; p75: number; rating: 'good' | 'ni' | 'poor'; good: number; total: number }[];
+  pageviews: { path: string; count: number }[];
+  audit: { id: string; event: string; detail?: string; at: string }[];
 }
 
 const iconButton =
@@ -184,6 +187,22 @@ export default function AdminDashboard() {
     }
   };
 
+  // K7: hide an error report once it is fixed
+  const resolveError = async (id: string) => {
+    try {
+      const res = await fetch('/api/admin/errors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ id, resolved: true }),
+      });
+      if (!res.ok) throw new Error(`Resolve failed (${res.status})`);
+      setOverview((prev) => (prev ? { ...prev, errors: prev.errors.filter((entry) => entry.id !== id) } : prev));
+      toast.success('Error marked as resolved');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Resolve failed');
+    }
+  };
+
   const exportCsv = () => {
     if (!overview) return;
     const rows = [
@@ -207,6 +226,7 @@ export default function AdminDashboard() {
   };
 
   const maxCount = Math.max(1, ...(overview?.links.map((link) => link.count) ?? []));
+  const maxPageviews = Math.max(1, ...(overview?.pageviews?.map((page) => page.count) ?? []));
   const query = filter.trim().toLowerCase();
   const filteredEntries =
     overview?.guestbook.filter((entry) => !query || entry.message.toLowerCase().includes(query)) ?? [];
@@ -314,6 +334,117 @@ export default function AdminDashboard() {
             </Card>
 
             <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Gauge className="w-5 h-5 text-accent-ink" />
+                  <h2 className="text-lg font-bold text-foreground">Web vitals (p75, 7 days)</h2>
+                </div>
+                {(overview.vitals ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No vitals recorded yet.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <th className="py-1 pr-2 font-bold">Page</th>
+                          <th className="py-1 pr-2 font-bold">Metric</th>
+                          <th className="py-1 pr-2 font-bold">p75</th>
+                          <th className="py-1 pr-2 font-bold">Rating</th>
+                          <th className="py-1 font-bold">Samples</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(overview.vitals ?? []).map((vital) => (
+                          <tr key={`${vital.page}:${vital.metric}`} className="border-t-2 border-dashed border-foreground/20">
+                            <td className="py-1.5 pr-2 font-mono text-foreground">{vital.page}</td>
+                            <td className="py-1.5 pr-2 font-bold text-foreground">{vital.metric}</td>
+                            <td className="py-1.5 pr-2 font-mono text-foreground">
+                              {vital.metric === 'CLS' ? vital.p75.toFixed(3) : `${vital.p75} ms`}
+                            </td>
+                            <td className="py-1.5 pr-2">
+                              <span
+                                className={`inline-block rounded border-2 border-foreground px-1.5 text-[10px] font-black uppercase text-[#14110f] ${
+                                  vital.rating === 'good' ? 'bg-green-300' : vital.rating === 'ni' ? 'bg-amber-300' : 'bg-red-300'
+                                }`}
+                              >
+                                {vital.rating}
+                              </span>
+                            </td>
+                            <td className="py-1.5 font-mono text-muted-foreground">
+                              {vital.good}/{vital.total} good
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-accent-ink" />
+                  <h2 className="text-lg font-bold text-foreground">Pageviews (7 days)</h2>
+                </div>
+                {(overview.pageviews ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No pageviews recorded yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(overview.pageviews ?? []).map((page) => (
+                      <div key={page.path} className="flex items-center gap-3">
+                        <span className="w-40 shrink-0 truncate font-mono text-xs font-bold text-foreground" title={page.path}>
+                          {page.path}
+                        </span>
+                        <div className="flex-1 h-4 rounded border-2 border-foreground bg-secondary overflow-hidden">
+                          <div
+                            className="h-full bg-accent"
+                            style={{ width: `${Math.max(3, (page.count / maxPageviews) * 100)}%` }}
+                          />
+                        </div>
+                        <span className="w-10 shrink-0 text-right text-xs font-mono font-bold text-foreground">{page.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ScrollText className="w-5 h-5 text-accent-ink" />
+                  <h2 className="text-lg font-bold text-foreground">Audit log</h2>
+                </div>
+                {(overview.audit ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No activity recorded yet.</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {(overview.audit ?? []).map((entry) => (
+                      <li
+                        key={entry.id}
+                        className="flex flex-wrap items-center gap-2 rounded-lg border-2 border-foreground bg-secondary px-3 py-1.5 shadow-[2px_2px_0_0_var(--foreground)]"
+                      >
+                        <span
+                          className={`inline-block rounded border-2 border-foreground px-1.5 text-[10px] font-black uppercase text-[#14110f] ${
+                            entry.event === 'login_failed' ? 'bg-red-300' : entry.event === 'login_ok' ? 'bg-green-300' : 'bg-card'
+                          }`}
+                        >
+                          {entry.event.replace(/_/g, ' ')}
+                        </span>
+                        {entry.detail && <span className="font-mono text-[10px] text-muted-foreground">{entry.detail}</span>}
+                        <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                          {new Date(entry.at).toLocaleString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Card>
+
+            <Card className="fluid-glass">
               <div className="relative z-10 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2 className="text-lg font-bold text-foreground">Guestbook moderation</h2>
@@ -388,13 +519,25 @@ export default function AdminDashboard() {
                     {overview.errors.map((entry) => (
                       <li
                         key={entry.id}
-                        className="rounded-lg border-2 border-foreground bg-secondary p-3 shadow-[2px_2px_0_0_var(--foreground)]"
+                        className="flex items-start gap-3 rounded-lg border-2 border-foreground bg-secondary p-3 shadow-[2px_2px_0_0_var(--foreground)]"
                       >
-                        <p className="text-xs font-mono break-all text-foreground">{entry.message}</p>
-                        <p className="mt-1 text-[10px] text-muted-foreground font-medium">
-                          {entry.source} · {new Date(entry.createdAt).toLocaleString()}
-                          {entry.url ? ` · ${entry.url}` : ''}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="break-all font-mono text-xs text-foreground">{entry.message}</p>
+                          <p className="mt-1 text-[10px] font-medium text-muted-foreground">
+                            {entry.source} · {new Date(entry.lastSeenAt ?? entry.createdAt).toLocaleString()}
+                            {entry.url ? ` · ${entry.url}` : ''}
+                            {entry.count > 1 ? ` · seen ${entry.count}×` : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => resolveError(entry.id)}
+                          aria-label="Mark as resolved"
+                          title="Mark as resolved"
+                          className={iconButton}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
                       </li>
                     ))}
                   </ul>

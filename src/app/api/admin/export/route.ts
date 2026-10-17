@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getLinkCounts, getGuestbookAdminEntries, getDailyClickCounts, getClientErrors } from '@/connections/mongodb';
+import { addAudit, getLinkCounts, getGuestbookAdminEntries, getDailyClickCounts, getClientErrors, getPageViews } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
@@ -16,11 +16,12 @@ export async function GET(request: Request) {
   if (forbidden) return forbidden;
 
   try {
-    const [links, daily, guestbook, errors] = await Promise.all([
+    const [links, daily, guestbook, errors, pageviews] = await Promise.all([
       getLinkCounts(),
       getDailyClickCounts(90),
       getGuestbookAdminEntries(1000),
       getClientErrors(200),
+      getPageViews(90).catch(() => []),
     ]);
     const sorted = links.sort((a, b) => b.count - a.count);
     const payload = {
@@ -34,7 +35,9 @@ export async function GET(request: Request) {
       daily,
       guestbook,
       errors,
+      pageviews,
     };
+    await addAudit('export_json', undefined, getClientIp(request)).catch(() => {});
     return new NextResponse(JSON.stringify(payload, null, 2), {
       headers: {
         'Content-Type': 'application/json',

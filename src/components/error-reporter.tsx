@@ -30,6 +30,18 @@ export default function ErrorReporter() {
     };
 
     const onError = (event: ErrorEvent) => send(event.message, 'error', event.error?.stack);
+    // Resource failures (img/script/link) don't bubble; the capture phase
+    // catches them as plain events whose target is the failing element.
+    const onResourceError = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      if (!target || target === (window as unknown as HTMLElement)) return;
+      const tag = target.tagName?.toLowerCase();
+      if (tag === 'img' || tag === 'script' || tag === 'link' || tag === 'video' || tag === 'audio') {
+        const src =
+          (target as HTMLImageElement).src ?? (target as HTMLLinkElement).href ?? '';
+        send(`Failed to load <${tag}>: ${src.slice(0, 200)}`, 'resource');
+      }
+    };
     const onRejection = (event: PromiseRejectionEvent) => {
       const reason: unknown = event.reason;
       send(
@@ -40,9 +52,11 @@ export default function ErrorReporter() {
     };
 
     window.addEventListener('error', onError);
+    window.addEventListener('error', onResourceError, true);
     window.addEventListener('unhandledrejection', onRejection);
     return () => {
       window.removeEventListener('error', onError);
+      window.removeEventListener('error', onResourceError, true);
       window.removeEventListener('unhandledrejection', onRejection);
     };
   }, []);
