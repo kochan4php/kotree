@@ -36,7 +36,7 @@ jobs:
       # e2e spec: regression, home, admin, and the axe accessibility audit.
       - run: pnpm test:e2e
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
