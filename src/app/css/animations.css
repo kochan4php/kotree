@@ -93,3 +93,37 @@
   stroke-dashoffset: var(--kt-target);
   animation: kt-ring-draw 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+
+/* K39: shimmer placeholder for async content (guestbook, palette index).
+   The global reduced-motion gate above flattens it to a static block. */
+.kt-skeleton {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  animation: kt-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes kt-skeleton-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* K42: scroll-driven reveal — progressive enhancement. Browsers without
+   animation-timeline simply show everything; the effects pref and reduced
+   motion (media query below) skip it as well. Elements already on screen sit
+   past the entry range, so they never flash. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-fx='on'] [data-reveal] {
+      animation: kt-reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@keyframes kt-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}

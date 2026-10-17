@@ -2,6 +2,12 @@
   * {
     @apply border-border outline-ring/50 selection:bg-accent selection:text-accent-foreground;
   }
+  /* K41: fluid type — the rem base glides from 15px at 320px wide to 18px at
+     2560px, so every rem-based size in the app scales without touching
+     components. Mixed unit (rem + vw) keeps user zoom working. */
+  html {
+    font-size: clamp(15px, 0.9rem + 0.25vw, 18px);
+  }
   html,
   body {
     background: var(--background);
@@ -33,5 +39,27 @@
   input[type="button"],
   input[type="reset"] {
     @apply cursor-pointer;
+  }
+}
+
+/* K36: Windows High Contrast / forced colours. The ink borders already carry
+   the structure (forced-colors recolours border-color), but depth is drawn
+   with box-shadow and a few states live in colour alone — give those a shape
+   so nothing is lost. */
+@media (forced-colors: active) {
+  /* Hard offset shadows are not rendered meaningfully here */
+  * {
+    box-shadow: none !important;
+  }
+  /* Active/selected rows and pressed toggles need an edge, not just a fill */
+  [aria-pressed='true'],
+  [aria-current='true'],
+  [aria-selected='true'] {
+    outline: 2px solid CanvasText;
+    outline-offset: -4px;
+  }
+  /* An accent swatch *is* its colour — let the chooser keep the real hues */
+  .kt-swatch {
+    forced-color-adjust: none;
   }
 }

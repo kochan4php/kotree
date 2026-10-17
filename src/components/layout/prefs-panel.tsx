@@ -107,7 +107,7 @@ export default function PrefsPanel() {
                   onClick={() => patch({ accent: id })}
                   aria-label={`${label} accent`}
                   aria-pressed={prefs.accent === id}
-                  className={`w-8 h-8 rounded-full border-2 border-foreground flex items-center justify-center transition-transform cursor-pointer hover:scale-110 ${
+                  className={`kt-swatch w-8 h-8 rounded-full border-2 border-foreground flex items-center justify-center transition-transform cursor-pointer hover:scale-110 ${
                     prefs.accent === id ? 'shadow-[2px_2px_0_0_var(--foreground)] scale-105' : ''
                   }`}
                   style={{ backgroundColor: swatch }}

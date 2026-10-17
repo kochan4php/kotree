@@ -7,6 +7,7 @@ import { Flag, LockKeyhole, Link2, Pin, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { reactToEntry, reportEntry } from './api';
 import { clientToken } from '@/lib/csrf-client';
+import { useSensory } from '@/hooks/use-sensory';
 import type { GuestbookEntry } from './types';
 
 const REACTIONS = ['👍', '❤️', '🔥'] as const;
@@ -41,6 +42,8 @@ interface EntryListProps {
 }
 
 export default function EntryList({ entries, decryptedIndexes, onToggle, newSince }: EntryListProps) {
+  // K43: soft tones on reaction taps and successful copies (sound pref gates it)
+  const { playFeedback, playSuccess } = useSensory();
   const [now, setNow] = useState(() => Date.now());
   const [reacted, setReacted] = useState<Record<string, string>>({});
   const [reported, setReported] = useState<Record<string, boolean>>({});
@@ -88,7 +91,10 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
   const copyPermalink = (anchorKey: string) => {
     const url = `${location.origin}${location.pathname}#secret-${anchorKey}`;
     navigator.clipboard.writeText(url).then(
-      () => toast.success('Permalink copied!'),
+      () => {
+        toast.success('Permalink copied!');
+        playSuccess();
+      },
       () => toast.error('Could not copy the permalink'),
     );
   };
@@ -107,6 +113,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
     try {
       await navigator.clipboard.writeText(`${text} — ${url}`);
       toast.success('Secret copied!');
+      playSuccess();
     } catch {
       toast.error('Could not copy the secret');
     }
@@ -143,6 +150,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
 
   const react = (entry: GuestbookEntry, anchorKey: string, emoji: string) => {
     if (!entry.id || reacted[anchorKey]) return; // one reaction per secret per device
+    playFeedback();
     const next = { ...reacted, [anchorKey]: emoji };
     setReacted(next);
     try {

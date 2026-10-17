@@ -6,6 +6,7 @@ import QRCode from 'react-qr-code';
 import { Check, Copy, Download, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useSensory } from '@/hooks/use-sensory';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ const COLORS = [
 ];
 
 export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose }: QRModalProps) {
+  // K43: soft tone when the link copy lands
+  const { playSuccess } = useSensory();
   const [colors, setColors] = useState(COLORS[0]);
   const [copied, setCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
@@ -39,6 +42,7 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success('Link copied!');
+      playSuccess();
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error('Could not copy the link');

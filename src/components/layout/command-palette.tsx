@@ -31,6 +31,7 @@ import { trackLinkClick } from '@/lib/track-click';
 import { refreshLinkCounts } from '@/hooks/use-link-counts';
 import { cycleTheme, readPrefs, writePrefs } from '@/lib/prefs';
 import { clientToken } from '@/lib/csrf-client';
+import Skeleton from '@/components/ui/skeleton';
 
 interface PaletteItem {
   id: string;
@@ -136,6 +137,8 @@ export default function CommandPalette() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [recents, setRecents] = useState<string[]>([]);
   const [searchIndex, setSearchIndex] = useState<SearchEntry[]>([]);
+  // K39: skeleton under the list while the content index is still loading
+  const [indexLoading, setIndexLoading] = useState(false);
   const openRef = useRef(false);
   const openerRef = useRef<HTMLElement | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -150,7 +153,11 @@ export default function CommandPalette() {
     setQuery('');
     setActiveIndex(0);
     setRecents(readRecents());
-    loadSearchIndex().then(setSearchIndex);
+    setIndexLoading(true);
+    loadSearchIndex().then((idx) => {
+      setSearchIndex(idx);
+      setIndexLoading(false);
+    });
     setOpen(true);
   }, []);
 
@@ -513,6 +520,12 @@ export default function CommandPalette() {
           );
         })}
       </ul>
+
+      {indexLoading && trimmed && searchIndex.length === 0 && (
+        <div className="mt-2 rounded-xl border-[3px] border-foreground bg-card p-3 shadow-[4px_4px_0_0_var(--foreground)]">
+          <Skeleton rows={2} />
+        </div>
+      )}
 
       <div className="mt-2 flex items-center justify-center gap-3 text-[10px] font-bold text-muted-foreground">
         <span className="inline-flex items-center gap-1">

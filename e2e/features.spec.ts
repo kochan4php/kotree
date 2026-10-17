@@ -429,3 +429,61 @@ test('the first konami earns the veteran badge', async ({ page }) => {
   await page.goto('/secrets');
   await expect(page.getByText('Konami veteran')).toBeVisible();
 });
+
+test('guestbook shows skeleton rows until the first page arrives', async ({ page }) => {
+  // Hold the guestbook response so the loading state is observable
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/guestbook?*', async (route) => {
+    await gate;
+    await route.fulfill({
+      json: [{ message: 'cipher-slow', createdAt: new Date().toISOString() }],
+    });
+  });
+
+  await page.goto('/guestbook', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-skeleton]')).toBeVisible({ timeout: 15000 });
+
+  release();
+  await expect(page.locator('[data-skeleton]')).toHaveCount(0);
+  await expect(page.getByText('cipher-slow', { exact: true })).toBeVisible();
+});
+
+test('scroll-driven reveal settles at full opacity', async ({ page }) => {
+  const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
+  test.skip(!supported, 'animation-timeline is not supported in this browser');
+
+  await page.goto('/notes');
+  await page.waitForLoadState('networkidle');
+
+  const card = page.locator('[data-reveal]').first();
+  await expect(card).toBeVisible();
+  await card.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
+
+  const opacity = await card.evaluate((el) => getComputedStyle(el).opacity);
+  expect(Number(opacity)).toBeGreaterThan(0.9);
+});
+
+test('copying a changelog link plays a soft tone', async ({ page }) => {
+  // Clipboard writes need the permission, same as the permalink test above
+  await page.context().grantPermissions(['clipboard-write']);
+  // Count oscillators created by the app's AudioContext — the softest way to
+  // observe the sound without ears.
+  await page.addInitScript(() => {
+    const w = window as unknown as { __ktTones: number; AudioContext: typeof AudioContext };
+    w.__ktTones = 0;
+    const orig = w.AudioContext.prototype.createOscillator;
+    w.AudioContext.prototype.createOscillator = function (this: AudioContext, ...args: []) {
+      w.__ktTones += 1;
+      return orig.apply(this, args);
+    };
+  });
+
+  await page.goto('/changelog');
+  await waitHydrated(page);
+  await page.getByRole('button', { name: /^Copy link to version/ }).first().click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __ktTones: number }).__ktTones)).toBeGreaterThan(0);
+});

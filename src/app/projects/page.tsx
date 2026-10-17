@@ -40,7 +40,7 @@ export default function ProjectsPage() {
           {projects.map((project) => (
             <li key={project.slug}>
               <Link href={`/projects/${project.slug}`} className="group block">
-                <Card className="fluid-glass neo-press">
+                <Card data-reveal className="fluid-glass neo-press">
                   <div className="liquid-gradient"></div>
                   <div className="relative z-10">
                     <div className="flex items-start justify-between gap-3">

@@ -23,14 +23,14 @@ const PAGES = [
   { name: 'not-found', path: '/this-page-does-not-exist' },
 ];
 
-async function freeze(page: Page, path: string) {
+async function freeze(page: Page, path: string, theme: 'light' | 'dark' = 'light') {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(() => {
+  await page.addInitScript((selected) => {
     localStorage.setItem(
       'kotree-prefs',
-      JSON.stringify({ theme: 'light', accent: 'orange', fx: false, sound: false })
+      JSON.stringify({ theme: selected, accent: 'orange', fx: false, sound: false })
     );
-  });
+  }, theme);
   await page.route('**/api/guestbook?*', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/click-link-counter*', (route) => {
     if (route.request().method() === 'GET') return route.fulfill({ json: [] });
@@ -48,6 +48,23 @@ for (const { name, path } of PAGES) {
     test(`visual: ${name} at ${viewport.width}x${viewport.height}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await freeze(page, path);
+      await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
+    });
+  }
+}
+
+// K38/K48: dark scheme at two widths, plus the guestbook and a note detail
+const EXTRA_PAGES = [
+  { name: 'home-dark', path: '/', theme: 'dark' as const, widths: [1100, 1440] },
+  { name: 'guestbook', path: '/guestbook', theme: 'light' as const, widths: [1440] },
+  { name: 'note-detail', path: '/notes/2026-10-12-offline-first', theme: 'light' as const, widths: [1440] },
+];
+
+for (const { name, path, theme, widths } of EXTRA_PAGES) {
+  for (const width of widths) {
+    test(`visual: ${name} at ${width}x900`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await freeze(page, path, theme);
       await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
     });
   }

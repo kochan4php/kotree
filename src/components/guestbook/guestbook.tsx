@@ -7,6 +7,7 @@ import { MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { encryptMessage } from './obfuscation';
 import EntryList from './entry-list';
+import Skeleton from '@/components/ui/skeleton';
 import { fetchEntries, postEntry, GuestbookHttpError } from './api';
 import { queueMessage, queuedMessages, flushQueue } from './offline';
 import type { GuestbookEntry } from './types';
@@ -28,6 +29,8 @@ function celebrateFirstSend() {
 
 export default function Guestbook({ token, full = false }: { token?: string; full?: boolean }) {
   const [entries, setEntries] = useState<GuestbookEntry[]>([]);
+  // K39: skeleton until the first page of secrets arrives
+  const [isLoading, setIsLoading] = useState(true);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -57,6 +60,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
       }
       setEntries(entries);
       setHasMore(entries.length === PAGE_SIZE);
+      setIsLoading(false);
     });
     queuedMessages().then(setPendingCount);
 
@@ -283,7 +287,11 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           ref={listRef}
           className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-40 xl:flex-auto'}`}
         >
-          <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} newSince={newSince} />
+          {isLoading && entries.length === 0 ? (
+            <Skeleton rows={3} className="mb-3" />
+          ) : (
+            <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} newSince={newSince} />
+          )}
           {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
         </div>
 

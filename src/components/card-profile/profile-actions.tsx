@@ -12,7 +12,7 @@ interface ProfileActionsProps {
 export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
-  const { playFeedback, playHoverFeedback } = useSensory();
+  const { playFeedback, playHoverFeedback, playSuccess } = useSensory();
 
   useEffect(() => {
     setTimeout(() => setUrl(window.location.href), 0);
@@ -41,6 +41,7 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success('Link copied');
+      playSuccess();
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Failed to copy link');
