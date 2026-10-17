@@ -35,7 +35,7 @@
     "@axe-core/playwright": "^4.14.0",
     "@netlify/edge-functions": "^3.0.8",
     "@netlify/plugin-nextjs": "^5.15.13",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
