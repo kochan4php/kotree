@@ -2,6 +2,36 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
+## [3.2.0]
+
+A quieter update with a big footprint: new pages, a smarter admin area, and proper manners when the connection drops.
+
+### Added
+
+- Projects and Notes — proper pages for the things I build and the things I think about, with their own share images
+- About and Now — the story behind Kotree and a snapshot of what I am working on right now
+- A full Guestbook page showing every secret ever left, with permalinks and reactions
+- Secrets — a page listing every easter egg you have found on this device, hints included
+- A friendlier offline mode — pages you have visited still open, and anything you tap or write while offline sends itself later, even if you close the tab
+- Share cards for every page, so links look good wherever they are posted
+- A print-friendly changelog — clean ink-on-paper version, no browser clutter
+- Admin additions: a daily clicks chart, search in the moderation list, CSV and JSON export, one-click backup, and a small panel of errors reported by visitors
+- A smarter 404 page — search everything on the site, or let chance pick a link for you
+- One click per person per link per day, so the numbers mean real visitors
+
+### Changed
+
+- Admin sign-in no longer keeps your password in the page; it is swapped for a secure session that expires by itself
+- The footer now links to every corner of the site
+- Heavy extras — the 3D scenes, the terminal, QR codes — only load when they are actually used, so the page starts faster
+- Visitors who prefer less motion, dark colours or slow connections get a lighter, calmer experience
+- Rate-limited actions now tell you how long to wait
+
+### Fixed
+
+- Dark mode contrast and keyboard focus issues, checked from phones to very wide screens
+- Assorted layout rough edges on large displays
+
 ## [3.1.0]
 
 A bold new look and a pile of small fixes.

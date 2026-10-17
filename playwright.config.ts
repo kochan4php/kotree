@@ -18,7 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm start',
+    // CI builds in a previous step, so only start; locally build first
+    command: process.env.CI ? 'npm start' : 'npm run build && npm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     // Token the admin e2e tests authenticate with (server sees the same value)

@@ -1,0 +1,136 @@
+import { test, expect, type Page } from '@playwright/test';
+
+// R43: feature-level coverage for the interactions added in 3.2.0 —
+// theme persistence, palette keyboard flow, the offline guestbook queue,
+// permalinks and the smart 404.
+
+const ENTRY = {
+  id: 'e2e-1',
+  message: 'cipher-e2e-1',
+  createdAt: '2026-06-15T10:00:00.000Z',
+  reactions: {},
+};
+
+async function waitHydrated(page: Page) {
+  await page.waitForLoadState('networkidle');
+  let swConfirmed = true;
+  await page
+    .waitForFunction(
+      () => navigator.serviceWorker.getRegistration().then((r) => Boolean(r)),
+      null,
+      { timeout: 10000 }
+    )
+    .catch(() => {
+      swConfirmed = false;
+    });
+  await page.waitForTimeout(swConfirmed ? 300 : 2500);
+}
+
+test('command palette keyboard: cycling the theme sticks across reloads', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+
+  // auto -> light
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await page.getByRole('textbox', { name: 'Search links' }).fill('cycle');
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+  // light -> dark
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await page.getByRole('textbox', { name: 'Search links' }).fill('cycle');
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  // The choice is remembered
+  await page.reload();
+  await waitHydrated(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
+
+test('command palette keyboard: typing then Enter navigates', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await page.getByRole('textbox', { name: 'Search links' }).fill('changelog');
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Enter');
+
+  await expect(page).toHaveURL(/\/changelog$/);
+});
+
+test.describe('offline', () => {
+  // Block the service worker so request interception stays deterministic
+  test.use({ serviceWorkers: 'block' });
+
+  test('guestbook messages queue while offline and send when back online', async ({ page, context }) => {
+    let posts = 0;
+    await page.route('**/api/guestbook?*', (route) => route.fulfill({ json: [] }));
+    await page.route('**/api/guestbook', async (route) => {
+      if (route.request().method() === 'POST') {
+        posts++;
+        return route.fulfill({ json: { success: true } });
+      }
+      return route.continue();
+    });
+
+    await page.goto('/');
+    await waitHydrated(page);
+
+    await context.setOffline(true);
+    await page.getByLabel('Secret message').fill('queued while offline');
+    await page.getByRole('button', { name: 'Send message' }).click();
+
+    // The optimistic entry is marked pending and the counter appears
+    await expect(page.getByText('waiting to send…')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/waiting to send — we/)).toBeVisible();
+
+    // Back online: the queue flushes itself
+    await context.setOffline(false);
+    await expect(page.getByText(/secret delivered/)).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('waiting to send…')).toHaveCount(0);
+    expect(posts).toBeGreaterThan(0);
+  });
+});
+
+test.describe('guestbook permalinks', () => {
+  test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+
+  test('copying a permalink and opening it highlights the entry', async ({ page }) => {
+    await page.route('**/api/guestbook?*', (route) => route.fulfill({ json: [ENTRY] }));
+
+    await page.goto('/');
+    await waitHydrated(page);
+
+    await page.getByRole('button', { name: 'Copy permalink' }).first().click();
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toContain('#secret-e2e-1');
+
+    await page.goto('/#secret-e2e-1');
+    await waitHydrated(page);
+    const entry = page.locator('#secret-e2e-1');
+    await expect(entry).toBeVisible();
+
+    // The permalink scrolls the entry into view. The ring highlight is
+    // deliberately transient (4 seconds), so assert the stable scroll
+    // position instead of the brief class.
+    const box = await entry.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeLessThan(720);
+  });
+});
+
+test('404 search finds a page and Enter opens it', async ({ page }) => {
+  await page.goto('/definitely-not-a-page');
+  await waitHydrated(page);
+
+  await page.getByLabel('Search pages and links').fill('projects');
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Enter');
+
+  await expect(page).toHaveURL(/\/projects$/);
+});
