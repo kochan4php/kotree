@@ -70,11 +70,17 @@ test('QR modal lazy-loads and focuses close button', async ({ page }) => {
 test('focus returns to the trigger after the terminal closes', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
-  await page.getByRole('button', { name: 'Open AI Terminal' }).click();
-  await page.waitForTimeout(400);
+  const trigger = page.getByRole('button', { name: 'Open AI Terminal' });
+  await trigger.click();
+  // K49: wait for the real open state (dialog visible, focus inside) instead
+  // of a fixed timeout — under parallel load hydration can lag past it.
+  const dialog = page.getByRole('dialog', { name: 'AI Terminal' });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Terminal command' })).toBeFocused();
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(400);
-  await expect(page.getByRole('button', { name: 'Open AI Terminal' })).toBeFocused();
+  // The dialog stays mounted for its exit animation; count 0 IS the event.
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
 });
 
 test('boss fight can be exited (no trap)', async ({ page }) => {

@@ -43,8 +43,17 @@ export function useTerminal() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // WCAG 2.4.3: return focus to the trigger once the dialog is really gone.
+  // Doing it inside closeTerminal races the dialog's own autoFocus when the
+  // main thread is busy — the input wins and focus lands on <body> at unmount.
+  useEffect(() => {
+    if (!isRendered) prevFocusRef.current?.focus?.();
+  }, [isRendered]);
 
   const openTerminal = () => {
+    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
     discoverSecret('terminal');
     prevFocusRef.current = document.activeElement as HTMLElement | null;
     setIsOpen(true);
@@ -53,8 +62,7 @@ export function useTerminal() {
 
   const closeTerminal = () => {
     setIsOpen(false);
-    setTimeout(() => setIsRendered(false), 300); // keep mounted for the exit animation
-    prevFocusRef.current?.focus(); // WCAG 2.4.3: return focus to the trigger
+    exitTimerRef.current = setTimeout(() => setIsRendered(false), 300); // keep mounted for the exit animation
   };
 
   // Keyboard shortcuts: ` / ~ toggles, Escape closes
