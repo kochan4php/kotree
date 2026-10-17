@@ -23,7 +23,7 @@ export default function LinktreePage() {
   return (
     <main className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2">
       <div className="relative mx-auto w-full max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-[20rem_minmax(0,1fr)] md:items-start xl:grid-cols-[23rem_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[23rem_minmax(0,1fr)]">
           <aside className="min-w-0 space-y-3 md:col-start-1 md:row-start-1">
             <CardProfile />
             <StatsCard />
@@ -35,12 +35,13 @@ export default function LinktreePage() {
 
           {/* The wrapper dissolves at md/lg (display:contents) so the guestbook
               spans both columns as a full-width band under the rail + links;
-              from xl it is a real box again and stacks the guestbook under the
-              2-up links, filling the right column down to the rail's height. */}
-          <div className="min-w-0 md:contents xl:block xl:col-start-2 xl:row-start-1">
+              at xl it becomes a stretched column and the guestbook grows its
+              message list to whatever is left, so the right column always ends
+              dead level with the rail (footer sits 12px under both). */}
+          <div className="min-w-0 md:contents xl:flex xl:flex-col xl:col-start-2 xl:row-start-1">
             <SocialLinkList token={token} />
 
-            <div className="min-w-0 mt-3 md:col-span-2 md:mt-0 xl:mt-3">
+            <div className="min-w-0 mt-3 md:col-span-2 md:mt-0 xl:mt-3 xl:flex-1 xl:grid">
               <Guestbook token={token} />
             </div>
           </div>

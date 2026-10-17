@@ -60,7 +60,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
   );
 
   return (
-    <div>
+    <div className="flex flex-col">
       {/* Search floats under the dock as an overlay: opening it must never
           shift the link grid (the dock button, X and Escape all close it). */}
       {isSearching && (
@@ -92,7 +92,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
         </div>
       )}
 
-      <div className="link-grid link-deck">
+      <div className="link-grid link-deck flex-1">
         {filteredLinks.length > 0 ? (
           filteredLinks.map((link, i) => {
             const clickCount = linkCounts.find((item) => item.name === link.name.toLowerCase())?.count ?? 0;
