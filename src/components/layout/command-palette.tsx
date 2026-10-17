@@ -182,6 +182,18 @@ export default function CommandPalette() {
     listRef.current?.querySelector(`#kt-item-${activeIndex}`)?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex, open]);
 
+  // K23: SearchAction deep link — /?q=term opens the palette pre-filled
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (!q) return;
+    (async () => {
+      openPalette();
+      setQuery(q);
+      // Drop ?q so the back button and reloads stay clean
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+    })();
+  }, [openPalette]);
+
   if (!open) return null;
 
   const prefs = readPrefs();

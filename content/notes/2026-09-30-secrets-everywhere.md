@@ -1,6 +1,7 @@
 ---
 title: Secrets everywhere
 date: 2026-09-30
+tags: easter-eggs, ux
 summary: Nine easter eggs hide in Kotree, and a small counter now keeps score of how many you have found.
 ---
 

@@ -10,6 +10,7 @@ export interface Project {
   title: string;
   summary: string;
   date: string;
+  updated?: string;
   tags: string[];
   links: { label: string; url: string }[];
   body: string;
@@ -19,7 +20,9 @@ export interface Note {
   slug: string;
   title: string;
   date: string;
+  updated?: string;
   summary: string;
+  tags: string[];
   body: string;
 }
 
@@ -64,6 +67,7 @@ export function getProjects(): Project[] {
       title: data.title ?? slug,
       summary: data.summary ?? '',
       date: data.date ?? '',
+      updated: data.updated || undefined,
       tags: (data.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
       links: (data.links ?? '')
         .split(',')
@@ -87,7 +91,9 @@ export function getNotes(): Note[] {
       slug,
       title: data.title ?? slug,
       date: data.date ?? '',
+      updated: data.updated || undefined,
       summary: data.summary ?? '',
+      tags: (data.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
       body,
     }))
     .sort(byDateDesc);
@@ -95,4 +101,46 @@ export function getNotes(): Note[] {
 
 export function getNote(slug: string): Note | undefined {
   return getNotes().find((n) => n.slug === slug);
+}
+
+// K18: tags are free text in frontmatter; URLs use a slug form.
+export function slugifyTag(tag: string): string {
+  return tag
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Tag index for a collection: every tag with how many items carry it.
+export function collectTags(items: { tags: string[] }[]): { tag: string; slug: string; count: number }[] {
+  const bySlug = new Map<string, { tag: string; slug: string; count: number }>();
+  for (const item of items) {
+    for (const tag of item.tags) {
+      const slug = slugifyTag(tag);
+      if (!slug) continue;
+      const entry = bySlug.get(slug);
+      if (entry) entry.count += 1;
+      else bySlug.set(slug, { tag, slug, count: 1 });
+    }
+  }
+  return [...bySlug.values()].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
+// K20: tag overlap ranks related items; when nothing overlaps (small
+// catalogue) the newest same-kind items fill the list so it is never empty.
+export function relatedTo<T extends { slug: string; tags: string[]; date: string }>(
+  current: T,
+  all: T[],
+  limit = 3
+): T[] {
+  const currentTags = new Set(current.tags.map(slugifyTag));
+  return all
+    .filter((item) => item.slug !== current.slug)
+    .map((item) => ({
+      item,
+      score: item.tags.filter((tag) => currentTags.has(slugifyTag(tag))).length,
+    }))
+    .sort((a, b) => b.score - a.score || (a.item.date < b.item.date ? 1 : -1))
+    .slice(0, limit)
+    .map((entry) => entry.item);
 }

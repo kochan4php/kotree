@@ -1,6 +1,7 @@
 ---
 title: Offline, on purpose
 date: 2026-10-12
+tags: pwa, offline, service-worker
 summary: Kotree now survives a dropped connection — cached pages, a proper offline fallback and a queue that delivers your secrets later.
 ---
 

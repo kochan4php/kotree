@@ -75,6 +75,8 @@ export async function GET() {
   // Notes share the stream with changelog entries — one feed of "what's new"
   getNotes().forEach((note) => {
     const pubDate = new Date(note.date).toUTCString();
+    // K18: tags travel with the feed as categories
+    const categories = note.tags.map((tag) => `\n        <category>${escapeXml(tag)}</category>`).join('');
     items.push({
       date: new Date(pubDate).getTime(),
       xml: `
@@ -82,7 +84,7 @@ export async function GET() {
         <title>${escapeXml(`Note: ${note.title}`)}</title>
         <link>${escapeXml(site.baseUrl)}/notes/${note.slug}</link>
         <guid>${escapeXml(site.baseUrl)}/notes/${note.slug}</guid>
-        <pubDate>${pubDate}</pubDate>
+        <pubDate>${pubDate}</pubDate>${categories}
         <description><![CDATA[${blocksToHtml(parseMarkdown(note.body))}]]></description>
       </item>`,
     });

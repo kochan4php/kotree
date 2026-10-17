@@ -65,6 +65,7 @@ export async function GET() {
         title: `Note: ${note.title}`,
         content_text: blocksToText(parseMarkdown(note.body)),
         date_published: new Date(note.date).toISOString(),
+        ...(note.tags.length > 0 ? { tags: note.tags } : {}),
       },
     });
   });

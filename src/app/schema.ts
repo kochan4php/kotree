@@ -31,6 +31,12 @@ export const jsonLd = {
       url: site.baseUrl,
       name: site.title,
       inLanguage: 'en',
+      // K23: the command palette answers /?q= — advertise that as site search
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${site.baseUrl}/?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
     },
   ],
 };

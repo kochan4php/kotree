@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { execSync } from 'child_process';
-import { getNotes, getProjects } from '@/lib/content';
+import { collectTags, getNotes, getProjects } from '@/lib/content';
 import { site } from '@/lib/site';
 
 // Real last-modified dates from git (falls back to build time on shallow clones)
@@ -88,6 +88,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly' as const,
       priority: 0.6,
       images: og(`note-${note.slug}`),
+    })),
+    // K18: tag indexes and their per-tag pages
+    {
+      url: `${site.baseUrl}/notes/tags`,
+      lastModified: lastModified('content/notes'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.4,
+    },
+    ...collectTags(getNotes()).map((tag) => ({
+      url: `${site.baseUrl}/notes/tags/${tag.slug}`,
+      lastModified: lastModified('content/notes'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.3,
+    })),
+    {
+      url: `${site.baseUrl}/projects/tags`,
+      lastModified: lastModified('content/projects'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.4,
+    },
+    ...collectTags(getProjects()).map((tag) => ({
+      url: `${site.baseUrl}/projects/tags/${tag.slug}`,
+      lastModified: lastModified('content/projects'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.3,
     })),
   ];
 }

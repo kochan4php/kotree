@@ -14,6 +14,41 @@ function headingLevel(line: string): 'h1' | 'h2' | 'h3' | null {
 // Markdown-lite, same flavour as the changelog parser: headings, paragraphs,
 // blockquotes and dash lists. Inline **bold**, *italic*, `code` and
 // [links](url) are handled by the renderer.
+// Stable heading anchors (K19): same slug algorithm the TOC links against,
+// with a counter so repeated headings never collide.
+function slugifyHeading(text: string, seen: Map<string, number>): string {
+  const base =
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'section';
+  const count = seen.get(base) ?? 0;
+  seen.set(base, count + 1);
+  return count === 0 ? base : `${base}-${count + 1}`;
+}
+
+// The TOC needs the same ids renderMarkdown will emit for the headings.
+export function extractHeadings(blocks: MarkdownBlock[]): { id: string; text: string; level: 'h2' | 'h3' }[] {
+  const seen = new Map<string, number>();
+  const headings: { id: string; text: string; level: 'h2' | 'h3' }[] = [];
+  for (const block of blocks) {
+    if (block.type === 'h1' || block.type === 'h2' || block.type === 'h3') {
+      const id = slugifyHeading(block.text, seen);
+      if (block.type !== 'h1') headings.push({ id, text: block.text, level: block.type });
+    }
+  }
+  return headings;
+}
+
+// Plain word count / 200, never "0 min". Used next to the date on articles.
+export function readingMinutes(blocks: MarkdownBlock[]): number {
+  const words = blocks.reduce((sum, block) => {
+    const text = block.type === 'list' ? block.items.join(' ') : block.text;
+    return sum + text.split(/\s+/).filter(Boolean).length;
+  }, 0);
+  return Math.max(1, Math.round(words / 200));
+}
+
 export function parseMarkdown(content: string): MarkdownBlock[] {
   const blocks: MarkdownBlock[] = [];
   let list: string[] = [];
@@ -125,6 +160,7 @@ const blockClasses: Record<string, string> = {
 };
 
 export function renderMarkdown(blocks: MarkdownBlock[]): React.ReactNode[] {
+  const seen = new Map<string, number>();
   return blocks.map((block, key) => {
     if (block.type === 'list') {
       return (
@@ -144,9 +180,17 @@ export function renderMarkdown(blocks: MarkdownBlock[]): React.ReactNode[] {
         </blockquote>
       );
     }
+    if (block.type === 'p') {
+      return (
+        <p key={key} className={blockClasses.p}>
+          {renderInline(block.text)}
+        </p>
+      );
+    }
+    // Headings carry a stable id so the table of contents can link to them
     const Tag = block.type;
     return (
-      <Tag key={key} className={blockClasses[block.type]}>
+      <Tag key={key} id={slugifyHeading(block.text, seen)} className={`${blockClasses[block.type]} scroll-mt-24`}>
         {renderInline(block.text)}
       </Tag>
     );

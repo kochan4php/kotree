@@ -8,6 +8,9 @@ const PAGES = [
   { name: 'changelog', path: '/changelog' },
   { name: 'admin', path: '/admin' },
   { name: 'status', path: '/status' },
+  { name: 'note', path: '/notes/2026-10-12-offline-first' },
+  { name: 'tags', path: '/projects/tags' },
+  { name: 'tag', path: '/projects/tags/pwa' },
   { name: 'not-found', path: '/this-page-does-not-exist' },
 ];
 

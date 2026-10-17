@@ -1,6 +1,8 @@
 import { Card } from '@/components/ui/card';
-import { formatDate, getNote, getNotes } from '@/lib/content';
-import { parseMarkdown, renderMarkdown } from '@/lib/markdown';
+import TagChips from '@/components/content/tag-chips';
+import { PrevNext, RelatedList, TableOfContents } from '@/components/content/reading';
+import { formatDate, getNote, getNotes, relatedTo } from '@/lib/content';
+import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
 import { site } from '@/lib/site';
 import { breadcrumbLd } from '@/lib/seo';
 import { ArrowLeft } from 'lucide-react';
@@ -33,6 +35,11 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   const note = getNote(slug);
   if (!note) notFound();
 
+  const blocks = parseMarkdown(note.body);
+  const headings = extractHeadings(blocks);
+  const notes = getNotes();
+  const related = relatedTo(note, notes);
+
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
       <script
@@ -51,14 +58,40 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
         <Card className="fluid-glass mt-3">
           <div className="liquid-gradient"></div>
           <div className="relative z-10">
-            <time
-              dateTime={note.date}
-              className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
-            >
-              {formatDate(note.date)}
-            </time>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <time
+                dateTime={note.date}
+                className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
+              >
+                {formatDate(note.date)}
+              </time>
+              <span className="text-[10px] font-mono font-bold text-muted-foreground" aria-hidden="true">
+                ·
+              </span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                {readingMinutes(blocks)} min read
+              </span>
+              {note.updated && (
+                <>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                    Updated {formatDate(note.updated)}
+                  </span>
+                </>
+              )}
+            </div>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">{note.title}</h1>
-            <article className="mt-1">{renderMarkdown(parseMarkdown(note.body))}</article>
+            {note.tags.length > 0 && (
+              <div className="mt-3">
+                <TagChips tags={note.tags} base="/notes" />
+              </div>
+            )}
+            <TableOfContents headings={headings} />
+            <article className="mt-1">{renderMarkdown(blocks)}</article>
+            <RelatedList items={related} base="/notes" />
+            <PrevNext items={notes} currentSlug={note.slug} base="/notes" />
           </div>
         </Card>
       </div>

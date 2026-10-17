@@ -1,6 +1,8 @@
 import { Card } from '@/components/ui/card';
-import { formatDate, getProject, getProjects } from '@/lib/content';
-import { parseMarkdown, renderMarkdown } from '@/lib/markdown';
+import TagChips from '@/components/content/tag-chips';
+import { PrevNext, RelatedList, TableOfContents } from '@/components/content/reading';
+import { formatDate, getProject, getProjects, relatedTo } from '@/lib/content';
+import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
 import { site } from '@/lib/site';
 import { breadcrumbLd } from '@/lib/seo';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
@@ -33,6 +35,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const project = getProject(slug);
   if (!project) notFound();
 
+  const blocks = parseMarkdown(project.body);
+  const headings = extractHeadings(blocks);
+  const projects = getProjects();
+  const related = relatedTo(project, projects);
+
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
       <script
@@ -53,26 +60,41 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         <Card className="fluid-glass mt-3">
           <div className="liquid-gradient"></div>
           <div className="relative z-10">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <time
                 dateTime={project.date}
                 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
               >
                 {formatDate(project.date)}
               </time>
-              {project.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded border-2 border-foreground bg-secondary px-1.5 py-0.5 text-[10px] font-mono font-bold text-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
+              <span className="text-[10px] font-mono font-bold text-muted-foreground" aria-hidden="true">
+                ·
+              </span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                {readingMinutes(blocks)} min read
+              </span>
+              {project.updated && (
+                <>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                    Updated {formatDate(project.updated)}
+                  </span>
+                </>
+              )}
             </div>
 
             <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">{project.title}</h1>
 
-            <article className="mt-1">{renderMarkdown(parseMarkdown(project.body))}</article>
+            {project.tags.length > 0 && (
+              <div className="mt-3">
+                <TagChips tags={project.tags} base="/projects" />
+              </div>
+            )}
+
+            <TableOfContents headings={headings} />
+            <article className="mt-1">{renderMarkdown(blocks)}</article>
 
             {project.links.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-3 border-t-[3px] border-foreground pt-5">
@@ -92,6 +114,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 })}
               </div>
             )}
+
+            <RelatedList items={related} base="/projects" />
+            <PrevNext items={projects} currentSlug={project.slug} base="/projects" />
           </div>
         </Card>
       </div>

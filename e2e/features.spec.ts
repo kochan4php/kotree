@@ -185,3 +185,29 @@ test('palette searches note content and opens it', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/notes\/2026-10-12-offline-first$/);
 });
+
+test('tag pages group projects and link through to them', async ({ page }) => {
+  await page.goto('/projects/tags');
+  await page.waitForLoadState('networkidle');
+
+  await page.getByRole('link', { name: /next\.js/ }).click();
+  await expect(page).toHaveURL(/\/projects\/tags\/next-js$/);
+  await expect(page.getByRole('heading', { name: 'next.js' })).toBeVisible();
+
+  await page.locator('a[href="/projects/kotree"]').first().click();
+  await expect(page).toHaveURL(/\/projects\/kotree$/);
+});
+
+test('articles show reading time, a table of contents and related links', async ({ page }) => {
+  await page.goto('/projects/kotree');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByText(/min read/)).toBeVisible();
+
+  const toc = page.getByRole('navigation', { name: 'On this page' });
+  await expect(toc).toBeVisible();
+  await toc.getByRole('link', { name: 'What is inside' }).click();
+  await expect(page).toHaveURL(/#what-is-inside$/);
+
+  await expect(page.getByRole('heading', { name: 'Related' })).toBeVisible();
+});
