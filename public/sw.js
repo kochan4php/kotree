@@ -1,8 +1,7 @@
-const CACHE_NAME = 'kotree-offline-cache-v5';
+const CACHE_NAME = 'kotree-offline-cache-v6';
 const OFFLINE_URL = '/offline';
 
 const ASSETS_TO_CACHE = [
-  '/',
   '/manifest.json',
   '/favicon.ico',
   '/favicon-32x32.png',
@@ -11,36 +10,42 @@ const ASSETS_TO_CACHE = [
   '/icons/icon-192x192.png',
 ];
 
-// Precache the offline page AND the hashed CSS/JS chunks its HTML references,
-// so the fallback renders fully styled even on a first-ever offline visit.
-async function precacheOfflinePage() {
+// Precache a page's HTML *and* the hashed build assets it references, so the
+// fallback and the content indexes render fully styled even on a first-ever
+// offline visit (K9).
+async function precachePage(url) {
   const cache = await caches.open(CACHE_NAME);
-  const res = await fetch(OFFLINE_URL, { cache: 'reload' });
+  const res = await fetch(url, { cache: 'reload' });
   if (!res.ok) return;
-  await cache.put(OFFLINE_URL, res.clone());
+  await cache.put(url, res.clone());
   const html = await res.text();
   const assets = [...html.matchAll(/(?:href|src)="(\/_next\/static\/[^"]+)"/g)].map((m) => m[1]);
-  await Promise.all(
-    assets.map((url) =>
-      fetch(url)
-        .then((r) => (r.ok ? cache.put(url, r) : undefined))
-        .catch(() => undefined)
+  await Promise.allSettled(
+    assets.map((asset) =>
+      fetch(asset).then((r) => (r.ok ? cache.put(asset, r) : undefined))
     )
   );
 }
 
+const PRECACHE_PAGES = ['/', OFFLINE_URL, '/projects', '/notes'];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS_TO_CACHE))
-      .then(precacheOfflinePage)
-      .catch(() => {
-        // Network hiccup during install: keep the old shell, the next
-        // navigation re-triggers an update anyway.
-      })
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      // Network hiccups must never fail the install; whatever is reachable
+      // gets cached and the rest arrives on first online visit.
+      await cache.addAll(ASSETS_TO_CACHE).catch(() => {});
+      await Promise.allSettled(PRECACHE_PAGES.map(precachePage));
+    })()
   );
-  self.skipWaiting();
+  // No skipWaiting on purpose: a waiting worker is what powers the
+  // "new version — refresh?" prompt (K8). The page posts SKIP_WAITING
+  // after the user accepts, and only then does the new worker take over.
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
