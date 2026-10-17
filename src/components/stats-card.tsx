@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { socialLinks } from '@/data/social-links';
 import { useLinkCounts } from '@/hooks/use-link-counts';
-import { Heart, Trophy, Lock } from 'lucide-react';
+import { Heart, Trophy, Lock, ArrowRight } from 'lucide-react';
 import { SECRETS, discoveredSecrets } from '@/lib/secrets';
 
 export default function StatsCard() {
@@ -46,6 +46,13 @@ export default function StatsCard() {
             <Lock className="w-3.5 h-3.5" aria-hidden="true" />
           )}
           Secrets {found}/{SECRETS.length}
+        </Link>
+        <Link
+          href="/stats"
+          className="mt-2 inline-flex items-center justify-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Full stats
+          <ArrowRight className="w-3 h-3" aria-hidden="true" />
         </Link>
       </div>
     </Card>

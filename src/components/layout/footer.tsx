@@ -32,6 +32,7 @@ export default function Footer() {
               ['Notes', '/notes'],
               ['Guestbook', '/guestbook'],
               ['Secrets', '/secrets'],
+              ['Stats', '/stats'],
               ['Status', '/status'],
             ] as const
           ).map(([label, href]) => (

@@ -16,6 +16,8 @@ const CHECKS = [
   ['/notes/tags', 200, ['Note tags']],
   ['/notes/tags/pwa', 200, ['Offline, on purpose']],
   ['/projects/tags', 200, ['next.js']],
+  ['/stats', 200, ['Total clicks']],
+  ['/wrapped', 200, ['Kotree Wrapped']],
   ['/about', 200, ['About']],
   ['/now', 200, ['Now']],
   ['/guestbook', 200, ['Guestbook']],

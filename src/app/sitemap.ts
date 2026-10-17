@@ -75,6 +75,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
       images: og('secrets'),
     },
+    {
+      url: `${site.baseUrl}/stats`,
+      lastModified: lastModified('src/app/stats/page.tsx'),
+      changeFrequency: 'daily',
+      priority: 0.5,
+      images: og('stats'),
+    },
+    {
+      url: `${site.baseUrl}/wrapped`,
+      lastModified: lastModified('src/app/wrapped/page.tsx'),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+      images: og('wrapped'),
+    },
     ...getProjects().map((project) => ({
       url: `${site.baseUrl}/projects/${project.slug}`,
       lastModified: project.date ? new Date(project.date).toISOString() : lastModified(),

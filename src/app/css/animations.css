@@ -80,3 +80,16 @@
 .kt-page-enter {
   animation: kt-fade-in 220ms ease-out both;
 }
+
+/* K29: the Kotree Wrapped ring draws itself in. The global reduced-motion
+   gate above (0.01ms duration + both fill) jumps it straight to the share. */
+@keyframes kt-ring-draw {
+  from {
+    stroke-dashoffset: var(--kt-circ);
+  }
+}
+
+.kt-ring {
+  stroke-dashoffset: var(--kt-target);
+  animation: kt-ring-draw 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}

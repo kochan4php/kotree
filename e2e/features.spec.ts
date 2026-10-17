@@ -249,3 +249,24 @@ test("returning visitors get a one-time what's-new toast", async ({ page }) => {
   await page.waitForTimeout(2500);
   await expect(page.getByText(/see what changed/)).toHaveCount(0);
 });
+
+test('the public stats page shows real numbers', async ({ page }) => {
+  await page.goto('/stats');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'The numbers' })).toBeVisible();
+  await expect(page.getByText('Total clicks')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Most tapped links' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Last 30 days' })).toBeVisible();
+});
+
+test('wrapped recaps the year', async ({ page }) => {
+  await page.goto('/wrapped');
+  await page.waitForLoadState('networkidle');
+
+  const year = new Date().getFullYear();
+  await expect(page.getByRole('heading', { name: `Kotree Wrapped ${year}` })).toBeVisible();
+  await expect(page.getByText('Total clicks')).toBeVisible();
+  await expect(page.getByText('Messages on the wall')).toBeVisible();
+  await expect(page.locator('circle.kt-ring')).toBeVisible();
+});

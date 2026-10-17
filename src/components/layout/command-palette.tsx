@@ -208,7 +208,7 @@ export default function CommandPalette() {
     [
       ['Changelog', '/changelog', History, 'Every update, newest first'],
       ['Guestbook', '/guestbook', MessageSquare, 'The full confession wall'],
-      ['Stats', '/#stats', BarChart3, 'Clicks, links and secrets found'],
+      ['Stats', '/stats', BarChart3, 'Clicks, links, reactions and trends'],
       ['Secrets', '/secrets', Trophy, 'Easter eggs and spoilers'],
       ['Projects', '/projects', FolderGit2, 'Things I have built'],
       ['Notes', '/notes', NotebookPen, 'Short notes, newest first'],

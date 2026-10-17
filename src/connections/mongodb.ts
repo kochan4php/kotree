@@ -446,3 +446,112 @@ export async function consumeDailyBudget(key: string, max: number): Promise<bool
     return true; // fail open
   }
 }
+
+// ---------- Public stats (K26) and Kotree Wrapped (K29) ----------
+// All read-only aggregates, all fail soft: a missing database renders zeros
+// instead of taking the page down.
+
+export interface StatsLink {
+  name: string;
+  count: number;
+}
+
+export interface PublicStats {
+  totalClicks: number;
+  topLinks: StatsLink[];
+  last30Days: { day: string; count: number }[];
+  topReactions: { emoji: string; count: number }[];
+  guestbookCount: number;
+}
+
+async function getTopReactions(limit = 5): Promise<{ emoji: string; count: number }[]> {
+  const collection = await guestbookCollection();
+  const rows = await collection
+    .aggregate<{ _id: string; count: number }>([
+      { $match: { reactions: { $exists: true } } },
+      { $project: { r: { $objectToArray: '$reactions' } } },
+      { $unwind: '$r' },
+      { $group: { _id: '$r.k', count: { $sum: '$r.v' } } },
+      { $sort: { count: -1 } },
+      { $limit: limit },
+    ])
+    .toArray();
+  return rows.map((row) => ({ emoji: row._id, count: row.count }));
+}
+
+export async function getPublicStats(): Promise<PublicStats> {
+  try {
+    const [links, last30Days, topReactions, guestbookCount] = await Promise.all([
+      getLinkCounts(),
+      getDailyClickCounts(30),
+      getTopReactions(5),
+      guestbookCollection().then((collection) => collection.countDocuments()),
+    ]);
+    const topLinks = links
+      .filter((link) => link.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+    return {
+      totalClicks: links.reduce((sum, link) => sum + link.count, 0),
+      topLinks,
+      last30Days,
+      topReactions,
+      guestbookCount,
+    };
+  } catch {
+    return { totalClicks: 0, topLinks: [], last30Days: [], topReactions: [], guestbookCount: 0 };
+  }
+}
+
+export interface YearStats {
+  year: number;
+  yearClicks: number;
+  topLink: StatsLink | null;
+  busiestDay: { day: string; count: number } | null;
+  guestbookCount: number;
+  topReaction: { emoji: string; count: number } | null;
+}
+
+export async function getYearStats(year: number): Promise<YearStats> {
+  try {
+    const collection = await dailyClicksCollection();
+    const inYear = { $gte: `${year}-01-01`, $lte: `${year}-12-31` };
+    const [totalRows, topLinkRows, busiestRows, guestbookCount, reactions] = await Promise.all([
+      collection
+        .aggregate<{ count: number }>([{ $match: { day: inYear } }, { $group: { _id: null, count: { $sum: '$count' } } }])
+        .toArray(),
+      collection
+        .aggregate<{ _id: string; count: number }>([
+          { $match: { day: inYear } },
+          { $group: { _id: '$name', count: { $sum: '$count' } } },
+          { $sort: { count: -1 } },
+          { $limit: 1 },
+        ])
+        .toArray(),
+      collection
+        .aggregate<{ _id: string; count: number }>([
+          { $match: { day: inYear } },
+          { $group: { _id: '$day', count: { $sum: '$count' } } },
+          { $sort: { count: -1 } },
+          { $limit: 1 },
+        ])
+        .toArray(),
+      guestbookCollection().then((entries) =>
+        entries.countDocuments({
+          createdAt: { $gte: new Date(`${year}-01-01T00:00:00Z`), $lte: new Date(`${year}-12-31T23:59:59Z`) },
+        })
+      ),
+      getTopReactions(1),
+    ]);
+    return {
+      year,
+      yearClicks: totalRows[0]?.count ?? 0,
+      topLink: topLinkRows[0] ? { name: topLinkRows[0]._id, count: topLinkRows[0].count } : null,
+      busiestDay: busiestRows[0] ? { day: busiestRows[0]._id, count: busiestRows[0].count } : null,
+      guestbookCount,
+      topReaction: reactions[0] ?? null,
+    };
+  } catch {
+    return { year, yearClicks: 0, topLink: null, busiestDay: null, guestbookCount: 0, topReaction: null };
+  }
+}

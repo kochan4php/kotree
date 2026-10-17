@@ -92,6 +92,8 @@ const pages = [
   ['projects', 'Projects', 'Things I have built'],
   ['notes', 'Notes', 'Short notes, newest first'],
   ['guestbook', 'Guestbook', 'The full confession wall'],
+  ['stats', 'Stats', 'Clicks, links and reactions'],
+  ['wrapped', 'Wrapped', 'The year in clicks and secrets'],
 ];
 for (const [name, title, subtitle] of pages) {
   writeImage(`og/${name}.png`, await render(title, subtitle, 'Deo Subarno • Kotree'));

@@ -11,6 +11,8 @@ const PAGES = [
   { name: 'note', path: '/notes/2026-10-12-offline-first' },
   { name: 'tags', path: '/projects/tags' },
   { name: 'tag', path: '/projects/tags/pwa' },
+  { name: 'stats', path: '/stats' },
+  { name: 'wrapped', path: '/wrapped' },
   { name: 'not-found', path: '/this-page-does-not-exist' },
 ];
 
