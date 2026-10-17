@@ -1,4 +1,5 @@
 import { get, set } from 'idb-keyval';
+import { stashToken, requestBackgroundSync } from '@/lib/offline-sync';
 
 // Same raw-idb shape the service worker reads for background sync.
 const KEY = 'offline-guestbook';
@@ -11,6 +12,9 @@ export async function queueMessage(message: string): Promise<void> {
   } catch {
     // idb unavailable (private mode) — the optimistic entry still reverts on reload
   }
+  // Let the service worker retry even if the tab is closed
+  await stashToken();
+  await requestBackgroundSync();
 }
 
 export async function queuedMessages(): Promise<number> {
@@ -27,6 +31,10 @@ export async function flushQueue(token?: string): Promise<number> {
     const q: string[] = (await get(KEY)) || [];
     if (q.length === 0 || !navigator.onLine) return q.length;
 
+    // Claim the queue before posting — the service worker's background sync
+    // may be flushing the same queue right now; whoever claims first wins.
+    await set(KEY, []);
+
     const remaining: string[] = [];
     for (let i = 0; i < q.length; i++) {
       try {
@@ -40,8 +48,7 @@ export async function flushQueue(token?: string): Promise<number> {
         remaining.push(q[i]);
       }
     }
-    // Keep the whole queue if nothing made it (connection died mid-flush)
-    await set(KEY, remaining);
+    if (remaining.length > 0) await set(KEY, remaining);
     return remaining.length;
   } catch {
     return 0;

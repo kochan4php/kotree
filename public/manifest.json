@@ -11,12 +11,38 @@
   "dir": "ltr",
   "background_color": "#fff7e9",
   "theme_color": "#fff7e9",
-  "categories": ["developer", "social", "web"],
+  "categories": ["social", "entertainment", "utilities"],
   "shortcuts": [
     {
       "name": "Changelog",
       "url": "/changelog",
       "description": "All notable changes to Kotree"
+    },
+    {
+      "name": "Guestbook",
+      "url": "/guestbook",
+      "description": "Read and leave obfuscated secrets"
+    },
+    {
+      "name": "Stats",
+      "url": "/#stats",
+      "description": "Click stats and secrets found"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/home-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Kotree home page on desktop"
+    },
+    {
+      "src": "screenshots/home-narrow.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Kotree home page on mobile"
     }
   ],
   "icons": [

@@ -1,20 +1,31 @@
 import { get, set } from 'idb-keyval';
+import { stashToken, requestBackgroundSync } from './offline-sync';
 
 export async function syncOfflineClicks(token?: string): Promise<void> {
   if (typeof window === 'undefined' || !navigator.onLine) return;
-  
+
   try {
     const offlineClicks: string[] = (await get('offline-clicks')) || [];
     if (offlineClicks.length === 0) return;
 
-    for (const name of offlineClicks) {
-      await fetch('/api/click-link-counter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.toLowerCase(), count: 1, _token: token }),
-      });
-    }
+    // Claim the queue before posting — the service worker's background sync
+    // may be flushing the same queue right now; whoever claims first wins.
     await set('offline-clicks', []);
+
+    const remaining: string[] = [];
+    for (const name of offlineClicks) {
+      try {
+        const res = await fetch('/api/click-link-counter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name.toLowerCase(), count: 1, _token: token }),
+        });
+        if (!res.ok) remaining.push(name);
+      } catch {
+        remaining.push(name);
+      }
+    }
+    if (remaining.length > 0) await set('offline-clicks', remaining);
   } catch {
     console.error('Failed to sync offline clicks');
   }
@@ -42,5 +53,8 @@ export async function trackLinkClick(name: string, token?: string): Promise<void
     } catch {
       // Ignore idb errors in incognito mode
     }
+    // Let the service worker retry even if the tab is closed
+    await stashToken(token);
+    await requestBackgroundSync();
   }
 }

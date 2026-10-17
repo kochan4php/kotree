@@ -96,3 +96,16 @@
   background-image: radial-gradient(var(--foreground) 1.2px, transparent 1.2px);
   background-size: 26px 26px;
 }
+
+/* Skip rendering work for below-fold cards until they scroll near the
+   viewport. The `auto` keyword in contain-intrinsic-size remembers the real
+   rendered size, so repeat visits don't jump while scrolling. */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 180px;
+}
+
+@utility cv-auto-lg {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 380px;
+}

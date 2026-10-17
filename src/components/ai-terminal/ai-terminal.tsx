@@ -1,8 +1,12 @@
 'use client';
 
 import { Terminal as TerminalIcon, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useTerminal } from './use-terminal';
-import TerminalWindow from './window';
+
+// The terminal window (and its dialog code) only loads the first time the
+// dock button or the ` shortcut opens it.
+const TerminalWindow = dynamic(() => import('./window'));
 
 export default function AITerminal() {
   const { isOpen, isRendered, history, input, bottomRef, setInput, openTerminal, closeTerminal, handleSubmit } =

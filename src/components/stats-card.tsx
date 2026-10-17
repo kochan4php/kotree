@@ -24,7 +24,7 @@ export default function StatsCard() {
   const allFound = found === SECRETS.length;
 
   return (
-    <Card className="fluid-glass neo-press">
+    <Card id="stats" className="fluid-glass neo-press cv-auto">
       <div className="liquid-gradient"></div>
       <div className="relative z-10 flex flex-col">
         <div className="grid grid-cols-3 divide-x-[3px] divide-foreground text-center py-1">

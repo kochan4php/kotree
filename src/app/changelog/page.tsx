@@ -76,7 +76,7 @@ export default function ChangelogPage() {
               <Card
                 key={version.title}
                 id={`v${slugify(version.title)}`}
-                className="gap-3 fluid-glass neo-press scroll-mt-24"
+                className="gap-3 fluid-glass neo-press scroll-mt-24 cv-auto-lg"
               >
                 <div className="relative z-10 max-w-[65ch]">
                   <h2 className="text-2xl font-black tracking-tight text-accent-ink">{version.title}</h2>

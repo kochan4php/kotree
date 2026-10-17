@@ -27,7 +27,7 @@ export default function LinktreePage() {
           <aside className="min-w-0 space-y-3 md:col-start-1 md:row-start-1">
             <CardProfile />
             <StatsCard />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-1">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-1 cv-auto-lg">
               <CryptoTipJar />
               <GeoLockedQuest />
             </div>
