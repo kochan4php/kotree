@@ -71,7 +71,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search links..."
             aria-label="Search links"
-            className="w-full bg-background border border-accent/30 rounded-xl py-3 pl-10 pr-12 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 shadow-sm transition-all"
+            className="w-full bg-card border-[3px] border-foreground rounded-xl py-3 pl-10 pr-12 text-sm font-bold text-foreground placeholder:text-muted-foreground shadow-[3px_3px_0_0_var(--foreground)] focus:outline-none focus:shadow-[5px_5px_0_0_var(--foreground)] transition-shadow"
           />
           {/* Close affordance: mobile keyboards have no Escape key */}
           <button
@@ -81,7 +81,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
               setSearchQuery('');
             }}
             aria-label="Close search"
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-accent/10 hover:text-foreground transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -89,12 +89,12 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
       )}
       
       {!isSearching && (
-        <div className="text-xs text-center text-muted-foreground/50 hidden md:block">
-          Press <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border">K</kbd> to search
+        <div className="text-xs text-center text-muted-foreground hidden md:block">
+          Press <kbd className="px-1.5 py-0.5 bg-foreground text-background rounded font-bold">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-foreground text-background rounded font-bold">K</kbd> to search
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-3 link-deck">
         {filteredLinks.length > 0 ? (
           filteredLinks.map((link) => {
             const clickCount = linkCounts.find((item) => item.name === link.name.toLowerCase())?.count ?? 0;

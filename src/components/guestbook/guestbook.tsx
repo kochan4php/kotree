@@ -60,7 +60,7 @@ export default function Guestbook({ token }: { token?: string }) {
   };
 
   return (
-    <Card className="fluid-glass rounded-xl p-6 mt-6 hover:border-red-500/30 transition-all duration-300">
+    <Card className="fluid-glass rounded-xl p-6 mt-6 transition-all duration-300">
       <div className="liquid-gradient"></div>
       <div className="relative z-10 w-full h-full">
         <div className="flex items-start justify-between gap-2 mb-4">
@@ -68,7 +68,7 @@ export default function Guestbook({ token }: { token?: string }) {
             <MessageSquare className="w-5 h-5 text-accent" />
             <h2 className="text-lg font-bold text-foreground leading-tight">Secret Confessions</h2>
           </div>
-          <div className="bg-red-500/10 text-red-500 text-[10px] px-2 py-1 rounded border border-red-500/20 font-mono whitespace-nowrap">
+          <div className="bg-destructive text-foreground text-[10px] px-2 py-1 rounded border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)] font-mono font-bold whitespace-nowrap">
             OBFUSCATED
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function Guestbook({ token }: { token?: string }) {
             onChange={(e) => setInput(e.target.value.substring(0, 100))}
             placeholder="Leave a secret encrypted message..."
             aria-label="Secret message"
-            className="flex-1 rounded-lg border-2 border-border/50 bg-background/50 px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all"
+            className="flex-1 rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
             disabled={isSubmitting}
             suppressHydrationWarning
           />
@@ -92,7 +92,7 @@ export default function Guestbook({ token }: { token?: string }) {
             type="submit"
             disabled={!input.trim() || isSubmitting}
             aria-label="Send message"
-            className="inline-flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 min-h-11"
+            className="inline-flex items-center justify-center rounded-lg bg-destructive border-[3px] border-foreground px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0_0_var(--foreground)] transition-all min-h-11"
           >
             <Send className="w-4 h-4" />
           </button>

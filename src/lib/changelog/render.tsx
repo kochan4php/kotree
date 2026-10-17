@@ -1,6 +1,6 @@
 import type { Changelog, ChangelogBlock } from './parser';
 
-const inlineBase = 'bg-muted/40 border border-border rounded px-1 py-0.5 text-[0.85em]';
+const inlineBase = 'bg-secondary border-2 border-foreground rounded px-1 py-0.5 text-[0.85em] font-mono font-bold';
 
 function renderInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];

@@ -1,32 +1,63 @@
 /* Custom utilities — defined with @utility so Tailwind v4 IntelliSense
    recognizes them in className (plain @layer classes get flagged as unknown) */
 
+/* Neobrutalist card surface: solid fill, thick ink border, hard offset shadow.
+   Kept under the old name so every card inherits the look in one place. */
 @utility fluid-glass {
-  @apply relative overflow-hidden bg-transparent border-white/10 shadow-2xl transform-gpu backdrop-blur-2xl;
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.1),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.5),
-    0 8px 32px 0 rgba(0, 0, 0, 0.5);
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent) 10%);
-    opacity: 0.25;
-    pointer-events: none;
-  }
+  @apply relative overflow-hidden bg-card border-[3px];
+  border-color: var(--foreground);
+  box-shadow: 4px 4px 0 0 var(--foreground);
 }
 
+/* Decorative layer inside cards: faint diagonal ink stripes (texture, not glow) */
 @utility liquid-gradient {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent) 10%);
-  opacity: 0.25;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--foreground) 3%, transparent) 0 8px,
+    transparent 8px 22px
+  );
   pointer-events: none;
+}
+
+/* Lift on hover, press on click — the signature neobrutalist interaction */
+@utility neo-press {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 var(--foreground);
+  }
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 0 var(--foreground);
+  }
+}
+
+/* Rotates the 6 tint colors across direct children (social link cards) */
+@utility link-deck {
+  & > *:nth-child(6n + 1) {
+    --tint: var(--tint-1);
+  }
+  & > *:nth-child(6n + 2) {
+    --tint: var(--tint-2);
+  }
+  & > *:nth-child(6n + 3) {
+    --tint: var(--tint-3);
+  }
+  & > *:nth-child(6n + 4) {
+    --tint: var(--tint-4);
+  }
+  & > *:nth-child(6n + 5) {
+    --tint: var(--tint-5);
+  }
+  & > *:nth-child(6n + 6) {
+    --tint: var(--tint-6);
+  }
 }
 
 @utility mask-gradient-top {
@@ -37,15 +68,4 @@
 @utility mask-gradient-bottom {
   mask-image: linear-gradient(to top, black 0%, transparent 100%);
   -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
-}
-
-@utility scanlines {
-  background:
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  background-size:
-    100% 4px,
-    3px 100%;
-  pointer-events: none;
-  z-index: 50;
 }

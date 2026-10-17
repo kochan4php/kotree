@@ -1,12 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#201613"/>
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="#fff7e9" stroke="#14110f" stroke-width="5"/>
   <text
-    x="32"
-    y="38"
+    x="33.5"
+    y="41.5"
     text-anchor="middle"
-    font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-    font-size="22"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    font-size="20"
     font-weight="700"
     fill="#ff7c47"
+  >&lt;k/&gt;</text>
+  <text
+    x="32"
+    y="40"
+    text-anchor="middle"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    font-size="20"
+    font-weight="700"
+    fill="#14110f"
   >&lt;k/&gt;</text>
 </svg>

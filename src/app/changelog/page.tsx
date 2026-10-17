@@ -33,7 +33,7 @@ export default function ChangelogPage() {
             {versions.map((version) => (
               <Card
                 key={version.title}
-                className="gap-3 transition-all duration-300 fluid-glass hover:border-accent/50 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1"
+                className="gap-3 fluid-glass neo-press"
               >
                 <div className="relative z-10">
                   <h2 className="text-xl font-black tracking-tight text-accent">{version.title}</h2>

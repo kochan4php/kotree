@@ -12,16 +12,15 @@ export default function CryptoTipJar() {
 
   return (
     <div
-      className="fluid-glass bg-purple-900/10! w-full h-full p-4 text-purple-100 rounded-lg text-center relative flex flex-col justify-center items-center"
-      style={{ '--accent': '#9333ea' } as React.CSSProperties}
+      className="fluid-glass bg-[#e2d4ff]! w-full h-full p-4 text-foreground rounded-lg text-center relative flex flex-col justify-center items-center"
     >
       <div className="liquid-gradient opacity-50 saturate-150"></div>
       <div className="relative z-10 w-full h-full flex flex-col justify-center items-center">
-        <h2 className="font-bold text-sm text-purple-200 mb-1 flex items-center justify-center gap-1.5 uppercase tracking-wider">
+        <h2 className="font-bold text-sm text-foreground mb-1 flex items-center justify-center gap-1.5 uppercase tracking-wider">
           <Wallet className="w-4 h-4" /> Web3
         </h2>
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-1">
-          <p className="text-xs font-medium text-purple-300 mb-3 px-1 leading-snug">Connect wallet to send crypto tips.</p>
+          <p className="text-xs font-medium text-muted-foreground mb-3 px-1 leading-snug">Connect wallet to send crypto tips.</p>
           <div className="w-full space-y-2 mt-auto">
             {!isConnected ? (
               <button
@@ -30,7 +29,7 @@ export default function CryptoTipJar() {
                   connectWallet(() => setIsConnected(true), setIsConnecting);
                 }}
                 disabled={isConnecting}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-purple-700 text-white shadow-sm hover:bg-purple-600 transition-colors cursor-pointer min-h-11"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-[#b39dfb] border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all cursor-pointer min-h-11"
               >
                 <CreditCard className="w-4 h-4" /> {isConnecting ? 'Connecting...' : 'Connect Wallet'}
               </button>
@@ -40,7 +39,7 @@ export default function CryptoTipJar() {
                   playFeedback();
                   sendTip();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-yellow-500 text-yellow-950 shadow-md hover:bg-yellow-400 transition-all hover:scale-105 active:scale-95 cursor-pointer min-h-11"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-[#ffd93d] border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all cursor-pointer min-h-11"
               >
                 <Bitcoin className="w-4 h-4" />
                 Tip 0.001 ETH

@@ -61,11 +61,11 @@ export default function GhostCursor() {
       aria-hidden="true"
     >
       <MousePointer2
-        className="w-5 h-5 -ml-2 -mt-2 drop-shadow-md"
-        style={{ fill: '#ff7c47', color: '#ff7c47' }}
+        className="w-5 h-5 -ml-2 -mt-2"
+        style={{ fill: '#ff7c47', color: '#14110f' }}
       />
       <div
-        className="mt-2 px-2 py-1 text-white text-[10px] rounded-full whitespace-nowrap shadow-lg font-mono opacity-80"
+        className="mt-2 px-2 py-1 text-foreground border-2 border-foreground text-[10px] rounded-full whitespace-nowrap font-mono font-bold"
         style={{ backgroundColor: '#ff7c47' }}
       >
         ghost (demo)

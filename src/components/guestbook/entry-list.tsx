@@ -30,7 +30,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle }: Entry
             role="button"
             tabIndex={0}
             aria-pressed={isDecrypted}
-            className="text-xs font-mono break-all border-l-2 border-red-500/40 pl-3 py-1 bg-muted/10 rounded-r-md cursor-pointer hover:bg-muted/20 transition-colors"
+            className="text-xs font-mono break-all border-2 border-foreground bg-secondary rounded-md pl-3 py-1 shadow-[2px_2px_0_0_var(--foreground)] cursor-pointer hover:bg-muted transition-colors"
             title="Click to reveal/hide"
           >
             <p className={isDecrypted ? 'text-foreground' : 'text-muted-foreground'}>

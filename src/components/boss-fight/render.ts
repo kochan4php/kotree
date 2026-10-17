@@ -35,7 +35,7 @@ export function drawGame(ctx: CanvasRenderingContext2D, state: GameState, width:
   });
 
   // Instructions
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = '#00ff00';
   ctx.font = '20px monospace';
   ctx.fillText('ARROW KEYS to move | SPACE to shoot', 20, 30);
 }

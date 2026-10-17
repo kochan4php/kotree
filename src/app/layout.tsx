@@ -1,4 +1,4 @@
-import { Geist } from 'next/font/google';
+import { Space_Grotesk, Archivo_Black } from 'next/font/google';
 import Script from 'next/script';
 import { metadata } from './metadata';
 import { jsonLd } from './schema';
@@ -19,19 +19,20 @@ import EasterEggLauncher from '@/components/easter-eggs';
 
 import { Viewport } from 'next';
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' });
+const archivoBlack = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-archivo-black' });
 
 export { metadata };
 
 export const viewport: Viewport = {
-  themeColor: '#201613',
-  colorScheme: 'dark',
+  themeColor: '#fff7e9',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
-      <body className={`${geist.variable} antialiased transition-colors duration-500`}>
+      <body className={`${spaceGrotesk.variable} ${archivoBlack.variable} antialiased transition-colors duration-500`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -60,18 +61,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </div>
         <Toaster
           position="bottom-center"
-          theme="dark"
           toastOptions={{
             classNames: {
-              toast: 'fluid-glass rounded-2xl! shadow-xl',
-              default: 'bg-accent/5! border-accent/20! [&_svg]:text-accent!',
-              info: 'bg-blue-500/10! border-blue-500/20! [&_svg]:text-blue-500!',
-              success: 'bg-emerald-500/10! border-emerald-500/20! [&_svg]:text-emerald-500!',
-              warning: 'bg-orange-500/10! border-orange-500/20! [&_svg]:text-orange-500!',
-              error: 'bg-red-500/10! border-red-500/20! [&_svg]:text-red-500!',
-              title: 'text-sm font-bold text-foreground',
+              toast: 'rounded-xl! border-[3px]! border-foreground! shadow-[4px_4px_0_0_var(--foreground)]! font-bold',
+              default: 'bg-[#ffe6d1]! [&_svg]:text-accent!',
+              info: 'bg-[#d6ecff]! [&_svg]:text-blue-600!',
+              success: 'bg-[#dcf7c4]! [&_svg]:text-green-700!',
+              warning: 'bg-[#ffeeb0]! [&_svg]:text-amber-600!',
+              error: 'bg-[#ffd6d6]! [&_svg]:text-red-600!',
+              title: 'text-sm font-black text-foreground font-display',
               description: 'text-xs text-muted-foreground font-medium',
-              actionButton: 'bg-accent! text-accent-foreground! font-bold rounded-md! px-4 py-1.5 text-xs hover:bg-accent/90! transition-colors',
+              actionButton: 'bg-foreground! text-background! font-bold rounded-md! px-4 py-1.5 text-xs border-2! border-foreground! hover:bg-accent! hover:text-accent-foreground! transition-colors',
               cancelButton: 'bg-transparent! text-muted-foreground! hover:text-foreground! transition-colors font-semibold',
             },
           }}

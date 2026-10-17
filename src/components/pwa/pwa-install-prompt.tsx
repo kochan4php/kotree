@@ -71,17 +71,17 @@ export default function PwaInstallPrompt() {
 
   return (
     <div className="fixed top-4 left-0 right-0 z-100 px-4 ease-out flex justify-center pointer-events-none">
-      <div className="w-full max-w-sm flex items-center justify-between p-3 bg-black/80 backdrop-blur-xl shadow-2xl border border-accent/40 rounded-full gap-3 pointer-events-auto">
+      <div className="w-full max-w-sm flex items-center justify-between p-3 bg-card border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] rounded-full gap-3 pointer-events-auto">
         <div className="flex-1 min-w-0 pl-2">
-          <p className="font-bold text-sm text-white flex items-center gap-2">
-            Kotree App <span className="bg-accent text-accent-foreground text-[10px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-bold">New</span>
+          <p className="font-bold text-sm text-foreground flex items-center gap-2">
+            Kotree App <span className="bg-accent border-2 border-foreground text-foreground text-[10px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-bold">New</span>
           </p>
-          <p className="text-xs text-white/60 truncate mt-0.5">Install for offline access</p>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">Install for offline access</p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 pr-1">
           <button 
             onClick={handleInstall}
-            className="flex items-center justify-center bg-accent text-accent-foreground font-semibold rounded-full px-4 py-1.5 hover:scale-105 active:scale-95 transition-all text-xs cursor-pointer shadow-lg shadow-accent/20"
+            className="flex items-center justify-center bg-accent text-foreground font-bold border-2 border-foreground rounded-full px-4 py-1.5 shadow-[2px_2px_0_0_var(--foreground)] hover:-translate-y-0.5 active:translate-y-0 transition-all text-xs cursor-pointer"
             aria-label="Install App"
           >
             <Download className="w-3.5 h-3.5 mr-1.5" />
@@ -89,7 +89,7 @@ export default function PwaInstallPrompt() {
           </button>
           <button 
             onClick={handleDismiss}
-            className="flex items-center justify-center text-white/50 bg-white/10 rounded-full p-1.5 hover:bg-white/20 hover:text-white transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center text-foreground bg-secondary border-2 border-foreground rounded-full p-1.5 hover:bg-muted transition-all cursor-pointer"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />

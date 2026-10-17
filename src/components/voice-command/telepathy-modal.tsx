@@ -49,13 +49,13 @@ export default function TelepathyModal({ isOpen, value, onInput, onSubmit, onClo
           onChange={(e) => onInput(e.target.value)}
           placeholder="Focus your thoughts here..."
           aria-label="Telepathy thought"
-          className="w-full bg-muted/50 border border-border rounded-xl p-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all mb-6"
+          className="w-full bg-card border-[3px] border-foreground shadow-[2px_2px_0_0_var(--foreground)] rounded-xl p-4 text-foreground focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow mb-6"
         />
         <div className="flex gap-3 justify-end">
-          <button type="button" onClick={onClose} className="px-6 py-2.5 text-sm font-semibold rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+          <button type="button" onClick={onClose} className="px-6 py-2.5 text-sm font-bold rounded-xl bg-card border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] text-foreground hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all">
             Cancel
           </button>
-          <button type="submit" className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
+          <button type="submit" className="px-6 py-2.5 bg-accent text-foreground font-bold rounded-xl border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all">
             Transmit
           </button>
         </div>

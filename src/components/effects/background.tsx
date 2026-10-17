@@ -16,21 +16,25 @@ export default function Background() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    type Star = { x: number; y: number; r: number; phase: number; speed: number; alpha: number };
+    type Star = { x: number; y: number; r: number; phase: number; speed: number; alpha: number; color: string };
     let stars: Star[] = [];
     let w = 0;
     let h = 0;
     let raf = 0;
     let t = 0;
 
+    // Confetti dots in the tint palette — flat, colorful, on-brand
+    const PALETTE = ['#ff7c47', '#ff90e8', '#4cc9f0', '#a8e94d', '#b39dfb', '#ffd93d', '#14110f'];
+
     const spawn = () => {
       stars = Array.from({ length: 160 }, (_, i) => ({
         x: Math.random(),
         y: Math.random(),
-        r: (i % 5 === 0 ? 1.2 : 0.6) + Math.random() * 0.6,
+        r: (i % 5 === 0 ? 1.6 : 0.9) + Math.random() * 0.8,
         phase: Math.random() * Math.PI * 2,
         speed: 0.2 + Math.random() * 0.6,
-        alpha: 0.3 + Math.random() * 0.6,
+        alpha: 0.18 + Math.random() * 0.25,
+        color: PALETTE[i % PALETTE.length],
       }));
     };
 
@@ -46,7 +50,7 @@ export default function Background() {
       for (const s of stars) {
         const twinkle = 0.6 + 0.4 * Math.sin(t * s.speed * 4 + s.phase);
         ctx.globalAlpha = s.alpha * twinkle;
-        ctx.fillStyle = '#ff7c47';
+        ctx.fillStyle = s.color;
         ctx.beginPath();
         ctx.arc(s.x * w, s.y * h, s.r * dpr, 0, Math.PI * 2);
         ctx.fill();
@@ -81,9 +85,10 @@ export default function Background() {
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-      {/* Fallback blur blobs just in case canvas fails */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl opacity-50"></div>
-      <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-accent/20 rounded-full blur-3xl opacity-30"></div>
+      {/* Flat color shapes instead of glassy blobs — canvas fallback */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-[#ffd93d]/25 rounded-full opacity-70"></div>
+      <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-[#ff90e8]/20 rounded-full opacity-60"></div>
+      <div className="absolute top-1/2 right-10 w-40 h-40 bg-[#4cc9f0]/20 rounded-3xl opacity-60 rotate-12"></div>
 
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>

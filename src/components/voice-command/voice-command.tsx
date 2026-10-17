@@ -77,12 +77,12 @@ export default function VoiceCommand() {
         disabled={isListening}
         className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
           isListening
-            ? 'bg-red-500 animate-pulse text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]'
-            : 'bg-transparent text-foreground hover:bg-accent/20'
+            ? 'bg-destructive border-2 border-foreground animate-pulse'
+            : 'bg-transparent text-foreground hover:bg-secondary'
         }`}
         aria-label="Voice Command"
       >
-        {isListening ? <Mic className="w-5 h-5 text-white" /> : <MicOff className="w-5 h-5 text-rose-500" />}
+        {isListening ? <Mic className="w-5 h-5 text-foreground" /> : <MicOff className="w-5 h-5 text-rose-600" />}
       </button>
 
       {isTelepathyRendered && (

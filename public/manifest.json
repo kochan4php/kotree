@@ -9,8 +9,8 @@
   "display_override": ["window-controls-overlay", "standalone"],
   "lang": "en",
   "dir": "ltr",
-  "background_color": "#201613",
-  "theme_color": "#201613",
+  "background_color": "#fff7e9",
+  "theme_color": "#fff7e9",
   "categories": ["developer", "social", "web"],
   "shortcuts": [
     {

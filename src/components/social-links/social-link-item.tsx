@@ -24,14 +24,14 @@ export default function SocialLinkItem({ link, clickCount, token }: SocialLinkIt
   };
 
   return (
-    <Card onMouseEnter={playHoverFeedback} className="fluid-glass group p-0 transition-all duration-300 hover:border-accent/30 hover:bg-accent/2 hover:shadow-lg active:scale-[0.99]">
+    <Card onMouseEnter={playHoverFeedback} className="fluid-glass neo-press group p-0">
       <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
       <Link href={link.url} onClick={handleClick} target="_blank" rel="noopener noreferrer">
         <div className="relative z-10 flex items-center gap-4 p-4">
           <span
-            className="w-12 h-12 shrink-0 rounded-xl bg-linear-to-br from-muted/80 to-muted/30 border border-border/60 shadow-sm flex items-center justify-center transition-all duration-300 group-hover:border-accent/30 group-hover:shadow-sm"
-            style={{ color: link.color }}>
-            <link.icon className="w-5 h-5" aria-hidden="true" />
+            className="w-12 h-12 shrink-0 rounded-lg border-[3px] border-foreground flex items-center justify-center shadow-[2px_2px_0_0_var(--foreground)]"
+            style={{ backgroundColor: 'var(--tint, var(--tint-1))' }}>
+            <link.icon className="w-5 h-5 text-foreground" aria-hidden="true" />
           </span>
 
           <div className="min-w-0 flex-1 text-left">
@@ -40,12 +40,12 @@ export default function SocialLinkItem({ link, clickCount, token }: SocialLinkIt
           </div>
 
           {clickCount > 0 && (
-            <span className="inline-flex items-center justify-center shrink-0 rounded-full bg-accent/10 text-accent border border-accent/25 px-2 py-0.5 text-xs" aria-label={`${clickCount} clicks`}>
+            <span className="inline-flex items-center justify-center shrink-0 rounded-full bg-foreground text-background border-2 border-foreground px-2.5 py-0.5 text-xs font-bold" aria-label={`${clickCount} clicks`}>
               {clickCount} clicks
             </span>
           )}
 
-          <ExternalLink className="w-4 h-4 text-muted-foreground opacity-60 group-hover:text-accent group-hover:opacity-100 transition-all duration-300" aria-hidden="true" />
+          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-all duration-300" aria-hidden="true" />
         </div>
       </Link>
     </Card>

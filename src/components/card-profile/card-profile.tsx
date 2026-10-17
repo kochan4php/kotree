@@ -51,7 +51,6 @@ export default function CardProfile() {
       <Card className="fluid-glass text-center p-6 relative z-10 gap-4 mb-6">
         <div className="liquid-gradient"></div>
         <div className="relative w-fit mx-auto mb-1 z-10">
-          <div className="absolute -inset-4 rounded-full bg-accent/15 blur-2xl"></div>
           <div className="relative flex justify-center">
             <Image
               src={profile.avatarUrl}
@@ -59,7 +58,7 @@ export default function CardProfile() {
               width={96}
               height={96}
               priority
-              className="rounded-full shadow-lg shadow-accent/20 object-cover border-2 border-accent/30 pointer-events-none w-24 h-24"
+              className="rounded-full object-cover border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] pointer-events-none w-24 h-24"
             />
           </div>
         </div>
@@ -69,7 +68,7 @@ export default function CardProfile() {
           <p className="text-base text-muted-foreground">{profile.handle}</p>
         </div>
 
-        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent/15 text-accent border border-accent/30 rounded-full px-3.5 py-1 text-base font-medium w-fit mx-auto">
+        <span className="relative z-10 inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base font-bold w-fit mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
           <Code2 className="w-4 h-4" />
           {profile.role}
         </span>

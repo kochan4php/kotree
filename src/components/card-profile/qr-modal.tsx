@@ -48,12 +48,12 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
           ref={closeBtnRef}
           onClick={onClose}
           aria-label="Close QR"
-          className="absolute top-4 right-4 p-2 rounded-full bg-accent/10 hover:bg-red-500/20 text-accent hover:text-red-500 transition-colors cursor-pointer z-20 min-w-11 min-h-11 flex items-center justify-center"
+          className="absolute top-4 right-4 p-2 rounded-full bg-card border-2 border-foreground shadow-[2px_2px_0_0_var(--foreground)] text-foreground hover:bg-destructive hover:-translate-y-0.5 transition-all cursor-pointer z-20 min-w-11 min-h-11 flex items-center justify-center"
         >
           <X className="w-4 h-4" />
         </button>
         <h3 className="text-2xl font-bold mb-6 text-foreground relative z-10">Scan QR Code</h3>
-        <div className="bg-white p-4 rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.2)] ring-4 ring-white/20 w-fit mx-auto mb-6 relative z-10">
+        <div className="bg-white p-4 rounded-xl border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] w-fit mx-auto mb-6 relative z-10">
           <QRCode value={url} size={180} style={{ height: 'auto', maxWidth: '100%', width: '100%' }} />
         </div>
         <p className="text-base text-muted-foreground leading-relaxed relative z-10">

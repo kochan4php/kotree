@@ -19,13 +19,14 @@ const content = div(
     div('Kotree', {
       fontSize: 120,
       fontWeight: 800,
-      color: '#e05a47',
+      color: '#14110f',
       letterSpacing: '-0.05em',
       lineHeight: 1,
+      textShadow: '8px 8px 0 #ff7c47',
     }),
     div('All social links of Deo Subarno (Kochan) — Software & Game Developer', {
       fontSize: 40,
-      color: '#d6bbaa',
+      color: '#6f6257',
       marginTop: 24,
       textAlign: 'center',
       maxWidth: '80%',
@@ -33,7 +34,7 @@ const content = div(
     }),
     div('Deo Subarno • Software and Game Developer', {
       fontSize: 32,
-      color: '#a1a1aa',
+      color: '#a08a76',
       marginTop: 24,
     }),
   ],
@@ -44,8 +45,8 @@ const content = div(
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#16100c',
-    backgroundImage: 'linear-gradient(135deg, rgba(224,90,71,0.15) 0%, rgba(22,16,12,1) 100%)',
+    backgroundColor: '#fff7e9',
+    backgroundImage: 'linear-gradient(135deg, rgba(255,217,61,0.35) 0%, rgba(255,144,232,0.25) 50%, rgba(76,201,240,0.3) 100%)',
   }
 );
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { LayoutGrid, FolderOpen, User } from 'lucide-react';
 import type { WindowState } from './types';
 
 interface TaskbarProps {
@@ -13,8 +14,7 @@ export default function Taskbar({ windows, topZ, onBringToFront }: TaskbarProps)
     <div className="fixed bottom-0 left-0 right-0 h-8 bg-[#c0c0c0] border-t-2 border-white flex items-center px-1 z-9999 justify-between">
       <div className="flex items-center gap-1">
         <button className="h-6 px-2 flex items-center gap-1 bg-[#c0c0c0] border-2 border-white border-b-black border-r-black font-bold active:border-black active:border-b-white active:border-r-white text-black shadow-[1px_1px_0px_#000]">
-          {/* eslint-disable-next-line @next/next/no-img-element -- remote pixel icon */}
-          <img src="https://win98icons.alexmeub.com/icons/png/windows_slanted-1.png" className="w-4 h-4" alt="Start" />
+          <LayoutGrid className="w-4 h-4" strokeWidth={2.5} />
           Start
         </button>
         <div className="flex-1 px-2 flex gap-1 items-center">
@@ -28,13 +28,11 @@ export default function Taskbar({ windows, topZ, onBringToFront }: TaskbarProps)
                   : 'border-2 border-white border-b-black border-r-black bg-[#c0c0c0]'
               }`}
             >
-              <div
-                className={`w-4 h-4 bg-contain bg-no-repeat ${
-                  w.id === 'links'
-                    ? "bg-[url('https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png')]"
-                    : "bg-[url('https://win98icons.alexmeub.com/icons/png/user_computer-0.png')]"
-                }`}
-              />
+              {w.id === 'links' ? (
+                <FolderOpen className="w-4 h-4 shrink-0" />
+              ) : (
+                <User className="w-4 h-4 shrink-0" />
+              )}
               {w.title}
             </button>
           ))}

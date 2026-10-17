@@ -10,9 +10,9 @@ export default function StatsCard() {
   const totalClicks = linkCounts.reduce((total, item) => total + item.count, 0);
 
   return (
-    <Card className="fluid-glass mt-6 hover:border-accent/40 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300">
+    <Card className="fluid-glass mt-6 neo-press">
       <div className="liquid-gradient"></div>
-      <div className="relative z-10 grid grid-cols-3 divide-x divide-border/60 text-center py-1">
+      <div className="relative z-10 grid grid-cols-3 divide-x-[3px] divide-foreground text-center py-1">
         <Stat value={totalClicks} label="Total Clicks" />
         <Stat value={socialLinks.length} label="Links" />
         <div className="flex flex-col items-center justify-center gap-1">
@@ -27,7 +27,7 @@ export default function StatsCard() {
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div>
-      <div className="text-2xl font-bold text-foreground tabular-nums">{value}</div>
+      <div className="text-2xl font-display text-foreground tabular-nums">{value}</div>
       <div className="text-muted-foreground text-sm mt-1">{label}</div>
     </div>
   );

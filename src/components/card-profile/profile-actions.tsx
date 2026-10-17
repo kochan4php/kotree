@@ -50,15 +50,15 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
 
   return (
     <>
-      <div className="flex items-center justify-center gap-1.5 h-12 px-1.5 mt-4 mx-auto w-fit bg-accent/10 backdrop-blur-2xl border border-accent/30 rounded-full">
+      <div className="flex items-center justify-center gap-1.5 h-12 px-1.5 mt-4 mx-auto w-fit bg-card border-[3px] border-foreground rounded-full shadow-[3px_3px_0_0_var(--foreground)]">
         <button 
           onClick={handleShare}
           onMouseEnter={playHoverFeedback}
-          className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${copied ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'}`}
+          className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${copied ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'}`}
           aria-label="Share Profile"
         >
           <div className="relative w-5 h-5 pointer-events-none">
-            <Share2 className={`absolute inset-0 w-5 h-5 text-sky-500 transition-all duration-300 ${copied ? 'scale-50 opacity-0 rotate-90' : 'scale-100 opacity-100 rotate-0'}`} />
+            <Share2 className={`absolute inset-0 w-5 h-5 text-sky-600 transition-all duration-300 ${copied ? 'scale-50 opacity-0 rotate-90' : 'scale-100 opacity-100 rotate-0'}`} />
             <Check className={`absolute inset-0 w-5 h-5 text-emerald-500 transition-all duration-300 ${copied ? 'scale-100 opacity-100 rotate-0' : 'scale-50 opacity-0 -rotate-90'}`} />
           </div>
         </button>
@@ -69,7 +69,7 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
             if (onToggleQR) onToggleQR();
           }}
           onMouseEnter={playHoverFeedback}
-          className="w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-foreground hover:bg-accent/20"
+          className="w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-foreground hover:bg-secondary"
           aria-label="Show QR Code"
         >
           <QrCode className="w-5 h-5 text-purple-500 pointer-events-none" />

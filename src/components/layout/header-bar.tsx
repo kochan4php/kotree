@@ -28,7 +28,7 @@ export default function HeaderBar() {
   return (
     <div className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 z-60 flex items-center justify-between pointer-events-none">
       <HeaderLeft />
-      <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass rounded-full! bg-accent/5! border-accent/20!">
+      <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass rounded-full!">
         <AITerminal />
         <VoiceCommand />
         <WebBluetooth />
@@ -38,7 +38,7 @@ export default function HeaderBar() {
             aria-label="Search links"
             aria-pressed={searchOpen}
             className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
-              searchOpen ? 'bg-accent/20 shadow-inner shadow-black/20' : 'bg-transparent text-foreground hover:bg-accent/20'
+              searchOpen ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'
             }`}
           >
             <Search className="w-5 h-5 text-accent" />

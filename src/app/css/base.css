@@ -7,6 +7,19 @@
     background: var(--background);
     @apply text-foreground;
   }
+  /* Chunky ink headlines — the display face of the whole page */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  /* Neobrutalist focus ring: visible, thick, square-off */
+  :focus-visible {
+    outline: 3px solid var(--foreground);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
   button,
   a,
   [role="button"] {

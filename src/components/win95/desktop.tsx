@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { User, FolderOpen, Power } from 'lucide-react';
 import { linksWindowContent, profileWindowContent, randomWindowPos } from './content';
 
 interface DesktopIconsProps {
@@ -17,7 +18,7 @@ interface DesktopIconsProps {
 }
 
 const iconLabel =
-  'bg-transparent group-focus:bg-[#000080] group-focus:text-white group-focus:border-dotted group-focus:border px-1 text-center';
+  'bg-transparent group-focus:bg-[#000080] group-focus:text-white group-focus:border-dotted group-focus:border px-1 text-center [text-shadow:1px_1px_0_#000]';
 
 export default function DesktopIcons({ onOpen, onExit }: DesktopIconsProps) {
   return (
@@ -29,7 +30,7 @@ export default function DesktopIcons({ onOpen, onExit }: DesktopIconsProps) {
         }}
         className="flex flex-col items-center gap-1 group w-20 text-white"
       >
-        <div className="w-10 h-10 bg-[url('https://win98icons.alexmeub.com/icons/png/user_computer-0.png')] bg-contain bg-no-repeat" />
+        <User className="w-10 h-10 text-[#bcd9ff]" strokeWidth={1.75} />
         <span className={iconLabel}>My Profile</span>
       </button>
 
@@ -40,12 +41,12 @@ export default function DesktopIcons({ onOpen, onExit }: DesktopIconsProps) {
         }}
         className="flex flex-col items-center gap-1 group w-20 text-white"
       >
-        <div className="w-10 h-10 bg-[url('https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png')] bg-contain bg-no-repeat" />
+        <FolderOpen className="w-10 h-10 text-[#ffe066]" strokeWidth={1.75} />
         <span className={iconLabel}>My Links</span>
       </button>
 
       <button onClick={onExit} className="flex flex-col items-center gap-1 group w-20 text-white">
-        <div className="w-10 h-10 bg-[url('https://win98icons.alexmeub.com/icons/png/shut_down_normal-0.png')] bg-contain bg-no-repeat" />
+        <Power className="w-10 h-10 text-[#ff9b9b]" strokeWidth={1.75} />
         <span className={iconLabel}>Exit Win95</span>
       </button>
     </div>
