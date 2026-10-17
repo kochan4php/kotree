@@ -1,5 +1,8 @@
 const CACHE_NAME = 'kotree-offline-cache-v6';
 const OFFLINE_URL = '/offline';
+// Kept across SW updates: the warm-cache that periodicsync refreshes (K13)
+const DATA_CACHE = 'kotree-data-cache';
+const KEEP_CACHES = [CACHE_NAME, DATA_CACHE];
 
 const ASSETS_TO_CACHE = [
   '/manifest.json',
@@ -53,7 +56,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => !KEEP_CACHES.includes(name))
           .map((name) => caches.delete(name))
       );
     })
@@ -61,12 +64,45 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// K11: a share from Android lands as a POST navigation. Stash the text for
+// the guestbook and bounce the visitor straight there.
+async function handleShare(request) {
+  try {
+    const formData = await request.formData();
+    const shared = ['title', 'text', 'url']
+      .map((key) => formData.get(key))
+      .filter((value) => typeof value === 'string' && value.length > 0)
+      .join(' ')
+      .trim()
+      .slice(0, 100);
+    if (shared) await idbSet('share-draft', shared);
+  } catch {
+    // Unparsable share (or idb blocked): land on the guestbook anyway
+  }
+  return Response.redirect('/guestbook?shared=1', 303);
+}
+
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (url.origin !== location.origin) return;
+
+  if (event.request.method === 'POST' && url.pathname === '/share') {
+    event.respondWith(handleShare(event.request));
+    return;
+  }
+
   if (event.request.method !== 'GET') return;
 
-  // Never cache API responses (live data) or cross-origin requests
-  const url = new URL(event.request.url);
-  if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+  // API responses stay live; the sole exception is the click counter, which
+  // periodicsync keeps warm so offline visits show last-known numbers (K13).
+  if (url.pathname.startsWith('/api/')) {
+    if (url.pathname === '/api/click-link-counter') {
+      event.respondWith(
+        fetch(event.request).catch(async () => (await caches.match(event.request)) || Response.error())
+      );
+    }
+    return;
+  }
 
   // Navigations are network-first so a deploy's new HTML (and its new chunk
   // references) always wins. Offline: the cached page, else the cached
@@ -140,6 +176,7 @@ function idbGet(key) {
   return new Promise((resolve) => {
     const open = indexedDB.open(IDB_NAME);
     open.onerror = () => resolve(null);
+    open.onupgradeneeded = () => open.result.createObjectStore(IDB_STORE);
     open.onsuccess = () => {
       const db = open.result;
       if (!db.objectStoreNames.contains(IDB_STORE)) return resolve(null);
@@ -154,13 +191,18 @@ function idbSet(key, value) {
   return new Promise((resolve) => {
     const open = indexedDB.open(IDB_NAME);
     open.onerror = () => resolve(false);
+    open.onupgradeneeded = () => open.result.createObjectStore(IDB_STORE);
     open.onsuccess = () => {
       const db = open.result;
       if (!db.objectStoreNames.contains(IDB_STORE)) return resolve(false);
-      const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).put(value, key);
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
+      try {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(value, key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch {
+        resolve(false);
+      }
     };
   });
 }
@@ -205,6 +247,26 @@ self.addEventListener('sync', (event) => {
         message,
         _token: t,
       }), token);
+    })()
+  );
+});
+
+// ---------- Periodic background sync: keep the offline copy fresh ----------
+// Chrome-only, and Chrome only fires it for sites it trusts enough; the tag
+// registration itself is feature-detected on the page side (K13). Daily it
+// re-warms the precached pages and the last-known click counts.
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag !== 'kotree-refresh') return;
+  event.waitUntil(
+    (async () => {
+      await Promise.allSettled(PRECACHE_PAGES.map(precachePage));
+      const cache = await caches.open(DATA_CACHE);
+      await Promise.allSettled(
+        ['/api/click-link-counter', '/rss.xml'].map(async (url) => {
+          const res = await fetch(url);
+          if (res.ok) await cache.put(url, res);
+        })
+      );
     })()
   );
 });

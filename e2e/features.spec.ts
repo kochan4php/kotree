@@ -135,8 +135,7 @@ test.describe('guestbook permalinks', () => {
   });
 });
 
-test('404 search finds a page and Enter opens it', async ({ page }) => {
-  await page.goto('/definitely-not-a-page');
+test('404 search finds a page and Enter opens it', async ({ page }) => {  await page.goto('/definitely-not-a-page');
   await waitHydrated(page);
 
   await page.getByLabel('Search pages and links').fill('projects');
@@ -154,4 +153,22 @@ test('status page reports live health', async ({ page }) => {
   await expect(page.getByText('Database')).toBeVisible();
   await expect(page.getByText('Offline support')).toBeVisible();
   await expect(page.getByText('App version')).toBeVisible();
+});
+
+test('a shared post lands in the guestbook message box', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  // The POST below must go through the service worker
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 15000 });
+
+  const status = await page.evaluate(async () => {
+    const body = new URLSearchParams({ text: 'shared from android', url: 'https://example.com' });
+    const res = await fetch('/share', { method: 'POST', body });
+    return res.status;
+  });
+  expect(status).toBe(200);
+
+  await page.goto('/guestbook');
+  await waitHydrated(page);
+  await expect(page.getByLabel('Secret message')).toHaveValue(/shared from android/);
 });

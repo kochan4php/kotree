@@ -38,6 +38,14 @@ export default function PwaRegister() {
     };
 
     const watchForUpdates = (registration: ServiceWorkerRegistration) => {
+      // K13: ask for the daily background refresh where Chrome allows it
+      const periodic = registration as ServiceWorkerRegistration & {
+        periodicSync?: { register: (tag: string, options: { minInterval: number }) => Promise<void> };
+      };
+      periodic.periodicSync?.register('kotree-refresh', { minInterval: 24 * 60 * 60 * 1000 }).catch(() => {
+        // Permission is Chrome's call (site engagement) — silently skipped
+      });
+
       // An update may already be waiting (installed while no tab was open)
       if (registration.waiting && navigator.serviceWorker.controller) {
         offerRefresh(registration.waiting);

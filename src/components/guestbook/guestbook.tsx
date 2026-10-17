@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { get as idbGet, del as idbDel } from 'idb-keyval';
 import { Card } from '@/components/ui/card';
 import { MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -58,8 +59,21 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     });
     queuedMessages().then(setPendingCount);
 
-    // Restore an unsent draft from a previous visit
+    // Restore an unsent draft from a previous visit. A share that arrived
+    // through the Android share sheet (K11) wins over the local draft.
     (async () => {
+      try {
+        const shared = await idbGet('share-draft');
+        if (typeof shared === 'string' && shared) {
+          await idbDel('share-draft');
+          setInput(shared.slice(0, 100));
+          localStorage.setItem(DRAFT_KEY, shared.slice(0, 100));
+          toast.info('Shared text is waiting in your message box');
+          return;
+        }
+      } catch {
+        // share draft unreadable — fall through to the local draft
+      }
       try {
         const draft = localStorage.getItem(DRAFT_KEY);
         if (draft) setInput(draft);
