@@ -11,6 +11,11 @@
   }
 }
 
+/* "Background effects" preference (Preferences panel) */
+[data-fx="off"] .kt-scroll-fades {
+  display: none;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 ::-webkit-scrollbar {
   display: none;

@@ -61,3 +61,85 @@
   --tint-5: #b39dfb;
   --tint-6: #ffa94d;
 }
+
+/* Dark mode: inverted ink on warm dark paper. The inline script in the
+   layout resolves 'auto' before first paint and sets data-theme, so CSS
+   only needs the final state. Tints are deepened so cream text clears AA. */
+[data-theme="dark"] {
+  --background: #1a1613;
+  --foreground: #f5ead6;
+  --card: #241f19;
+  --card-foreground: #f5ead6;
+  --primary: #f5ead6;
+  --primary-foreground: #1a1613;
+  --secondary: #2e2720;
+  --secondary-foreground: #f5ead6;
+  --muted: #332b23;
+  --muted-foreground: #b7a892;
+  --accent: #ff7c47;
+  --accent-ink: #ffb08a;
+  --accent-foreground: #1a1613;
+  --destructive: #ff6b6b;
+  --border: #f5ead6;
+  --input: #f5ead6;
+  --ring: #f5ead6;
+  --tint-1: #7a6110;
+  --tint-2: #8f2f6b;
+  --tint-3: #155a72;
+  --tint-4: #4b7016;
+  --tint-5: #4f3a94;
+  --tint-6: #8a4415;
+}
+
+/* Accent colours: backgrounds stay bright stickers in both themes
+   (dark ink text on top), only the accent-ink text colour flips. */
+[data-accent="pink"] {
+  --accent: #ff90e8;
+  --accent-ink: #a21caf;
+}
+[data-accent="blue"] {
+  --accent: #4cc9f0;
+  --accent-ink: #0369a1;
+}
+[data-accent="green"] {
+  --accent: #a8e94d;
+  --accent-ink: #3f6212;
+}
+[data-accent="violet"] {
+  --accent: #b39dfb;
+  --accent-ink: #6d28d9;
+}
+[data-accent="yellow"] {
+  --accent: #ffd93d;
+  --accent-ink: #854d0e;
+}
+
+[data-theme="dark"][data-accent="pink"] {
+  --accent-ink: #ffb3ef;
+}
+[data-theme="dark"][data-accent="blue"] {
+  --accent-ink: #7dd3fc;
+}
+[data-theme="dark"][data-accent="green"] {
+  --accent-ink: #bef264;
+}
+[data-theme="dark"][data-accent="violet"] {
+  --accent-ink: #c4b5fd;
+}
+[data-theme="dark"][data-accent="yellow"] {
+  --accent-ink: #fde047;
+}
+
+/* Higher contrast, on request */
+@media (prefers-contrast: more) {
+  :root {
+    --secondary: #ecdcbe;
+    --muted: #e9d8b8;
+    --muted-foreground: #4a3f35;
+  }
+  [data-theme="dark"] {
+    --secondary: #3a322a;
+    --muted: #413830;
+    --muted-foreground: #e0d3bf;
+  }
+}

@@ -50,7 +50,7 @@ export default function TerminalWindow({
             <div className="w-3 h-3 rounded-full bg-yellow-400 border-2 border-foreground" />
             <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-foreground" />
           </div>
-          <span className="text-foreground text-[10px] font-mono mx-auto -ml-8 flex-1 text-center font-bold tracking-wider uppercase">root@kochan:~</span>
+          <span className="text-[#14110f] text-[10px] font-mono mx-auto -ml-8 flex-1 text-center font-bold tracking-wider uppercase">root@kochan:~</span>
         </div>
 
         <div className="h-64 overflow-y-auto p-4 space-y-2 relative z-20" aria-live="polite">
@@ -66,12 +66,12 @@ export default function TerminalWindow({
         </div>
 
         <form onSubmit={onSubmit} className="px-4 py-3 border-t-[3px] border-foreground flex gap-3 bg-accent items-center relative z-20">
-          <span className="text-foreground font-bold">~%</span>
+          <span className="text-[#14110f] font-bold">~%</span>
           <input
             type="text"
             value={input}
             onChange={(e) => onInput(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-foreground focus:ring-0 p-0 placeholder:text-foreground/60 font-bold cursor-text"
+            className="flex-1 bg-transparent border-none outline-none text-[#14110f] focus:ring-0 p-0 placeholder:text-[#14110f]/60 font-bold cursor-text"
             placeholder="Execute command..."
             aria-label="Terminal command"
             autoFocus

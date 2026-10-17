@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { parseChangelog } from '@/lib/changelog';
 import { renderChangelog } from '@/lib/changelog';
 import { site } from '@/lib/site';
+import { breadcrumbLd } from '@/lib/seo';
 import { History, Rss } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -22,7 +23,11 @@ export default function ChangelogPage() {
   const { header, versions } = renderChangelog(parseChangelog(fs.readFileSync(filePath, 'utf-8')));
 
   return (
-    <main className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2">
+    <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd('Changelog', '/changelog')) }}
+      />
       <div className="relative mx-auto w-full max-w-2xl lg:max-w-5xl">
         <Card className="fluid-glass">
           <div className="liquid-gradient"></div>

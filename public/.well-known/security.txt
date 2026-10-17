@@ -1,0 +1,4 @@
+Contact: mailto:aprodeosubarno@gmail.com
+Contact: https://github.com/kochan4php/kotree/security/advisories/new
+Expires: 2027-10-17T00:00:00.000Z
+Preferred-Languages: en, id

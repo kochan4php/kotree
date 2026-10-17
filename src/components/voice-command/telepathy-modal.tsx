@@ -55,7 +55,7 @@ export default function TelepathyModal({ isOpen, value, onInput, onSubmit, onClo
           <button type="button" onClick={onClose} className="px-6 py-2.5 text-sm font-bold rounded-xl bg-card border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] text-foreground hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all">
             Cancel
           </button>
-          <button type="submit" className="px-6 py-2.5 bg-accent text-foreground font-bold rounded-xl border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all">
+          <button type="submit" className="px-6 py-2.5 bg-accent text-accent-foreground font-bold rounded-xl border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all">
             Transmit
           </button>
         </div>

@@ -6,7 +6,7 @@ interface StateCardProps {
 
 export default function StateCard({ children }: StateCardProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <main id="main" tabIndex={-1} className="min-h-screen flex items-center justify-center p-4 focus:outline-none">
       <div className="relative z-10 w-full max-w-lg md:max-w-xl">
         <Card className="fluid-glass relative overflow-hidden p-8 md:p-10 text-center gap-0">
           <div className="liquid-gradient opacity-20"></div>
@@ -15,6 +15,6 @@ export default function StateCard({ children }: StateCardProps) {
           </div>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

@@ -21,7 +21,7 @@ export default function LinktreePage() {
   const token = generateToken();
 
   return (
-    <main className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2">
+    <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
       <div className="relative mx-auto w-full max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[23rem_minmax(0,1fr)]">
           <aside className="min-w-0 space-y-3 md:col-start-1 md:row-start-1">

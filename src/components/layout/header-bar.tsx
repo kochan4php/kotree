@@ -1,6 +1,7 @@
 'use client';
 
 import HeaderLeft from './header-left';
+import PrefsPanel from './prefs-panel';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -44,6 +45,7 @@ export default function HeaderBar() {
             <Search className="w-5 h-5 text-accent-ink" />
           </button>
         )}
+        <PrefsPanel />
       </div>
     </div>
   );

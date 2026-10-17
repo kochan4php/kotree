@@ -82,7 +82,7 @@ export default function BossFight() {
     <div className="fixed inset-0 z-99999 pointer-events-auto cursor-crosshair">
       <button
         onClick={() => setIsActive(false)}
-        className="absolute top-4 right-4 bg-destructive text-foreground font-display px-4 py-2 border-[3px] border-white shadow-[4px_4px_0_0_rgba(255,255,255,0.85)] hover:-translate-y-0.5 transition-all pointer-events-auto"
+        className="absolute top-4 right-4 bg-destructive text-[#14110f] font-display px-4 py-2 border-[3px] border-white shadow-[4px_4px_0_0_rgba(255,255,255,0.85)] hover:-translate-y-0.5 transition-all pointer-events-auto"
       >
         EXIT BOSS FIGHT
       </button>

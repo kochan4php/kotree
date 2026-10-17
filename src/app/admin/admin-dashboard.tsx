@@ -67,7 +67,7 @@ export default function AdminDashboard() {
   const maxCount = Math.max(1, ...(overview?.links.map((l) => l.count) ?? []));
 
   return (
-    <main className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2">
+    <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
       <div className="relative max-w-2xl md:max-w-3xl mx-auto space-y-3">
         <Card className="fluid-glass">
           <div className="liquid-gradient"></div>

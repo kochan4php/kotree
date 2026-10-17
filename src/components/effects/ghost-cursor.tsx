@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { MousePointer2 } from 'lucide-react';
+import { readPrefs } from '@/lib/prefs';
 
 export default function GhostCursor() {
   const ref = useRef<HTMLDivElement>(null);
@@ -12,44 +13,64 @@ export default function GhostCursor() {
 
     // Respect user's motion preferences
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
 
     const el = ref.current;
     if (!el) return;
 
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    let currentX = targetX;
-    let currentY = targetY;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let animationFrameId = 0;
 
-    const updateTarget = () => {
-      // Pick a random interactive element to move towards
-      const elements = Array.from(document.querySelectorAll('a, button'));
-      if (elements.length > 0 && Math.random() > 0.3) {
-        const randomEl = elements[Math.floor(Math.random() * elements.length)] as HTMLElement;
-        const rect = randomEl.getBoundingClientRect();
-        targetX = rect.left + rect.width / 2 + (Math.random() * 20 - 10);
-        targetY = rect.top + rect.height / 2 + (Math.random() * 20 - 10);
-      } else {
-        targetX = Math.random() * window.innerWidth;
-        targetY = Math.random() * window.innerHeight;
-      }
-    };
-    const interval = setInterval(updateTarget, 2500);
-
-    // Drive the element via direct style mutation — no React re-render per frame
-    let animationFrameId: number;
-    const animate = () => {
-      currentX += (targetX - currentX) * 0.05;
-      currentY += (targetY - currentY) * 0.05;
-      el.style.transform = `translate(${currentX}px, ${currentY}px)`;
-      animationFrameId = requestAnimationFrame(animate);
+    const stop = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+      cancelAnimationFrame(animationFrameId);
+      el.style.display = 'none';
     };
 
-    animate();
+    const start = () => {
+      if (interval) return; // already running
+      el.style.display = '';
+
+      let targetX = window.innerWidth / 2;
+      let targetY = window.innerHeight / 2;
+      let currentX = targetX;
+      let currentY = targetY;
+
+      const updateTarget = () => {
+        // Pick a random interactive element to move towards
+        const elements = Array.from(document.querySelectorAll('a, button'));
+        if (elements.length > 0 && Math.random() > 0.3) {
+          const randomEl = elements[Math.floor(Math.random() * elements.length)] as HTMLElement;
+          const rect = randomEl.getBoundingClientRect();
+          targetX = rect.left + rect.width / 2 + (Math.random() * 20 - 10);
+          targetY = rect.top + rect.height / 2 + (Math.random() * 20 - 10);
+        } else {
+          targetX = Math.random() * window.innerWidth;
+          targetY = Math.random() * window.innerHeight;
+        }
+      };
+      interval = setInterval(updateTarget, 2500);
+
+      // Drive the element via direct style mutation — no React re-render per frame
+      const animate = () => {
+        currentX += (targetX - currentX) * 0.05;
+        currentY += (targetY - currentY) * 0.05;
+        el.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        animationFrameId = requestAnimationFrame(animate);
+      };
+
+      animate();
+    };
+
+    // Start/stop with the "Background effects" preference
+    const fromPrefs = () => (readPrefs().fx ? start() : stop());
+    fromPrefs();
+    window.addEventListener('kotree:prefs', fromPrefs);
 
     return () => {
-      clearInterval(interval);
-      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('kotree:prefs', fromPrefs);
+      stop();
     };
   }, []);
 
@@ -65,7 +86,7 @@ export default function GhostCursor() {
         style={{ fill: '#ff7c47', color: '#14110f' }}
       />
       <div
-        className="mt-2 px-2 py-1 text-foreground border-2 border-foreground text-[10px] rounded-full whitespace-nowrap font-mono font-bold"
+        className="mt-2 px-2 py-1 text-[#14110f] border-2 border-foreground text-[10px] rounded-full whitespace-nowrap font-mono font-bold"
         style={{ backgroundColor: '#ff7c47' }}
       >
         ghost (demo)

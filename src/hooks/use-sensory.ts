@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { readPrefs } from '@/lib/prefs';
 
 // Singleton AudioContext to prevent main thread freezing/flickering
 let globalAudioCtx: AudioContext | null = null;
@@ -20,6 +21,42 @@ function getAudioContext() {
   return globalAudioCtx;
 }
 
+function soundEnabled(): boolean {
+  return readPrefs().sound;
+}
+
+function playTone(
+  type: OscillatorType,
+  from: number,
+  to: number | null,
+  duration: number,
+  gain: number,
+  delay = 0,
+): void {
+  const audioCtx = getAudioContext();
+  if (!audioCtx) return;
+  try {
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    const t0 = audioCtx.currentTime + delay;
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(from, t0);
+    if (to !== null) oscillator.frequency.exponentialRampToValueAtTime(to, t0 + duration);
+
+    gainNode.gain.setValueAtTime(gain, t0);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start(t0);
+    oscillator.stop(t0 + duration);
+  } catch {
+    // Ignore audio errors
+  }
+}
+
 export function useSensory() {
   const triggerHaptic = useCallback(() => {
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
@@ -33,28 +70,9 @@ export function useSensory() {
   }, []);
 
   const triggerSound = useCallback(() => {
-    const audioCtx = getAudioContext();
-    if (audioCtx) {
-      try {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Start frequency
-        oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1); // End frequency (drop)
-
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.1);
-      } catch {
-        // Ignore audio errors
-      }
-    }
+    if (!soundEnabled()) return;
+    // Quick descending blip
+    playTone('sine', 800, 300, 0.1, 0.3);
   }, []);
 
   const playFeedback = useCallback(() => {
@@ -63,29 +81,23 @@ export function useSensory() {
   }, [triggerHaptic, triggerSound]);
 
   const playHoverFeedback = useCallback(() => {
-    const audioCtx = getAudioContext();
-    if (audioCtx) {
-      try {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        // A very subtle high pitch "tick"
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); 
-        
-        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); // Very quiet
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.05);
-      } catch {
-        // Ignore audio errors
-      }
-    }
+    if (!soundEnabled()) return;
+    // A very subtle high pitch "tick"
+    playTone('sine', 1200, null, 0.05, 0.05);
   }, []);
 
-  return { playFeedback, playHoverFeedback, triggerHaptic, triggerSound };
+  const playSuccess = useCallback(() => {
+    if (!soundEnabled()) return;
+    // Two rising notes
+    playTone('triangle', 659, null, 0.12, 0.12, 0);
+    playTone('triangle', 988, null, 0.14, 0.12, 0.09);
+  }, []);
+
+  const playError = useCallback(() => {
+    if (!soundEnabled()) return;
+    // Low descending buzz
+    playTone('sawtooth', 220, 130, 0.18, 0.12);
+  }, []);
+
+  return { playFeedback, playHoverFeedback, triggerHaptic, triggerSound, playSuccess, playError };
 }
