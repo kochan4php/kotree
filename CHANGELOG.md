@@ -2,6 +2,44 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
+## [3.3.0]
+
+The biggest update yet in polish rather than pixels: new places to look, a search that actually searches, and a pile of invisible work that keeps the whole thing standing.
+
+### Added
+
+- A Stats page — total clicks, the last thirty days, secrets found and the most-loved guestbook messages
+- Kotree Wrapped — the year on this site, wrapped up in one animated page
+- Minesweeper, sitting quietly in the Windows 95 desktop (the desktop itself stays classic, on purpose)
+- Tags on notes and projects, with tag pages, related reading, a table of contents, reading time and previous/next links
+- Search that looks inside notes and projects, and can flip the theme, sound or accent without leaving the keyboard
+- New terminal commands — `stats`, `wrapped`, `theme dark`, `open <slug>` — with tab completion and history from the arrow keys
+- A "What's new" nudge that appears once after an update and links straight to the changelog
+- Sound: small, quiet confirmations for reactions, copies and permalinks (still mutable, still polite)
+- A draft of your guestbook message is kept while you type, so a stray refresh cannot eat it
+- Two new secrets to find — the list on /secrets has the hints
+- An offline page that shows what is saved and reloads itself when the connection returns
+- A privacy page — short, honest, and linked in the footer
+
+### Changed
+
+- The browser bar now follows the theme and accent you picked
+- Long pages fade in gently as you scroll — unless you prefer less motion
+- Everything reflows properly down to a 320-pixel screen, and the text scales with the window
+- High-contrast mode, screen readers and keyboards get the same page as everyone else, through a fresh accessibility pass on every page
+- The admin area keeps a log of what was done, can resolve visitor-reported errors, and shows page views per page
+- Messages queued offline now tell the app icon when they are still waiting
+- Share a link to Kotree from an Android phone and it arrives as a guestbook draft
+- The whole site is tested on Safari, Firefox, two phone sizes and two versions of Node before it ships, and the deploy checks itself afterwards
+
+### Fixed
+
+- Focus now returns to the button that opened the terminal when the dialog closes
+- Guestbook timestamps and reaction labels meet the contrast bar everywhere, including high-contrast mode
+- The install banner no longer covers the header buttons on small phones
+- Messages can no longer bring invisible characters along for the ride
+- The site no longer asks browsers for anything it cannot honour on plain-HTTP setups
+
 ## [3.2.0]
 
 A quieter update with a big footprint: new pages, a smarter admin area, and proper manners when the connection drops.
