@@ -15,6 +15,8 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      // M1: the perf budget has its own single-worker config (playwright.perf.config.ts)
+      testIgnore: /perf\.spec\.ts/,
     },
     // K44: the core smoke on the other engines — only tests tagged @crossbrowser
     {

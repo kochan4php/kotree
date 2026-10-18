@@ -41,6 +41,9 @@ jobs:
       - run: pnpm check:bundle
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx playwright test
+      # M1: the perf budget runs alone, after the main suite, so nothing else
+      # hogs the CPU while it measures
+      - run: pnpm test:perf
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
