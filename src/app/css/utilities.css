@@ -71,16 +71,22 @@
 }
 
 /* Link cards: one column while the right column is narrow (phones and
-   portrait tablets — under 64rem it is only ~400px), two-up from lg (64rem),
-   where two cards fit side by side. A lone trailing card spans the full row.
-   At md the single-column stack is stretched beside a taller rail, and
+   portrait tablets: 30rem at most, md: about 25rem — two cards there would
+   each get under 310px and the captions would ellipsise), two-up from 33rem
+   of column, where two cards fit side by side with room for the caption and
+   the click badge. Keyed off the column itself (container query), not the
+   viewport, so a different rail or page width cannot leave the cards stacked
+   in a half-empty row. Measured in rem like the rail (20rem) and the page
+   width (64rem) beside it, so it stays right if the root font size moves —
+   it is 16.96px here, not 16px. A lone trailing card spans the full row. At
+   md the single-column stack is stretched beside a taller rail, and
    align-content: space-between shares the spare pixels between the rows
    rather than leaving a hole at the foot. */
 @utility link-grid {
   display: grid;
   align-content: space-between;
   gap: 0.75rem;
-  @media (width >= 64rem) {
+  @container (width >= 33rem) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     & > *:last-child:nth-child(odd) {
       grid-column: span 2;

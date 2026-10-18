@@ -22,7 +22,7 @@ export default function SocialLinkList({ token }: SocialLinkListProps) {
   }, [token]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col @container">
       <div className="link-grid link-deck flex-1">
         {socialLinks.map((link, i) => {
           const clickCount = linkCounts.find((item) => item.name === link.name.toLowerCase())?.count ?? 0;
