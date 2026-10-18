@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { readPrefs } from '@/lib/prefs';
+import { readPrefs, prefersReducedMotion } from '@/lib/prefs';
 
 type Mode = 'off' | 'static' | 'animate';
 
@@ -12,7 +12,7 @@ function resolveMode(lowPower: boolean): Mode {
   if (!readPrefs().fx) return 'off';
   const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
   if (conn?.saveData) return 'off';
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'static';
+  if (prefersReducedMotion()) return 'static';
   return lowPower ? 'static' : 'animate';
 }
 

@@ -1,11 +1,11 @@
-import { readPrefs } from '@/lib/prefs';
+import { readPrefs, prefersReducedMotion } from '@/lib/prefs';
 
 // One-shot canvas confetti — no dependency, removes itself when done.
 // Respects the effects preference and reduced motion.
 export function fireConfetti(): void {
   if (typeof window === 'undefined') return;
   if (!readPrefs().fx) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (prefersReducedMotion()) return;
 
   const canvas = document.createElement('canvas');
   canvas.setAttribute('aria-hidden', 'true');

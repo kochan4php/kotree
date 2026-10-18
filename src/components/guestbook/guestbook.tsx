@@ -41,10 +41,13 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   const [sort, setSort] = useState<'newest' | 'top'>('newest');
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [cooldown, setCooldown] = useState(0);
+  // M22: inline, programmatic error state for the message box
+  const [error, setError] = useState('');
   const [nearEnd, setNearEnd] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchEntries(PAGE_SIZE).then((entries) => {
@@ -225,7 +228,13 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
       // text back so nothing the visitor typed is lost
       setEntries((prev) => prev.filter((e) => e.createdAt !== tempCreatedAt));
       setInput(message);
-      if (err instanceof GuestbookHttpError && err.status === 429) {
+      const rateLimited = err instanceof GuestbookHttpError && err.status === 429;
+      // M22: name the problem next to the field and put the cursor back in it
+      setError(
+        rateLimited ? 'Rate limited — try again in 30 seconds.' : 'Could not save your secret — try again.'
+      );
+      inputRef.current?.focus();
+      if (rateLimited) {
         setCooldownUntil(Date.now() + 30_000);
         toast.error('Whoa, slow down! Try again in 30 seconds. 🐢');
       } else {
@@ -312,10 +321,14 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
           <input
             type="text"
+            ref={inputRef}
             value={input}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'secret-error' : 'secret-hint'}
             onChange={(e) => {
               const value = e.target.value.substring(0, 100);
               setInput(value);
+              if (error) setError('');
               try {
                 if (value) localStorage.setItem(DRAFT_KEY, value);
                 else localStorage.removeItem(DRAFT_KEY);
@@ -350,6 +363,14 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
             {input.length}/100
           </span>
         </div>
+        <p id="secret-hint" className="sr-only">
+          Up to 100 characters. Messages are obfuscated at rest and shown to others only when revealed.
+        </p>
+        {error ? (
+          <p id="secret-error" className="mt-1 px-1 text-[10px] font-mono font-bold text-destructive">
+            {error}
+          </p>
+        ) : null}
       </div>
     </Card>
   );

@@ -24,6 +24,8 @@ const PAGES = [
   { name: 'secrets', path: '/secrets' },
   // K59: the privacy note is a page like any other
   { name: 'privacy', path: '/privacy' },
+  // M18: the accessibility statement joins every audit
+  { name: 'accessibility', path: '/accessibility' },
 ];
 
 for (const { name, path } of PAGES) {
@@ -330,4 +332,60 @@ test.describe('landmarks and headings', () => {
       expect(report.skip, `heading order: ${JSON.stringify(report)}`).toBe(false);
     });
   }
+});
+
+// M21: the heavy interactive states must survive 400% zoom (a 320px viewport)
+// without sideways scrolling either.
+test('reflow @320: palette, terminal and Win95 keep one column', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  const overflow = () =>
+    page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+
+  await page.keyboard.press('Control+k');
+  await expect(page.getByRole('dialog').first()).toBeVisible();
+  expect(await overflow()).toBeLessThanOrEqual(1);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog').first()).toBeHidden();
+
+  await page.evaluate(() => window.dispatchEvent(new Event('kotree:terminal')));
+  await expect(page.getByRole('dialog').first()).toBeVisible();
+  expect(await overflow()).toBeLessThanOrEqual(1);
+  await page.getByLabel('Close terminal').click();
+  await expect(page.getByRole('dialog').first()).toBeHidden();
+
+  await page.evaluate(() => window.dispatchEvent(new Event('ACTIVATE_WIN95')));
+  const exit = page.getByRole('button', { name: 'Exit Win95' });
+  await expect(exit).toBeVisible();
+  expect(await overflow()).toBeLessThanOrEqual(1);
+  await exit.click();
+});
+
+// M20: with reduced motion — the OS setting or the in-app switch — nothing
+// keeps animating.
+test.describe('reduced motion', () => {
+  const stillAnimating = (page: import('@playwright/test').Page) =>
+    page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);
+
+  test('OS setting: no animation keeps running', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    for (const path of ['/', '/stats', '/wrapped']) {
+      await page.goto(path);
+      await page.waitForTimeout(600);
+      expect(await stillAnimating(page), `${path} still animates`).toBe(0);
+    }
+  });
+
+  test('the in-app switch reduces motion on its own', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('kotree-prefs', JSON.stringify({ reduceMotion: true }));
+    });
+    for (const path of ['/', '/stats']) {
+      await page.goto(path);
+      await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
+      await page.waitForTimeout(600);
+      expect(await stillAnimating(page), `${path} still animates`).toBe(0);
+    }
+  });
 });

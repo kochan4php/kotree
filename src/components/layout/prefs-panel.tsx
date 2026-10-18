@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Check, Moon, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX } from 'lucide-react';
+import { Check, Moon, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
 import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
 
 const THEMES: { id: Theme; label: string; icon: typeof Sun }[] = [
@@ -131,6 +131,12 @@ export default function PrefsPanel() {
               icon={prefs.sound ? Volume2 : VolumeX}
               checked={prefs.sound}
               onChange={(v) => patch({ sound: v })}
+            />
+            <Toggle
+              label="Reduce motion"
+              icon={Waves}
+              checked={prefs.reduceMotion}
+              onChange={(v) => patch({ reduceMotion: v })}
             />
           </div>
 

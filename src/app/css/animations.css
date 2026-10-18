@@ -74,6 +74,18 @@
   }
 }
 
+/* M20: the same gate for the in-app "Reduce motion" switch, independent of
+   the OS setting. Higher specificity keeps both paths identical. */
+html[data-motion='off'] *,
+html[data-motion='off'] ::before,
+html[data-motion='off'] ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* SPA route changes: app/template.tsx re-mounts on navigation and plays this
    (guaranteed in every browser; ::view-transition-* in globals.css covers
    cross-document loads where the View Transitions API exists) */
@@ -113,7 +125,7 @@
    past the entry range, so they never flash. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    html[data-fx='on'] [data-reveal] {
+    html[data-fx='on']:not([data-motion='off']) [data-reveal] {
       animation: kt-reveal-up linear both;
       animation-timeline: view();
       animation-range: entry 0% entry 55%;

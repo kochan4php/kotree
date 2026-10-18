@@ -11,11 +11,22 @@ export interface Prefs {
   accent: Accent;
   fx: boolean;
   sound: boolean;
+  /** M20: explicit "Reduce motion" switch, on top of the OS setting. */
+  reduceMotion: boolean;
 }
 
 export const PREFS_KEY = 'kotree-prefs';
 
-export const DEFAULT_PREFS: Prefs = { theme: 'auto', accent: 'orange', fx: true, sound: true };
+export const DEFAULT_PREFS: Prefs = { theme: 'auto', accent: 'orange', fx: true, sound: true, reduceMotion: false };
+
+// M20: one gate for every effect — the OS setting or the in-app preference.
+export function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    document.documentElement.dataset.motion === 'off' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
 
 export const ACCENTS: { id: Accent; label: string; swatch: string }[] = [
   { id: 'orange', label: 'Orange', swatch: '#ff7c47' },
@@ -58,6 +69,7 @@ export function applyPrefs(prefs: Prefs): void {
   root.dataset.theme = resolved;
   root.dataset.accent = prefs.accent;
   root.dataset.fx = prefs.fx ? 'on' : 'off';
+  root.dataset.motion = prefs.reduceMotion ? 'off' : 'on';
   // Keep the browser chrome (mobile URL bar) in step with theme + accent
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor(prefs));
 }
@@ -77,10 +89,7 @@ export function writePrefs(patch: Partial<Prefs>): Prefs {
 // Crossfade the theme change with the native View Transitions API where the
 // browser supports it (skipped under reduced motion).
 export function runViewTransition(update: () => void): void {
-  if (
-    typeof document.startViewTransition === 'function' &&
-    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  ) {
+  if (typeof document.startViewTransition === 'function' && !prefersReducedMotion()) {
     document.startViewTransition(update);
   } else {
     update();

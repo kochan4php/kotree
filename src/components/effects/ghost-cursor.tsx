@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { MousePointer2 } from 'lucide-react';
-import { readPrefs } from '@/lib/prefs';
+import { readPrefs, prefersReducedMotion } from '@/lib/prefs';
 
 export default function GhostCursor() {
   const ref = useRef<HTMLDivElement>(null);
@@ -12,7 +12,7 @@ export default function GhostCursor() {
     if (window.innerWidth < 768) return;
 
     // Respect user's motion preferences
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (prefersReducedMotion()) return;
     if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
 
     const el = ref.current;

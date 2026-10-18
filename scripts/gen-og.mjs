@@ -94,6 +94,7 @@ const pages = [
   ['guestbook', 'Guestbook', 'The full confession wall'],
   ['stats', 'Stats', 'Clicks, links and reactions'],
   ['wrapped', 'Wrapped', 'The year in clicks and secrets'],
+  ['accessibility', 'Accessibility', 'How Kotree is built to be usable'],
 ];
 for (const [name, title, subtitle] of pages) {
   writeImage(`og/${name}.png`, await render(title, subtitle, 'Deo Subarno • Kotree'));

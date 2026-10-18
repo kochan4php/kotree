@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Sparkles, TerminalSquare, ArrowRight } from 'lucide-react';
+import FooterNav from './footer-nav';
 
 export default function Footer() {
   return (
@@ -23,25 +24,7 @@ export default function Footer() {
           </p>
         </div>
 
-        <nav aria-label="Site" className="relative z-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-bold text-muted-foreground">
-          {(
-            [
-              ['About', '/about'],
-              ['Now', '/now'],
-              ['Projects', '/projects'],
-              ['Notes', '/notes'],
-              ['Guestbook', '/guestbook'],
-              ['Secrets', '/secrets'],
-              ['Stats', '/stats'],
-              ['Status', '/status'],
-              ['Privacy', '/privacy'],
-            ] as const
-          ).map(([label, href]) => (
-            <Link key={href} href={href} className="inline-flex min-h-6 items-center hover:text-foreground hover:underline underline-offset-2 transition-colors">
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <FooterNav />
 
         <Link 
           href="/changelog" 

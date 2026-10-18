@@ -95,6 +95,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    {
+      url: `${site.baseUrl}/accessibility`,
+      lastModified: lastModified('src/app/accessibility/page.tsx'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
     ...getProjects().map((project) => ({
       url: `${site.baseUrl}/projects/${project.slug}`,
       lastModified: project.date ? new Date(project.date).toISOString() : lastModified(),
