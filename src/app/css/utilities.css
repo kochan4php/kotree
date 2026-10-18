@@ -70,15 +70,17 @@
   -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
 }
 
-/* Link cards: one column on phones; two-up from xl (80rem) where the
-   content column is wide enough. A lone trailing card spans the full row.
-   When the column is stretched taller than the cards (lg), the spare pixels
-   are shared between the rows so the stack still ends flush — never visible. */
+/* Link cards: one column while the right column is narrow (phones and
+   portrait tablets — under 64rem it is only ~400px), two-up from lg (64rem),
+   where two cards fit side by side. A lone trailing card spans the full row.
+   At md the single-column stack is stretched beside a taller rail, and
+   align-content: space-between shares the spare pixels between the rows
+   rather than leaving a hole at the foot. */
 @utility link-grid {
   display: grid;
   align-content: space-between;
   gap: 0.75rem;
-  @media (width >= 80rem) {
+  @media (width >= 64rem) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     & > *:last-child:nth-child(odd) {
       grid-column: span 2;

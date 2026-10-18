@@ -33,15 +33,16 @@ export default function LinktreePage() {
             </div>
           </aside>
 
-          {/* The wrapper dissolves at md/lg (display:contents) so the guestbook
+          {/* The wrapper dissolves at md (display:contents) so the guestbook
               spans both columns as a full-width band under the rail + links;
-              at xl it becomes a stretched column and the guestbook grows its
-              message list to whatever is left, so the right column always ends
-              dead level with the rail (footer sits 12px under both). */}
-          <div className="min-w-0 md:contents xl:flex xl:flex-col xl:col-start-2 xl:row-start-1">
+              from lg it becomes a stretched column again — links two-up on
+              top, guestbook under them growing its message list to whatever
+              is left — so the right column always ends dead level with the
+              rail (footer sits 12px under both). */}
+          <div className="min-w-0 md:contents lg:flex lg:flex-col lg:col-start-2 lg:row-start-1">
             <SocialLinkList token={token} />
 
-            <div className="min-w-0 mt-3 md:col-span-2 md:mt-0 xl:mt-3 xl:flex-1 xl:grid">
+            <div className="min-w-0 mt-3 md:col-span-2 md:mt-0 lg:mt-3 lg:flex-1 lg:grid">
               <Guestbook token={token} />
             </div>
           </div>

@@ -127,7 +127,10 @@ export default function SocialLinkItem({ link, clickCount, token, index = 0 }: S
 
             <div className="min-w-0 flex-1 text-left">
               <div className="text-lg font-bold text-foreground tracking-tight">{link.name}</div>
-              <div className="text-sm font-medium text-muted-foreground truncate">{link.description}</div>
+              {/* At lg the cards sit two-up and the column is ~125px of text wide:
+                  one line would ellipsise the longer captions, so let them take
+                  a second line there (clamped) instead of dropping the badge. */}
+              <div className="text-sm font-medium text-muted-foreground truncate lg:line-clamp-2 lg:whitespace-normal">{link.description}</div>
             </div>
 
             {clickCount > 0 && (

@@ -468,7 +468,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
 
         <div
           ref={listRef}
-          className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-72 xl:flex-auto xl:min-h-72'}`}
+          className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-72 lg:flex-auto lg:min-h-72'}`}
         >
           {isLoading && entries.length === 0 ? (
             <Skeleton rows={3} className="mb-3" />

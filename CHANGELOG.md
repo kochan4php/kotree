@@ -33,6 +33,7 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - The icon set got a proper audit: maskable safe areas verified, and a favicon that finally exists
 - The AI terminal wears the same window as the rest of the site now — a real title bar with a close button, full-width prompt bar — instead of a pretend operating-system frame
 - The guestbook scrolls forever instead of hiding secrets behind a "load more" button, and the message list is tall enough to read more than two at a time
+- On tablet-sized screens the links now sit two to a row with the guestbook beside them, instead of one stretched link per row
 
 ### Fixed
 
