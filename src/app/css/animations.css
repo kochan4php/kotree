@@ -139,3 +139,21 @@ html[data-motion='off'] ::after {
     transform: translateY(14px);
   }
 }
+
+/* M46: a short pop on the reaction button that was tapped. Both motion gates
+   (OS preference and the in-app switch) already neutralise it. */
+@keyframes kt-react-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.kt-react-pop {
+  animation: kt-react-pop 320ms ease-out;
+}

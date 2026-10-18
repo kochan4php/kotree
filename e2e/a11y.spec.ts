@@ -267,11 +267,20 @@ test.describe('interactive states', () => {
 // M15: a journey that only uses the keyboard — skip link, palette navigation,
 // and typing a secret on the wall.
 test('keyboard journey: skip link, palette, guestbook post', async ({ page }) => {
-  // The journey proves keyboard operability, not the API — answer the POST
-  // locally so the run never depends on the wall's rate limit or Mongo.
-  await page.route('**/api/guestbook', (route) =>
-    route.request().method() === 'POST' ? route.fulfill({ status: 200, body: '{}' }) : route.continue()
-  );
+  // The journey proves keyboard operability, not the API — serve a small fixed
+  // wall and answer the POST locally so the tab order is deterministic and the
+  // run never depends on the wall's rate limit or Mongo.
+  const FIXTURES = Array.from({ length: 6 }, (_, i) => ({
+    id: `fixture-${i}`,
+    message: `🤫 fixture-secret-${i}`,
+    createdAt: new Date(Date.now() - (i + 1) * 60_000).toISOString(),
+    reactions: {},
+  }));
+  await page.route('**/api/guestbook**', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: FIXTURES });
+    if (route.request().method() === 'POST') return route.fulfill({ status: 200, body: '{}' });
+    return route.continue();
+  });
   await page.goto('/');
   await page.waitForLoadState('networkidle');
 
@@ -287,7 +296,8 @@ test('keyboard journey: skip link, palette, guestbook post', async ({ page }) =>
   await expect(page).toHaveURL(/\/guestbook$/);
 
   const input = page.getByLabel('Secret message');
-  for (let i = 0; i < 80; i++) {
+  // Budget covers the whole page (filters, tabs and every entry's reaction row)
+  for (let i = 0; i < 200; i++) {
     if (await input.evaluate((el) => el === document.activeElement)) break;
     await page.keyboard.press('Tab');
   }

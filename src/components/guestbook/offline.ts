@@ -1,5 +1,6 @@
 import { get, set } from 'idb-keyval';
 import { stashToken, requestBackgroundSync, updateAppBadge } from '@/lib/offline-sync';
+import { rememberMine, ownerToken } from './mine';
 
 // Same raw-idb shape the service worker reads for background sync.
 const KEY = 'offline-guestbook';
@@ -36,15 +37,22 @@ export async function flushQueue(token?: string): Promise<number> {
     // may be flushing the same queue right now; whoever claims first wins.
     await set(KEY, []);
 
+    const owner = ownerToken();
     const remaining: string[] = [];
     for (let i = 0; i < q.length; i++) {
       try {
         const res = await fetch('/api/guestbook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: q[i], _token: token }),
+          body: JSON.stringify({ message: q[i], _token: token, owner }),
         });
-        if (!res.ok) remaining.push(q[i]); // server said no — keep it for a later retry
+        if (!res.ok) {
+          remaining.push(q[i]); // server said no — keep it for a later retry
+        } else {
+          // M40: remember the id so a late-sent secret can still be edited
+          const data = await res.json().catch(() => null);
+          if (typeof data?.id === 'string') rememberMine(data.id, new Date().toISOString());
+        }
       } catch {
         remaining.push(q[i]);
       }

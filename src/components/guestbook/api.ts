@@ -33,30 +33,58 @@ export async function reportEntry(id: string, token?: string): Promise<{ reporte
   return res.json();
 }
 
+// M40: 'sent' carries the server id so the device can edit or delete it later.
 // 'queued' means the network was unreachable and the message was stored
 // locally; HTTP rejections still throw so the caller can revert the
 // optimistic entry (or start a cooldown on 429).
-export async function postEntry(message: string, token?: string): Promise<'sent' | 'queued'> {
+export async function postEntry(
+  message: string,
+  token?: string,
+  owner?: string,
+): Promise<{ status: 'sent' | 'queued'; id?: string }> {
   let res: Response;
   try {
     res = await fetch('/api/guestbook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, _token: token }),
+      body: JSON.stringify({ message, _token: token, owner }),
     });
   } catch {
     await queueMessage(message);
-    return 'queued';
+    return { status: 'queued' };
   }
   if (!res.ok) throw new GuestbookHttpError(res.status);
-  return 'sent';
+  const data = await res.json().catch(() => null);
+  return { status: 'sent', id: typeof data?.id === 'string' ? data.id : undefined };
 }
 
-export async function reactToEntry(id: string, reaction: string, token?: string): Promise<void> {
+// M46: counted=false means today's vote for this entry was already in the
+// count (another tab or device) — the caller rolls its optimistic bump back.
+export async function reactToEntry(id: string, reaction: string, token?: string): Promise<{ counted: boolean }> {
   const res = await fetch('/api/guestbook', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, reaction, _token: token }),
   });
   if (!res.ok) throw new Error(`guestbook PATCH failed: ${res.status}`);
+  const data = await res.json().catch(() => null);
+  return { counted: data?.counted !== false };
+}
+
+// M40/M41: the device token proves ownership. The server enforces the
+// five-minute edit window itself; the client only mirrors the rule.
+export async function deleteOwnEntry(id: string, owner: string): Promise<void> {
+  const res = await fetch(`/api/guestbook?id=${encodeURIComponent(id)}&owner=${encodeURIComponent(owner)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error(`guestbook DELETE failed: ${res.status}`);
+}
+
+export async function editOwnEntry(id: string, owner: string, message: string, token?: string): Promise<void> {
+  const res = await fetch('/api/guestbook', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, owner, message, _token: token }),
+  });
+  if (!res.ok) throw new Error(`guestbook PUT failed: ${res.status}`);
 }

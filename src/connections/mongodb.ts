@@ -56,6 +56,11 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       // M25: the wall's page-1 sort is (pinned, createdAt) — the plain
       // createdAt index cannot serve it, this one covers it exactly
       db.collection('guestbook').createIndex({ pinned: -1, createdAt: -1 }),
+      // M46/M47/M44: reaction and vote dedupe keys, and the ban expiry
+      db.collection('guestbook_reactions').createIndex({ entryId: 1, ip: 1, day: 1 }, { unique: true }),
+      db.collection('guestbook_bans').createIndex({ ip: 1 }, { unique: true }),
+      db.collection('guestbook_bans').createIndex({ until: 1 }, { expireAfterSeconds: 0 }),
+      db.collection('poll_votes').createIndex({ pollId: 1, ip: 1, day: 1 }, { unique: true }),
       db.collection('daily_clicks').createIndex({ day: 1 }),
       db.collection('link_counter').createIndex({ name: 1 }),
       // M25: leaderboard sort is (score desc, createdAt asc) — cover both
@@ -143,6 +148,13 @@ export interface GuestbookEntry {
   pinned?: boolean; // K30: admin-featured, floats to the top of the wall
   reports?: number; // K30: visitor reports pending review
   hidden?: boolean; // K30: auto-hidden once enough reports pile up
+  ownerHash?: string; // M40: sha256 of the device token the sender kept
+  deleted?: boolean; // M40: soft-delete — the row stays as its own audit trail
+  deletedAt?: Date;
+  deletedBy?: 'author';
+  editedAt?: Date; // M41: set on every author edit inside the 5-minute window
+  history?: { message: string; at: Date }[]; // M41: previous versions (capped)
+  reply?: { message: string; at: Date }; // M43: one admin reply per entry
 }
 
 // Public shape: id is exposed so entries can be permalinked and reacted to.
@@ -152,10 +164,16 @@ export interface PublicGuestbookEntry {
   createdAt: Date;
   reactions?: Record<string, number>;
   pinned?: boolean;
+  edited?: boolean;
+  reply?: { message: string; at: Date };
 }
 
 const guestbookCollection = () =>
   getClientPromise().then((client) => client.db('kotreedb').collection<GuestbookEntry>('guestbook'));
+
+// Same hashing the wall uses internally: moderation sees a stable pseudonym,
+// never the address itself. Shared by reactions, bans and poll votes.
+export const hashIp = (ip: string) => createHash('sha256').update(ip).digest('hex').slice(0, 32);
 
 const toPublicEntry = (d: WithId<GuestbookEntry>): PublicGuestbookEntry => ({
   id: d._id.toString(),
@@ -163,6 +181,8 @@ const toPublicEntry = (d: WithId<GuestbookEntry>): PublicGuestbookEntry => ({
   createdAt: d.createdAt,
   reactions: d.reactions,
   pinned: d.pinned,
+  edited: Boolean(d.editedAt),
+  reply: d.reply,
 });
 
 // K30 sort modes: 'newest' (pinned float to the top of page 1 only) and
@@ -180,7 +200,7 @@ export async function getGuestbookEntries(
 
   if (sort === 'top') {
     const docs = await collection
-      .find({ hidden: { $ne: true } }, { projection, maxTimeMS: 3_000 })
+      .find({ hidden: { $ne: true }, deleted: { $ne: true } }, { projection, maxTimeMS: 3_000 })
       .sort({ 'reactions.❤️': -1, createdAt: -1 })
       .limit(limit)
       .toArray();
@@ -190,7 +210,7 @@ export async function getGuestbookEntries(
   if (before) {
     // Pinned entries only ride along on page 1, so later pages skip them
     const docs = await collection
-      .find({ hidden: { $ne: true }, pinned: { $ne: true }, createdAt: { $lt: new Date(before) } }, { projection, maxTimeMS: 3_000 })
+      .find({ hidden: { $ne: true }, deleted: { $ne: true }, pinned: { $ne: true }, createdAt: { $lt: new Date(before) } }, { projection, maxTimeMS: 3_000 })
       .sort({ createdAt: -1 })
       .limit(limit)
       .toArray();
@@ -198,7 +218,7 @@ export async function getGuestbookEntries(
   }
 
   const docs = await collection
-    .find({ hidden: { $ne: true } }, { projection, maxTimeMS: 3_000 })
+    .find({ hidden: { $ne: true }, deleted: { $ne: true } }, { projection, maxTimeMS: 3_000 })
     .sort({ pinned: -1, createdAt: -1 })
     .limit(limit)
     .toArray();
@@ -233,24 +253,51 @@ export async function setGuestbookPinned(id: string, pinned: boolean): Promise<b
   return matchedCount === 1;
 }
 
+const guestbookReactionsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection('guestbook_reactions'));
+
 // Caller must validate `reaction` against a whitelist before calling —
-// it is used as a Mongo update path.
-export async function reactToGuestbookEntry(id: string, reaction: string): Promise<boolean> {
-  if (!ObjectId.isValid(id)) return false;
+// it is used as a Mongo update path. M46: the (entry, ip-hash, day) unique
+// index enforces one reaction per entry per visitor-day, not the client.
+export async function reactToGuestbookEntry(
+  id: string,
+  reaction: string,
+  ipHash?: string,
+): Promise<'ok' | 'duplicate' | 'missing'> {
+  if (!ObjectId.isValid(id)) return 'missing';
+  if (ipHash) {
+    const day = new Date().toISOString().slice(0, 10);
+    try {
+      await (await guestbookReactionsCollection()).insertOne({ entryId: id, ip: ipHash, day }, { maxTimeMS: 3_000 });
+    } catch (err) {
+      if ((err as { code?: number }).code === 11000) return 'duplicate';
+      // dedupe store hiccup — count the reaction rather than losing it
+    }
+  }
   const collection = await guestbookCollection();
   const { matchedCount } = await collection.updateOne(
-    { _id: new ObjectId(id) },
+    { _id: new ObjectId(id), deleted: { $ne: true } },
     { $inc: { [`reactions.${reaction}`]: 1 } },
     { maxTimeMS: 3_000 }
   );
-  return matchedCount === 1;
+  return matchedCount === 1 ? 'ok' : 'missing';
 }
 
-export async function addGuestbookEntry(message: string, ip?: string, userAgent?: string): Promise<void> {
+// M40: returns the new id so the client can remember it for edit/delete
+export async function addGuestbookEntry(
+  message: string,
+  ip?: string,
+  userAgent?: string,
+  ownerHash?: string,
+): Promise<string> {
   const collection = await guestbookCollection();
   // Store a hash, not the raw IP: same visitor correlates for moderation, no PII kept
-  const hashedIp = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 32) : undefined;
-  await collection.insertOne({ message, ip: hashedIp, userAgent, createdAt: new Date() }, { maxTimeMS: 3_000 });
+  const hashedIp = ip ? hashIp(ip) : undefined;
+  const { insertedId } = await collection.insertOne(
+    { message, ip: hashedIp, userAgent, ownerHash, createdAt: new Date() },
+    { maxTimeMS: 3_000 },
+  );
+  return insertedId.toString();
 }
 
 export interface GuestbookAdminEntry {
@@ -261,13 +308,18 @@ export interface GuestbookAdminEntry {
   pinned?: boolean;
   reports?: number;
   hidden?: boolean;
+  ipHash?: string; // M47: needed to ban; never leaves the admin panel
+  reply?: { message: string; at: Date };
+  editedAt?: Date;
+  deleted?: boolean;
+  history?: { message: string; at: Date }[];
 }
 
-// Admin-only view: includes the internal id (for moderation deletes) and
-// user-agent. The hashed IP stays out — not needed to moderate.
+// Admin-only view: includes the internal id (for moderation deletes),
+// user-agent and the hashed IP (temporary bans are keyed on it).
 export async function getGuestbookAdminEntries(limit = 100): Promise<GuestbookAdminEntry[]> {
   const collection = await guestbookCollection();
-  const docs = await collection.find({}, { projection: { ip: 0 }, maxTimeMS: 3_000 }).sort({ createdAt: -1 }).limit(limit).toArray();
+  const docs = await collection.find({}, { maxTimeMS: 3_000 }).sort({ createdAt: -1 }).limit(limit).toArray();
   return docs.map((d) => ({
     id: d._id.toString(),
     message: d.message,
@@ -276,6 +328,11 @@ export async function getGuestbookAdminEntries(limit = 100): Promise<GuestbookAd
     pinned: d.pinned,
     reports: d.reports,
     hidden: d.hidden,
+    ipHash: d.ip,
+    reply: d.reply,
+    editedAt: d.editedAt,
+    deleted: d.deleted,
+    history: d.history,
   }));
 }
 
@@ -283,6 +340,205 @@ export async function deleteGuestbookEntry(id: string): Promise<boolean> {
   const collection = await guestbookCollection();
   const { deletedCount } = await collection.deleteOne({ _id: new ObjectId(id) }, { maxTimeMS: 3_000 });
   return deletedCount === 1;
+}
+
+// M40/M41: author-side ownership — a soft delete and a five-minute edit
+// window, both keyed on the hashed device token sent with the original POST.
+export const EDIT_WINDOW_MS = 5 * 60 * 1000;
+
+export async function deleteGuestbookOwnEntry(id: string, ownerHash: string): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await guestbookCollection();
+  const { matchedCount } = await collection.updateOne(
+    { _id: new ObjectId(id), ownerHash, deleted: { $ne: true } },
+    { $set: { deleted: true, deletedAt: new Date(), deletedBy: 'author' } },
+    { maxTimeMS: 3_000 },
+  );
+  return matchedCount === 1;
+}
+
+export async function editGuestbookOwnEntry(
+  id: string,
+  ownerHash: string,
+  message: string,
+): Promise<'ok' | 'missing' | 'expired'> {
+  if (!ObjectId.isValid(id)) return 'missing';
+  const collection = await guestbookCollection();
+  const entry = await collection.findOne(
+    { _id: new ObjectId(id), ownerHash, deleted: { $ne: true } },
+    { maxTimeMS: 3_000 },
+  );
+  if (!entry) return 'missing';
+  if (Date.now() - entry.createdAt.getTime() > EDIT_WINDOW_MS) return 'expired';
+  // Keep the last three versions; the edit is stamped so the wall says "edited"
+  const history = [...(entry.history ?? []), { message: entry.message, at: new Date() }].slice(-3);
+  await collection.updateOne(
+    { _id: entry._id },
+    { $set: { message, editedAt: new Date(), history } },
+    { maxTimeMS: 3_000 },
+  );
+  return 'ok';
+}
+
+// M43: one reply per entry, written from the admin panel; null clears it.
+export async function setGuestbookReply(id: string, message: string | null): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await guestbookCollection();
+  const { matchedCount } = await collection.updateOne(
+    { _id: new ObjectId(id) },
+    message ? { $set: { reply: { message, at: new Date() } } } : { $unset: { reply: '' } },
+    { maxTimeMS: 3_000 },
+  );
+  return matchedCount === 1;
+}
+
+// M47: hide / unhide, one id or a bulk selection from the moderation panel
+export async function setGuestbookHidden(ids: string[], hidden: boolean): Promise<number> {
+  const valid = ids.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id));
+  if (valid.length === 0) return 0;
+  const collection = await guestbookCollection();
+  const { modifiedCount } = await collection.updateMany(
+    { _id: { $in: valid } },
+    { $set: { hidden } },
+    { maxTimeMS: 3_000 },
+  );
+  return modifiedCount;
+}
+
+// ---------- M47: temporary IP-hash bans ----------
+
+const guestbookBansCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection('guestbook_bans'));
+
+// The TTL index on `until` expires the row on its own once the ban lapses.
+export async function banGuestbookIpHash(ipHash: string, until: Date): Promise<void> {
+  await (await guestbookBansCollection()).updateOne(
+    { ip: ipHash },
+    { $set: { ip: ipHash, until, createdAt: new Date() } },
+    { upsert: true, maxTimeMS: 3_000 },
+  );
+}
+
+export async function unbanGuestbookIpHash(ipHash: string): Promise<void> {
+  await (await guestbookBansCollection()).deleteOne({ ip: ipHash }, { maxTimeMS: 3_000 });
+}
+
+export async function isGuestbookIpHashBanned(ipHash: string): Promise<boolean> {
+  try {
+    const row = await (await guestbookBansCollection()).findOne(
+      { ip: ipHash, until: { $gt: new Date() } },
+      { maxTimeMS: 3_000 },
+    );
+    return Boolean(row);
+  } catch {
+    return false; // DB hiccup — fail open, same as the rate limiter
+  }
+}
+
+// ---------- M44: mini polls ----------
+
+export interface PublicPoll {
+  id: string;
+  question: string;
+  options: { label: string; count: number }[];
+  total: number;
+  createdAt: Date;
+  closedAt?: Date;
+}
+
+interface PollDoc {
+  question: string;
+  options: string[];
+  createdAt: Date;
+  closedAt?: Date;
+}
+
+const pollsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<PollDoc>('polls'));
+
+const pollVotesCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection('poll_votes'));
+
+const toPublicPoll = async (doc: WithId<PollDoc>): Promise<PublicPoll> => {
+  const rows = await (await pollVotesCollection())
+    .aggregate<{ _id: number; count: number }>(
+      [
+        { $match: { pollId: doc._id.toString() } },
+        { $group: { _id: '$optionIndex', count: { $sum: 1 } } },
+      ],
+      { maxTimeMS: 3_000 },
+    )
+    .toArray();
+  const byIndex = new Map(rows.map((row) => [row._id, row.count]));
+  const options = doc.options.map((label, index) => ({ label, count: byIndex.get(index) ?? 0 }));
+  return {
+    id: doc._id.toString(),
+    question: doc.question,
+    options,
+    total: options.reduce((sum, option) => sum + option.count, 0),
+    createdAt: doc.createdAt,
+    closedAt: doc.closedAt,
+  };
+};
+
+// One active poll at a time: creating a new one closes whatever was open.
+export async function createPoll(question: string, options: string[]): Promise<string> {
+  const collection = await pollsCollection();
+  await collection.updateMany(
+    { closedAt: { $exists: false } },
+    { $set: { closedAt: new Date() } },
+    { maxTimeMS: 3_000 },
+  );
+  const { insertedId } = await collection.insertOne({ question, options, createdAt: new Date() }, { maxTimeMS: 3_000 });
+  return insertedId.toString();
+}
+
+export async function closeActivePoll(): Promise<boolean> {
+  const collection = await pollsCollection();
+  const { modifiedCount } = await collection.updateMany(
+    { closedAt: { $exists: false } },
+    { $set: { closedAt: new Date() } },
+    { maxTimeMS: 3_000 },
+  );
+  return modifiedCount > 0;
+}
+
+export async function getActivePoll(): Promise<PublicPoll | null> {
+  const collection = await pollsCollection();
+  const doc = await collection.findOne({ closedAt: { $exists: false } }, { maxTimeMS: 3_000 });
+  return doc ? toPublicPoll(doc) : null;
+}
+
+export async function getArchivedPolls(limit = 3): Promise<PublicPoll[]> {
+  const collection = await pollsCollection();
+  const docs = await collection
+    .find({ closedAt: { $exists: true } }, { maxTimeMS: 3_000 })
+    .sort({ closedAt: -1 })
+    .limit(limit)
+    .toArray();
+  return Promise.all(docs.map(toPublicPoll));
+}
+
+// M44: one vote per hashed IP per day — enforced by a unique index, not the UI.
+export async function votePoll(
+  pollId: string,
+  optionIndex: number,
+  ipHash: string,
+): Promise<'ok' | 'duplicate' | 'missing' | 'closed'> {
+  if (!ObjectId.isValid(pollId)) return 'missing';
+  const collection = await pollsCollection();
+  const poll = await collection.findOne({ _id: new ObjectId(pollId) }, { maxTimeMS: 3_000 });
+  if (!poll) return 'missing';
+  if (poll.closedAt) return 'closed';
+  if (!Number.isInteger(optionIndex) || optionIndex < 0 || optionIndex >= poll.options.length) return 'missing';
+  const day = new Date().toISOString().slice(0, 10);
+  try {
+    await (await pollVotesCollection()).insertOne({ pollId, optionIndex, ip: ipHash, day }, { maxTimeMS: 3_000 });
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) return 'duplicate';
+    throw err;
+  }
+  return 'ok';
 }
 
 // ---------- Client error reports (R41, deduped in K7) ----------

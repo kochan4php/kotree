@@ -4,17 +4,34 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { BarChart3, Bug, Check, Download, Eye, FileDown, Gauge, LogOut, Pin, PinOff, RefreshCw, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
+import { Ban, BarChart3, Bug, Check, Download, Eye, EyeOff, FileDown, Gauge, LogOut, Pin, PinOff, RefreshCw, Reply, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
+import { decryptMessage } from '@/components/guestbook/obfuscation';
+import InlineMarkdown from '@/components/content/inline-markdown';
 
 interface Overview {
   totalClicks: number;
   links: { name: string; count: number }[];
-  guestbook: { id: string; message: string; createdAt: string; userAgent?: string; pinned?: boolean; reports?: number; hidden?: boolean }[];
+  guestbook: {
+    id: string;
+    message: string;
+    createdAt: string;
+    userAgent?: string;
+    pinned?: boolean;
+    reports?: number;
+    hidden?: boolean;
+    ipHash?: string;
+    reply?: { message: string; at: string };
+    editedAt?: string;
+    deleted?: boolean;
+    history?: { message: string; at: string }[];
+  }[];
   daily: { day: string; count: number }[];
   errors: { id: string; message: string; source: string; url?: string; count: number; createdAt: string; lastSeenAt?: string }[];
   vitals: { page: string; metric: string; p75: number; rating: 'good' | 'ni' | 'poor'; good: number; total: number; weeks?: (number | null)[] }[];
   pageviews: { path: string; count: number }[];
   audit: { id: string; event: string; detail?: string; at: string }[];
+  // M44: the active poll, if one is running
+  poll?: { id: string; question: string; options: { label: string; count: number }[]; total: number } | null;
 }
 
 // M10: tiny four-week p75 sparkline. For every vital a lower number is better,
@@ -147,6 +164,18 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [probeDone, setProbeDone] = useState(false);
   const [filter, setFilter] = useState('');
+  // M47: report queue — reported first, hidden-only, or everything
+  const [modFilter, setModFilter] = useState<'all' | 'reported' | 'hidden'>('all');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // M47: decrypted, markdown-lite preview for one entry at a time
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  // M43: which entry's reply box is open, and its draft text
+  const [replyId, setReplyId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  // M44: poll draft
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState('');
+  const [pollBusy, setPollBusy] = useState(false);
 
   // A session cookie may still be live from a previous visit: try it silently
   useEffect(() => {
@@ -261,6 +290,119 @@ export default function AdminDashboard() {
     }
   };
 
+  // M47: hide / unhide — one entry or the whole bulk selection
+  const setHidden = async (ids: string[], hidden: boolean) => {
+    try {
+      const res = await fetch('/api/admin/guestbook', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ ids, hidden }),
+      });
+      if (!res.ok) throw new Error(`Update failed (${res.status})`);
+      const idSet = new Set(ids);
+      setOverview((prev) =>
+        prev ? { ...prev, guestbook: prev.guestbook.map((entry) => (idSet.has(entry.id) ? { ...entry, hidden } : entry)) } : prev,
+      );
+      setSelected(new Set());
+      toast.success(hidden ? 'Hidden from the wall' : 'Visible again');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Update failed');
+    }
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // M43: send (or clear) a reply under an entry
+  const sendReply = async (id: string) => {
+    try {
+      const res = await fetch('/api/admin/guestbook', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ id, reply: replyText }),
+      });
+      if (!res.ok) throw new Error(`Reply failed (${res.status})`);
+      const trimmed = replyText.trim();
+      setOverview((prev) =>
+        prev
+          ? {
+              ...prev,
+              guestbook: prev.guestbook.map((entry) =>
+                entry.id === id ? { ...entry, reply: trimmed ? { message: trimmed, at: new Date().toISOString() } : undefined } : entry,
+              ),
+            }
+          : prev,
+      );
+      setReplyId(null);
+      setReplyText('');
+      toast.success(trimmed ? 'Reply posted' : 'Reply cleared');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Reply failed');
+    }
+  };
+
+  // M47: temporary 24h ban keyed on the hashed IP (it expires on its own)
+  const setBan = async (ipHash: string) => {
+    try {
+      const res = await fetch('/api/admin/guestbook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ ipHash, action: 'ban' }),
+      });
+      if (!res.ok) throw new Error(`Ban failed (${res.status})`);
+      toast.success('Banned for 24 hours');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ban failed');
+    }
+  };
+
+  // M44: start the next question (this closes the previous one)
+  const createPoll = async () => {
+    if (pollBusy) return;
+    setPollBusy(true);
+    try {
+      const options = pollOptions.split(',').map((option) => option.trim()).filter(Boolean);
+      const res = await fetch('/api/admin/poll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ question: pollQuestion, options }),
+      });
+      if (!res.ok) throw new Error(`Create failed (${res.status})`);
+      toast.success('Question is live');
+      setPollQuestion('');
+      setPollOptions('');
+      await refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Create failed');
+    } finally {
+      setPollBusy(false);
+    }
+  };
+
+  const closePoll = async () => {
+    if (pollBusy) return;
+    setPollBusy(true);
+    try {
+      const res = await fetch('/api/admin/poll', {
+        method: 'DELETE',
+        headers: { 'x-csrf-token': readCsrfCookie() },
+      });
+      if (!res.ok) throw new Error(`Close failed (${res.status})`);
+      toast.success('Poll closed');
+      await refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Close failed');
+    } finally {
+      setPollBusy(false);
+    }
+  };
+
   // K7: hide an error report once it is fixed
   const resolveError = async (id: string) => {
     try {
@@ -302,8 +444,15 @@ export default function AdminDashboard() {
   const maxCount = Math.max(1, ...(overview?.links?.map((link) => link.count) ?? []));
   const maxPageviews = Math.max(1, ...(overview?.pageviews?.map((page) => page.count) ?? []));
   const query = filter.trim().toLowerCase();
-  const filteredEntries =
-    overview?.guestbook?.filter((entry) => !query || entry.message.toLowerCase().includes(query)) ?? [];
+  const filteredEntries = (overview?.guestbook ?? [])
+    .filter((entry) => !query || entry.message.toLowerCase().includes(query))
+    .filter((entry) => {
+      // M47: moderation queue — reported first, or hidden only
+      if (modFilter === 'reported') return (entry.reports ?? 0) > 0;
+      if (modFilter === 'hidden') return Boolean(entry.hidden);
+      return true;
+    })
+    .sort((a, b) => (modFilter === 'reported' ? (b.reports ?? 0) - (a.reports ?? 0) : 0));
 
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
@@ -557,10 +706,47 @@ export default function AdminDashboard() {
                   />
                 </div>
 
+                {/* M47: queue chips + bulk actions */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {([['all', 'All'], ['reported', 'Reported'], ['hidden', 'Hidden']] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setModFilter(value)}
+                      aria-pressed={modFilter === value}
+                      className={`rounded-lg border-2 border-foreground px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_0_var(--foreground)] transition-all cursor-pointer active:translate-y-0.5 active:shadow-none ${
+                        modFilter === value ? 'bg-accent text-accent-foreground' : 'bg-card text-foreground hover:bg-secondary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  {selected.size > 0 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setHidden([...selected], true)}
+                        className="rounded-lg border-2 border-foreground bg-red-300 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-[#14110f] shadow-[2px_2px_0_0_var(--foreground)] cursor-pointer active:translate-y-0.5 active:shadow-none"
+                      >
+                        Hide selected ({selected.size})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHidden([...selected], false)}
+                        className="rounded-lg border-2 border-foreground bg-card px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-foreground shadow-[2px_2px_0_0_var(--foreground)] cursor-pointer active:translate-y-0.5 active:shadow-none"
+                      >
+                        Unhide selected ({selected.size})
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 {overview.guestbook.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic">No entries yet.</p>
                 ) : filteredEntries.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic">No entries match “{filter.trim()}”.</p>
+                  <p className="text-sm text-muted-foreground italic">
+                    {query ? `No entries match “${filter.trim()}”.` : 'Nothing in this queue.'}
+                  </p>
                 ) : (
                   <ul className="space-y-2">
                     {filteredEntries.map((entry) => (
@@ -568,13 +754,27 @@ export default function AdminDashboard() {
                         key={entry.id}
                         className="flex items-start gap-3 rounded-lg border-2 border-foreground bg-secondary p-3 shadow-[2px_2px_0_0_var(--foreground)]"
                       >
+                        <input
+                          type="checkbox"
+                          checked={selected.has(entry.id)}
+                          onChange={() => toggleSelected(entry.id)}
+                          aria-label="Select entry"
+                          className="mt-1 w-4 h-4 shrink-0 cursor-pointer accent-[var(--accent)]"
+                        />
                         <div className="flex-1 min-w-0 space-y-1">
-                          <p className="text-xs font-mono break-all text-foreground">{entry.message}</p>
+                          <p
+                            className={`text-xs font-mono break-all ${
+                              entry.deleted ? 'line-through text-muted-foreground' : 'text-foreground'
+                            }`}
+                          >
+                            {previewId === entry.id ? <InlineMarkdown text={decryptMessage(entry.message)} /> : entry.message}
+                          </p>
                           <p className="text-[10px] text-muted-foreground font-medium">
                             {new Date(entry.createdAt).toLocaleString()}
                             {entry.userAgent ? ` · ${entry.userAgent.slice(0, 60)}` : ''}
+                            {entry.ipHash ? ` · ip ${entry.ipHash.slice(0, 8)}…` : ''}
                           </p>
-                          {(entry.pinned || entry.hidden || (entry.reports ?? 0) > 0) && (
+                          {(entry.pinned || entry.hidden || entry.deleted || entry.editedAt || (entry.reports ?? 0) > 0 || entry.reply) && (
                             <p className="flex flex-wrap items-center gap-1.5">
                               {entry.pinned && (
                                 <span className="inline-block rounded border-2 border-foreground bg-yellow-200 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
@@ -586,34 +786,195 @@ export default function AdminDashboard() {
                                   hidden
                                 </span>
                               )}
+                              {entry.deleted && (
+                                <span className="inline-block rounded border-2 border-foreground bg-red-200 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
+                                  deleted
+                                </span>
+                              )}
+                              {entry.editedAt && (
+                                <span className="inline-block rounded border-2 border-foreground bg-card px-1.5 text-[10px] font-black uppercase text-[#14110f]">
+                                  edited{entry.history?.length ? ` ×${entry.history.length}` : ''}
+                                </span>
+                              )}
                               {(entry.reports ?? 0) > 0 && (
                                 <span className="font-mono text-[10px] font-bold text-destructive">
                                   {entry.reports} report{entry.reports === 1 ? '' : 's'}
                                 </span>
                               )}
+                              {entry.reply && <span className="font-mono text-[10px] font-bold text-accent-ink">replied</span>}
                             </p>
                           )}
+                          {entry.reply && previewId !== entry.id && (
+                            <p className="border-l-2 border-accent-ink pl-2 text-[11px] text-foreground/90">
+                              <InlineMarkdown text={entry.reply.message} />
+                            </p>
+                          )}
+                          {replyId === entry.id && (
+                            <form
+                              className="flex gap-1.5"
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                void sendReply(entry.id);
+                              }}
+                            >
+                              <input
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value.substring(0, 200))}
+                                placeholder="Reply as Kochan…"
+                                aria-label="Reply text"
+                                className="min-w-0 flex-1 rounded border-2 border-foreground bg-card px-2 py-1 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                              />
+                              <button
+                                type="submit"
+                                className="rounded border-2 border-foreground bg-accent px-2 py-1 text-[10px] font-black uppercase text-accent-foreground cursor-pointer active:translate-y-0.5"
+                              >
+                                Send
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setReplyId(null)}
+                                className="rounded border-2 border-foreground bg-card px-2 py-1 text-[10px] font-black uppercase text-foreground cursor-pointer active:translate-y-0.5"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => togglePin(entry.id, !entry.pinned)}
-                          aria-label={entry.pinned ? 'Unpin entry' : 'Pin entry'}
-                          title={entry.pinned ? 'Unpin entry' : 'Pin entry'}
-                          className={iconButton}
-                        >
-                          {entry.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeEntry(entry.id)}
-                          aria-label="Delete entry"
-                          className={iconButton}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex shrink-0 flex-col items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReplyId(replyId === entry.id ? null : entry.id);
+                              setReplyText(entry.reply?.message ?? '');
+                            }}
+                            aria-label={entry.reply ? 'Edit reply' : 'Reply to entry'}
+                            title="Reply"
+                            className={iconButton}
+                          >
+                            <Reply className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewId(previewId === entry.id ? null : entry.id)}
+                            aria-label="Preview formatted text"
+                            title="Preview formatting"
+                            aria-pressed={previewId === entry.id}
+                            className={iconButton}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setHidden([entry.id], !entry.hidden)}
+                            aria-label={entry.hidden ? 'Unhide entry' : 'Hide entry'}
+                            title={entry.hidden ? 'Unhide entry' : 'Hide entry'}
+                            className={
+                              entry.hidden
+                                ? 'inline-flex items-center justify-center rounded-lg border-2 border-foreground bg-red-300 p-1.5 text-[#14110f] shadow-[2px_2px_0_0_var(--foreground)] cursor-pointer active:translate-y-0.5 active:shadow-none transition-all'
+                                : iconButton
+                            }
+                          >
+                            <EyeOff className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => togglePin(entry.id, !entry.pinned)}
+                            aria-label={entry.pinned ? 'Unpin entry' : 'Pin entry'}
+                            title={entry.pinned ? 'Unpin entry' : 'Pin entry'}
+                            className={iconButton}
+                          >
+                            {entry.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                          </button>
+                          {entry.ipHash && (
+                            <button
+                              type="button"
+                              onClick={() => setBan(entry.ipHash ?? '')}
+                              aria-label="Ban visitor for 24 hours"
+                              title="Ban visitor (24h)"
+                              className={iconButton}
+                            >
+                              <Ban className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeEntry(entry.id)}
+                            aria-label="Delete entry"
+                            className={iconButton}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
+                )}
+              </div>
+            </Card>
+
+            {/* M44: start, watch or close the question of the day */}
+            <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-accent-ink" />
+                  <h2 className="text-lg font-bold text-foreground">Question of the day</h2>
+                </div>
+                {overview.poll ? (
+                  <>
+                    <p className="text-sm font-bold text-foreground">{overview.poll.question}</p>
+                    <ul className="space-y-1">
+                      {overview.poll.options.map((option) => (
+                        <li key={option.label} className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+                          <span>{option.label}</span>
+                          <span>
+                            {option.count} vote{option.count === 1 ? '' : 's'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      onClick={closePoll}
+                      disabled={pollBusy}
+                      className="rounded-lg border-2 border-foreground bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:bg-accent hover:text-accent-foreground active:translate-y-0.5 active:shadow-none disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      Close poll
+                    </button>
+                  </>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void createPoll();
+                    }}
+                    className="space-y-2"
+                  >
+                    <input
+                      value={pollQuestion}
+                      onChange={(e) => setPollQuestion(e.target.value.substring(0, 140))}
+                      placeholder="Question…"
+                      aria-label="Poll question"
+                      className="w-full rounded-lg border-2 border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    />
+                    <input
+                      value={pollOptions}
+                      onChange={(e) => setPollOptions(e.target.value.substring(0, 200))}
+                      placeholder="Option A, Option B, Option C (2–5, comma separated)"
+                      aria-label="Poll options"
+                      className="w-full rounded-lg border-2 border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      disabled={
+                        pollBusy ||
+                        pollQuestion.trim().length < 3 ||
+                        pollOptions.split(',').filter((option) => option.trim()).length < 2
+                      }
+                      className="rounded-lg bg-accent border-[3px] border-foreground px-4 py-2 text-sm font-bold text-accent-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    >
+                      {pollBusy ? 'Creating…' : 'Start poll'}
+                    </button>
+                  </form>
                 )}
               </div>
             </Card>

@@ -8,4 +8,8 @@ export interface GuestbookEntry {
   pinned?: boolean;
   /** Stored offline and waiting to be delivered. */
   pending?: boolean;
+  /** M41: stamped when the sender edited inside the five-minute window. */
+  edited?: boolean;
+  /** M43: the admin's single reply, shown under the entry. */
+  reply?: { message: string; at: string };
 }

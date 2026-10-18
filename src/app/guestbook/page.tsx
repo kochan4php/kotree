@@ -1,4 +1,5 @@
 import Guestbook from '@/components/guestbook';
+import PollCard from '@/components/guestbook/poll-card';
 import { Card } from '@/components/ui/card';
 import { generateToken } from '@/lib/security';
 import { site } from '@/lib/site';
@@ -39,6 +40,11 @@ export default function GuestbookPage() {
             </p>
           </div>
         </Card>
+
+        <div className="mt-3">
+          {/* M44: the admin's question sits above the wall */}
+          <PollCard />
+        </div>
 
         <div className="mt-3">
           <Guestbook token={token} full />

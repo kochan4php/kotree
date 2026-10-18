@@ -1,19 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { decryptMessage } from './obfuscation';
+import { decryptMessage, encryptMessage } from './obfuscation';
 import { relativeTime } from '@/lib/relative-time';
-import { Flag, LockKeyhole, Link2, Pin, Share2 } from 'lucide-react';
+import { Check, Flag, LockKeyhole, Link2, Pencil, Pin, Share2, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { reactToEntry, reportEntry } from './api';
+import { deleteOwnEntry, editOwnEntry, reactToEntry, reportEntry } from './api';
+import { ownerToken } from './mine';
 import { clientToken } from '@/lib/csrf-client';
 import { useSensory } from '@/hooks/use-sensory';
+import InlineMarkdown from '@/components/content/inline-markdown';
 import type { GuestbookEntry } from './types';
 
-const REACTIONS = ['👍', '❤️', '🔥'] as const;
+// M46: five reactions; the server allows one per entry per visitor-day, so the
+// local ledger records the day, not a one-forever flag.
+const REACTIONS = ['👍', '❤️', '🔥', '😂', '🤯'] as const;
 const REACTED_KEY = 'kotree-gb-reactions';
 // K30: one report per entry per device
 const REPORTED_KEY = 'kotree-gb-reported';
+// M41: mirrors the server window so the edit button disappears on time
+const EDIT_WINDOW_MS = 5 * 60 * 1000;
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 function readReacted(): Record<string, string> {
   try {
@@ -39,9 +47,13 @@ interface EntryListProps {
   onToggle: (index: number) => void;
   /** createdAt values newer than the visitor's previous visit */
   newSince?: Set<string>;
+  /** M40: ids posted from this device — their entries get edit/delete controls */
+  mine?: Set<string>;
+  onDeleted?: (id: string) => void;
+  onEdited?: (id: string, message: string) => void;
 }
 
-export default function EntryList({ entries, decryptedIndexes, onToggle, newSince }: EntryListProps) {
+export default function EntryList({ entries, decryptedIndexes, onToggle, newSince, mine, onDeleted, onEdited }: EntryListProps) {
   // K43: soft tones on reaction taps and successful copies (sound pref gates it)
   const { playFeedback, playSuccess } = useSensory();
   const [now, setNow] = useState(() => Date.now());
@@ -49,6 +61,14 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
   const [reported, setReported] = useState<Record<string, boolean>>({});
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [highlightKey, setHighlightKey] = useState<string | null>(null);
+  // M46: which reaction button is mid-pop
+  const [popKey, setPopKey] = useState<string | null>(null);
+  // M41: inline edit state for the visitor's own entries
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  // M40: two-step delete — the first tap arms, the second one removes
+  const [armingKey, setArmingKey] = useState<string | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the browser-only store happens after mount by design (SSR has no localStorage)
@@ -149,9 +169,9 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
   };
 
   const react = (entry: GuestbookEntry, anchorKey: string, emoji: string) => {
-    if (!entry.id || reacted[anchorKey]) return; // one reaction per secret per device
+    if (!entry.id || reacted[anchorKey] === today()) return; // one reaction per secret per day
     playFeedback();
-    const next = { ...reacted, [anchorKey]: emoji };
+    const next = { ...reacted, [anchorKey]: today() };
     setReacted(next);
     try {
       localStorage.setItem(REACTED_KEY, JSON.stringify(next));
@@ -160,17 +180,69 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
     }
     const deltaKey = `${anchorKey}:${emoji}`;
     setDeltas((d) => ({ ...d, [deltaKey]: (d[deltaKey] ?? 0) + 1 }));
-    reactToEntry(entry.id, emoji, clientToken()).catch(() => {
-      // Roll the optimistic bump back
-      setDeltas((d) => ({ ...d, [deltaKey]: (d[deltaKey] ?? 0) - 1 }));
-      setReacted((r) => {
-        const copy = { ...r };
-        delete copy[anchorKey];
-        return copy;
+    // M46: a short pop on the button that was tapped
+    setPopKey(deltaKey);
+    window.setTimeout(() => setPopKey((k) => (k === deltaKey ? null : k)), 400);
+    reactToEntry(entry.id, emoji, clientToken())
+      .then((result) => {
+        // Another tab or device already counted today's vote — undo the bump
+        if (!result.counted) setDeltas((d) => ({ ...d, [deltaKey]: (d[deltaKey] ?? 0) - 1 }));
+      })
+      .catch(() => {
+        // Roll the optimistic bump back
+        setDeltas((d) => ({ ...d, [deltaKey]: (d[deltaKey] ?? 0) - 1 }));
+        setReacted((r) => {
+          const copy = { ...r };
+          delete copy[anchorKey];
+          return copy;
+        });
+        toast.error('Could not save that reaction');
       });
-      toast.error('Could not save that reaction');
-    });
   };
+
+  // M40: first tap arms the button, a second tap within a few seconds deletes
+  const removeOwn = async (entry: GuestbookEntry, anchorKey: string) => {
+    if (!entry.id) return;
+    if (armingKey !== anchorKey) {
+      setArmingKey(anchorKey);
+      window.setTimeout(() => setArmingKey((k) => (k === anchorKey ? null : k)), 4000);
+      return;
+    }
+    setArmingKey(null);
+    try {
+      await deleteOwnEntry(entry.id, ownerToken());
+      onDeleted?.(entry.id);
+      toast.success('Secret removed');
+    } catch {
+      toast.error('Could not remove the secret');
+    }
+  };
+
+  // M41: edit within the window — the previous text is kept server-side
+  const startEdit = (entry: GuestbookEntry, anchorKey: string) => {
+    setEditingKey(anchorKey);
+    setEditValue(decryptMessage(entry.message).slice(0, 100));
+  };
+
+  const saveEdit = async (entry: GuestbookEntry) => {
+    const plain = editValue.trim();
+    if (!entry.id || !plain || isSaving) return;
+    setIsSaving(true);
+    try {
+      const encrypted = encryptMessage(plain);
+      await editOwnEntry(entry.id, ownerToken(), encrypted, clientToken());
+      onEdited?.(entry.id, encrypted);
+      setEditingKey(null);
+      toast.success('Secret updated');
+    } catch {
+      toast.error('Could not save the edit');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const isMine = (entry: GuestbookEntry) => Boolean(entry.id && mine?.has(entry.id));
+  const canEdit = (entry: GuestbookEntry) => isMine(entry) && !entry.pending && now - Date.parse(entry.createdAt) < EDIT_WINDOW_MS;
 
   return (
     <>
@@ -186,37 +258,83 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
             }`}
           >
             <div className="flex items-start gap-2">
-              <button
-                type="button"
-                onClick={() => onToggle(i)}
-                aria-pressed={isDecrypted}
-                title="Click to reveal/hide"
-                className="flex-1 min-w-0 min-h-6 text-left cursor-pointer py-0.5"
-              >
-                <p className={isDecrypted ? 'text-foreground' : 'text-muted-foreground'}>
-                  {isDecrypted ? '👁 ' + decryptMessage(entry.message) : entry.message}
-                </p>
-              </button>
+              {editingKey === anchorKey ? (
+                <form
+                  className="flex flex-1 min-w-0 items-center gap-1 py-0.5"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void saveEdit(entry);
+                  }}
+                >
+                  <input
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value.substring(0, 100))}
+                    aria-label="Edit your secret"
+                    className="w-full min-w-0 rounded border-2 border-foreground bg-card px-2 py-1 text-[11px] font-mono text-foreground focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSaving || !editValue.trim()}
+                    aria-label="Save edit"
+                    className="p-1 rounded cursor-pointer hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingKey(null)}
+                    aria-label="Cancel edit"
+                    className="p-1 rounded cursor-pointer hover:bg-muted"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onToggle(i)}
+                  aria-pressed={isDecrypted}
+                  title="Click to reveal/hide"
+                  className="flex-1 min-w-0 min-h-6 text-left cursor-pointer py-0.5"
+                >
+                  <p className={isDecrypted ? 'text-foreground' : 'text-muted-foreground'}>
+                    {isDecrypted ? (
+                      <>
+                        {'👁 '}
+                        <InlineMarkdown text={decryptMessage(entry.message)} />
+                      </>
+                    ) : (
+                      entry.message
+                    )}
+                  </p>
+                </button>
+              )}
 
               <div className="flex items-center gap-0.5 shrink-0 pt-0.5">
                 {entry.id &&
                   REACTIONS.map((emoji) => {
                     const count = (entry.reactions?.[emoji] ?? 0) + (deltas[`${anchorKey}:${emoji}`] ?? 0);
-                    const mine = reacted[anchorKey] === emoji;
+                    const mineToday = reacted[anchorKey] === today();
+                    const deltaKey = `${anchorKey}:${emoji}`;
                     return (
                       <button
                         key={emoji}
                         type="button"
                         onClick={() => react(entry, anchorKey, emoji)}
-                        aria-label={`React with ${emoji}`}
-                        aria-pressed={mine}
-                        disabled={Boolean(reacted[anchorKey])}
+                        // a11y: the visible count is aria-hidden, the count rides in the name
+                        aria-label={count > 0 ? `React with ${emoji}, ${count} so far` : `React with ${emoji}`}
+                        aria-pressed={mineToday}
+                        disabled={mineToday}
                         className={`text-[11px] leading-none rounded px-1 min-w-6 min-h-6 cursor-pointer hover:bg-muted disabled:cursor-default ${
-                          mine ? 'bg-accent/40' : ''
-                        }`}
+                          mineToday ? 'bg-accent/40' : ''
+                        } ${popKey === deltaKey ? 'kt-react-pop' : ''}`}
                       >
                         {emoji}
-                        {count > 0 && <span className="font-mono text-[10px] ml-0.5">{count}</span>}
+                        {count > 0 && (
+                          <span aria-hidden="true" className="font-mono text-[10px] ml-0.5">
+                            {count}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -248,6 +366,30 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                     <Flag className="w-3 h-3" />
                   </button>
                 )}
+                {canEdit(entry) && editingKey !== anchorKey && (
+                  <button
+                    type="button"
+                    onClick={() => startEdit(entry, anchorKey)}
+                    aria-label="Edit your secret"
+                    title="Edit (within 5 minutes of posting)"
+                    className="p-1.5 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                )}
+                {isMine(entry) && (
+                  <button
+                    type="button"
+                    onClick={() => removeOwn(entry, anchorKey)}
+                    aria-label={armingKey === anchorKey ? 'Confirm delete' : 'Delete your secret'}
+                    title={armingKey === anchorKey ? 'Click again to confirm' : 'Delete your secret'}
+                    className={`p-1.5 rounded cursor-pointer transition-colors hover:bg-muted ${
+                      armingKey === anchorKey ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -259,6 +401,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                   FEATURED
                 </span>
               )}
+              {entry.edited && <span className="font-bold">EDITED</span>}
               {newSince?.has(entry.createdAt) && <span className="text-accent-ink font-bold">NEW</span>}
               {entry.pending && (
                 <span role="status" className="text-accent-ink font-bold">
@@ -266,6 +409,15 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                 </span>
               )}
             </div>
+
+            {entry.reply && (
+              <div className="mt-0.5 mb-1 ml-1 border-l-[3px] border-accent-ink pl-2">
+                <p className="text-[10px] font-bold text-accent-ink">↩ Kochan replied</p>
+                <p className="text-[11px] text-foreground/90">
+                  <InlineMarkdown text={entry.reply.message} />
+                </p>
+              </div>
+            )}
           </div>
         );
       })}

@@ -32,6 +32,24 @@ async function freeze(page: Page, path: string, theme: 'light' | 'dark' = 'light
     );
   }, theme);
   await page.route('**/api/guestbook?*', (route) => route.fulfill({ json: [] }));
+  // M44: the guestbook renders the poll card — pin its data so the baseline
+  // never depends on whatever question is live in the local database
+  await page.route('**/api/poll', (route) =>
+    route.fulfill({
+      json: {
+        active: {
+          id: 'poll-visual',
+          question: 'Which secret do you reveal first?',
+          options: [
+            { label: 'Newest', count: 2 },
+            { label: 'Top hearts', count: 5 },
+          ],
+          total: 7,
+        },
+        archive: [],
+      },
+    })
+  );
   await page.route('**/api/click-link-counter*', (route) => {
     if (route.request().method() === 'GET') return route.fulfill({ json: [] });
     return route.continue();

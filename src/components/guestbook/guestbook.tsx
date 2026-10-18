@@ -3,18 +3,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { get as idbGet, del as idbDel } from 'idb-keyval';
 import { Card } from '@/components/ui/card';
-import { MessageSquare, Send } from 'lucide-react';
+import { Link2, MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
-import { encryptMessage } from './obfuscation';
+import { encryptMessage, decryptMessage } from './obfuscation';
 import EntryList from './entry-list';
 import Skeleton from '@/components/ui/skeleton';
 import { fetchEntries, postEntry, GuestbookHttpError } from './api';
 import { queueMessage, queuedMessages, flushQueue } from './offline';
+import { forgetMine, ownerToken, readMine, rememberMine } from './mine';
 import type { GuestbookEntry } from './types';
 
 const PAGE_SIZE = 10;
+// M45: filters work over a wider slice of the wall than one page
+const WIDE_SIZE = 50;
 // K14: what you typed survives a reload (private mode just loses it)
 const DRAFT_KEY = 'kotree-guestbook-draft';
+
+type KindFilter = 'all' | 'reactions' | 'today';
 
 // Confetti on the very first secret sent from this device (once)
 function celebrateFirstSend() {
@@ -26,6 +31,9 @@ function celebrateFirstSend() {
     // private mode — just skip the party
   }
 }
+
+const readKind = (value: string | null): KindFilter =>
+  value === 'reactions' || value === 'today' ? value : 'all';
 
 export default function Guestbook({ token, full = false }: { token?: string; full?: boolean }) {
   const [entries, setEntries] = useState<GuestbookEntry[]>([]);
@@ -45,12 +53,32 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   const [error, setError] = useState('');
   const [nearEnd, setNearEnd] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  // M40: ids this device posted — unlock edit/delete on those entries
+  const [mine, setMine] = useState<Set<string>>(new Set());
+  // M45: search text, filter kind and the URL they are mirrored to
+  const [query, setQuery] = useState('');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('all');
+  const widenedRef = useRef(false);
   const listRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchEntries(PAGE_SIZE).then((entries) => {
+    // M45: a shared link can open the wall pre-filtered
+    const params = new URLSearchParams(location.search);
+    const initialSort = params.get('sort') === 'top' ? ('top' as const) : ('newest' as const);
+    const initialQuery = (params.get('q') ?? '').slice(0, 60);
+    const initialKind = readKind(params.get('kind'));
+    const filtered = Boolean(initialQuery) || initialKind !== 'all';
+    /* eslint-disable react-hooks/set-state-in-effect -- browser-only state (URL params, localStorage ownership) is restored after mount by design; SSR has neither */
+    setSort(initialSort);
+    setQuery(initialQuery);
+    setKindFilter(initialKind);
+    setMine(new Set(readMine().map((record) => record.id)));
+    /* eslint-enable react-hooks/set-state-in-effect */
+    if (filtered) widenedRef.current = true;
+
+    fetchEntries(filtered ? WIDE_SIZE : PAGE_SIZE, undefined, initialSort).then((entries) => {
       // "New since your last visit": compare, then stamp this visit
       try {
         const lastVisit = localStorage.getItem('kotree-gb-last-visit');
@@ -62,7 +90,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         // private mode — no marker, no harm
       }
       setEntries(entries);
-      setHasMore(entries.length === PAGE_SIZE);
+      setHasMore(!filtered && entries.length === PAGE_SIZE);
       setIsLoading(false);
     });
     queuedMessages().then(setPendingCount);
@@ -100,12 +128,34 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         const delivered = before - remaining;
         toast.success(`${delivered} secret${delivered > 1 ? 's' : ''} delivered`);
         setEntries((prev) => prev.map((e) => (e.pending ? { ...e, pending: false } : e)));
+        // M40: flushed entries came back with ids worth remembering
+        setMine(new Set(readMine().map((record) => record.id)));
         celebrateFirstSend();
       }
     };
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
   }, [token]);
+
+  // M45: the first time a filter or search is used, widen to the last 50
+  useEffect(() => {
+    if ((!query && kindFilter === 'all') || widenedRef.current) return;
+    widenedRef.current = true;
+    fetchEntries(WIDE_SIZE, undefined, sort).then((fresh) => {
+      setEntries(fresh);
+      setHasMore(false);
+    });
+  }, [query, kindFilter, sort]);
+
+  // M45: keep the address bar shareable — filters live in the query string
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (kindFilter !== 'all') params.set('kind', kindFilter);
+    if (sort === 'top') params.set('sort', 'top');
+    const search = params.toString();
+    window.history.replaceState(null, '', `${location.pathname}${search ? `?${search}` : ''}${location.hash}`);
+  }, [query, kindFilter, sort]);
 
   // Rate-limit countdown after a 429
   useEffect(() => {
@@ -138,9 +188,10 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     if (next === sort) return;
     setSort(next);
     setNewSince(new Set());
-    const fresh = await fetchEntries(PAGE_SIZE, undefined, next);
+    const wide = widenedRef.current;
+    const fresh = await fetchEntries(wide ? WIDE_SIZE : PAGE_SIZE, undefined, next);
     setEntries(fresh);
-    setHasMore(next === 'newest' && fresh.length === PAGE_SIZE);
+    setHasMore(!wide && next === 'newest' && fresh.length === PAGE_SIZE);
   };
 
   // Infinite scroll: the sentinel only counts once the visitor has actually
@@ -171,6 +222,56 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     if (newSet.has(index)) newSet.delete(index);
     else newSet.add(index);
     setDecryptedIndexes(newSet);
+  };
+
+  // M45: search and filters run on the decrypted text, then on reactions/dates
+  const visible = entries.filter((entry) => {
+    if (kindFilter === 'reactions') {
+      const total = Object.values(entry.reactions ?? {}).reduce((sum, count) => sum + count, 0);
+      if (total === 0) return false;
+    }
+    if (kindFilter === 'today') {
+      const created = new Date(entry.createdAt);
+      const today = new Date();
+      if (created.getDate() !== today.getDate() || created.getMonth() !== today.getMonth()) return false;
+    }
+    if (query && !decryptMessage(entry.message).toLowerCase().includes(query.toLowerCase())) return false;
+    return true;
+  });
+  const filtered = Boolean(query) || kindFilter !== 'all';
+
+  const shareFilters = async () => {
+    const url = location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Kotree secrets', url });
+        return;
+      } catch {
+        return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied!');
+    } catch {
+      toast.error('Could not copy the link');
+    }
+  };
+
+  // M40: the entry is gone server-side; drop the local ownership record too
+  const handleDeleted = (id: string) => {
+    forgetMine(id);
+    setMine((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
+  // M41: the parent holds the entry — swap in the edited text right away
+  const handleEdited = (id: string, message: string) => {
+    setEntries((prev) => prev.map((entry) => (entry.id === id ? { ...entry, message, edited: true } : entry)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -214,11 +315,18 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     }
 
     try {
-      const result = await postEntry(encryptedMessage, token);
+      const result = await postEntry(encryptedMessage, token, ownerToken());
       clearDraft();
-      if (result === 'sent') {
+      if (result.status === 'sent') {
         celebrateFirstSend();
-      } else if (result === 'queued') {
+        if (result.id) {
+          // M40: adopt the server id so edit/delete appear on this entry
+          const id = result.id;
+          rememberMine(id, tempCreatedAt);
+          setMine((prev) => new Set(prev).add(id));
+          setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, id } : e)));
+        }
+      } else {
         setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, pending: true } : e)));
         setPendingCount((c) => c + 1);
         toast.info("Couldn't reach the server — saved on this device and will send itself later.");
@@ -277,6 +385,58 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           {sort === 'top' && <span className="ml-1 text-[10px] font-mono text-muted-foreground">most ❤️ first</span>}
         </div>
 
+        {/* M45: search + filters that mirror themselves into the URL */}
+        {full && (
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value.substring(0, 60))}
+              placeholder="Search secrets…"
+              aria-label="Search secrets"
+              className="w-40 min-h-8 rounded-lg border-2 border-foreground bg-card px-2.5 py-1 text-[11px] font-mono text-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none"
+            />
+            {([['all', 'All'], ['reactions', 'With reactions'], ['today', 'On this day']] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setKindFilter(value)}
+                aria-pressed={kindFilter === value}
+                className={`rounded-lg border-2 border-foreground px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_0_var(--foreground)] transition-all cursor-pointer active:translate-y-0.5 active:shadow-none ${
+                  kindFilter === value ? 'bg-accent text-accent-foreground' : 'bg-card text-foreground hover:bg-secondary'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            {filtered && (
+              <>
+                <span role="status" className="text-[10px] font-mono text-muted-foreground">
+                  {visible.length} of {entries.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={shareFilters}
+                  aria-label="Share these filters"
+                  className="p-1.5 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Link2 className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    setKindFilter('all');
+                  }}
+                  className="text-[10px] font-mono font-bold text-accent-ink underline cursor-pointer"
+                >
+                  clear
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         {(newSince.size > 0 || pendingCount > 0) && (
           <div className="space-y-1 mb-2">
             {newSince.size > 0 && (
@@ -298,8 +458,18 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         >
           {isLoading && entries.length === 0 ? (
             <Skeleton rows={3} className="mb-3" />
+          ) : entries.length > 0 && visible.length === 0 ? (
+            <p className="py-4 text-center text-sm italic text-muted-foreground">No secrets match your filters.</p>
           ) : (
-            <EntryList entries={entries} decryptedIndexes={decryptedIndexes} onToggle={toggleDecrypt} newSince={newSince} />
+            <EntryList
+              entries={visible}
+              decryptedIndexes={decryptedIndexes}
+              onToggle={toggleDecrypt}
+              newSince={newSince}
+              mine={mine}
+              onDeleted={handleDeleted}
+              onEdited={handleEdited}
+            />
           )}
           {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
         </div>
@@ -364,7 +534,8 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           </span>
         </div>
         <p id="secret-hint" className="sr-only">
-          Up to 100 characters. Messages are obfuscated at rest and shown to others only when revealed.
+          Up to 100 characters. Messages are obfuscated at rest and shown to others only when revealed. Markdown-lite
+          works: **bold**, *italic*, `code` and bare links.
         </p>
         {error ? (
           <p id="secret-error" className="mt-1 px-1 text-[10px] font-mono font-bold text-destructive">
