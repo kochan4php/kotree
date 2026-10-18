@@ -3,7 +3,8 @@
 import ProfileActions from './profile-actions';
 import { Card } from '@/components/ui/card';
 import { profile } from '@/data/profile';
-import { seasonFor } from '@/lib/season';
+import { seasonDecorations, seasonFor } from '@/lib/season';
+import { readPrefs } from '@/lib/prefs';
 import { useEffect, useRef, useState } from 'react';
 import { Code2 } from 'lucide-react';
 import Image from 'next/image';
@@ -17,19 +18,26 @@ export default function CardProfile() {
   const [url, setUrl] = useState('');
   // Time-of-day greeting + seasonal accent — computed after mount so the
   // pre-rendered HTML and visual snapshots stay deterministic.
-  const [greet, setGreet] = useState<{ text: string; season: string } | null>(null);
+  const [greet, setGreet] = useState<{ text: string; season: string; decor: string[] } | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const now = new Date();
-    const h = now.getHours();
-    const text =
-      h < 5 ? 'Burning the midnight oil' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    // K34: windows live in lib/season.ts (New Year, Halloween, Christmas, Ramadan/Eid)
-    const season = seasonFor(now);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- date-driven text, applied after mount by design
-    setGreet({ text, season });
+    // M58: the seasonal touches toggle turns the greeting + decorations off
+    const compute = () => {
+      const now = new Date();
+      const h = now.getHours();
+      const text =
+        h < 5 ? 'Burning the midnight oil' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+      // K34: windows live in lib/season.ts (New Year, Valentine, Halloween, Christmas, Ramadan/Eid)
+      const seasonsOn = readPrefs().seasons !== false;
+      const season = seasonsOn ? seasonFor(now) : '';
+      const decor = seasonsOn ? seasonDecorations(now) : [];
+      setGreet({ text, season, decor });
+    };
+    compute();
+    window.addEventListener('kotree:prefs', compute);
+    return () => window.removeEventListener('kotree:prefs', compute);
   }, []);
 
   const openQR = () => {
@@ -72,6 +80,22 @@ export default function CardProfile() {
     <>
       <Card className="fluid-glass text-center relative z-10 gap-0 p-0">
         <div className="liquid-gradient"></div>
+        {/* M58: Halloween decorations — decorative only, motion-gated in CSS */}
+        {greet && greet.decor.length > 0 && (
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-20">
+            {greet.decor.map((emoji, index) => (
+              <span
+                key={emoji}
+                className={`kt-spooky absolute text-xl ${
+                  ['left-3 top-20', 'right-4 top-9', 'right-10 bottom-12'][index % 3]
+                }`}
+                style={{ animationDelay: `${index * 0.6}s` }}
+              >
+                {emoji}
+              </span>
+            ))}
+          </div>
+        )}
         {/* Hero banner: accent strip the avatar sits on */}
         <div className="relative h-14 shrink-0 overflow-hidden border-b-[3px] border-foreground bg-accent">
           <div className="liquid-gradient opacity-25"></div>

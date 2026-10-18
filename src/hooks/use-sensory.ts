@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { readPrefs } from '@/lib/prefs';
+import { readPrefs, soundAllowed, type SoundKind } from '@/lib/prefs';
 
 // Singleton AudioContext to prevent main thread freezing/flickering
 let globalAudioCtx: AudioContext | null = null;
@@ -21,8 +21,10 @@ function getAudioContext() {
   return globalAudioCtx;
 }
 
-function soundEnabled(): boolean {
-  return readPrefs().sound;
+// M59: master volume from the preferences, applied to every blip.
+function masterVolume(): number {
+  const volume = readPrefs().volume;
+  return typeof volume === 'number' && Number.isFinite(volume) ? volume : 0.7;
 }
 
 function playTone(
@@ -36,6 +38,8 @@ function playTone(
   const audioCtx = getAudioContext();
   if (!audioCtx) return;
   try {
+    const volume = masterVolume();
+    if (volume <= 0) return;
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     const t0 = audioCtx.currentTime + delay;
@@ -44,7 +48,7 @@ function playTone(
     oscillator.frequency.setValueAtTime(from, t0);
     if (to !== null) oscillator.frequency.exponentialRampToValueAtTime(to, t0 + duration);
 
-    gainNode.gain.setValueAtTime(gain, t0);
+    gainNode.gain.setValueAtTime(gain * volume, t0);
     gainNode.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
 
     oscillator.connect(gainNode);
@@ -57,8 +61,14 @@ function playTone(
   }
 }
 
+// M59: one gate per action kind, plus the hidden-tab rule
+function soundEnabled(kind: SoundKind): boolean {
+  return soundAllowed(kind);
+}
+
 export function useSensory() {
   const triggerHaptic = useCallback(() => {
+    if (typeof document !== 'undefined' && document.hidden) return; // hidden tab: no haptics either
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
       try {
         // A subtle 15ms vibration
@@ -70,7 +80,7 @@ export function useSensory() {
   }, []);
 
   const triggerSound = useCallback(() => {
-    if (!soundEnabled()) return;
+    if (!soundEnabled('tap')) return;
     // Quick descending blip
     playTone('sine', 800, 300, 0.1, 0.3);
   }, []);
@@ -81,20 +91,20 @@ export function useSensory() {
   }, [triggerHaptic, triggerSound]);
 
   const playHoverFeedback = useCallback(() => {
-    if (!soundEnabled()) return;
+    if (!soundEnabled('tap')) return;
     // A very subtle high pitch "tick"
     playTone('sine', 1200, null, 0.05, 0.05);
   }, []);
 
   const playSuccess = useCallback(() => {
-    if (!soundEnabled()) return;
+    if (!soundEnabled('alert')) return;
     // Two rising notes
     playTone('triangle', 659, null, 0.12, 0.12, 0);
     playTone('triangle', 988, null, 0.14, 0.12, 0.09);
   }, []);
 
   const playError = useCallback(() => {
-    if (!soundEnabled()) return;
+    if (!soundEnabled('alert')) return;
     // Low descending buzz
     playTone('sawtooth', 220, 130, 0.18, 0.12);
   }, []);

@@ -23,9 +23,13 @@ test('command palette opens, finds a command and closes @crossbrowser @mobile', 
   await page.goto('/');
   await waitHydrated(page);
 
-  await page.getByRole('button', { name: 'Search links' }).click();
+  // WebKit can still be hydrating after networkidle on a loaded machine, so the
+  // click is retried until the palette actually mounts (see admin.spec.ts).
   const search = page.getByRole('textbox', { name: 'Search links' });
-  await expect(search).toBeVisible();
+  await expect(async () => {
+    await page.getByRole('button', { name: 'Search links' }).click();
+    await expect(search).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20000 });
 
   await search.fill('theme');
   await expect(page.getByText('Cycle theme')).toBeVisible();

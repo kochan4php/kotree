@@ -17,6 +17,8 @@ export async function GET() {
       { loc: `${site.baseUrl}/guestbook`, lastmod: lastModified('src/app/guestbook/page.tsx'), changefreq: 'daily', priority: 0.6, images: og('guestbook') },
       { loc: `${site.baseUrl}/changelog`, lastmod: lastModified('CHANGELOG.md'), changefreq: 'monthly', priority: 0.5, images: og('changelog') },
       { loc: `${site.baseUrl}/secrets`, lastmod: lastModified('src/lib/secrets.ts'), changefreq: 'monthly', priority: 0.5, images: og('secrets') },
+      // M51: the visual sitemap
+      { loc: `${site.baseUrl}/explore`, lastmod: lastModified('src/app/explore/page.tsx'), changefreq: 'monthly', priority: 0.4 },
       { loc: `${site.baseUrl}/stats`, lastmod: lastModified('src/app/stats/page.tsx'), changefreq: 'daily', priority: 0.5, images: og('stats') },
       { loc: `${site.baseUrl}/wrapped`, lastmod: lastModified('src/app/wrapped/page.tsx'), changefreq: 'weekly', priority: 0.5, images: og('wrapped') },
       // M34: the two new reference pages

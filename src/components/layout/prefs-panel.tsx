@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Check, Moon, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
+import { CalendarHeart, Check, Moon, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
 import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
 
 const THEMES: { id: Theme; label: string; icon: typeof Sun }[] = [
@@ -127,11 +127,47 @@ export default function PrefsPanel() {
               onChange={(v) => patch({ fx: v })}
             />
             <Toggle
+              label="Seasonal touches"
+              icon={CalendarHeart}
+              checked={prefs.seasons}
+              onChange={(v) => patch({ seasons: v })}
+            />
+            <Toggle
               label="Sound effects"
               icon={prefs.sound ? Volume2 : VolumeX}
               checked={prefs.sound}
               onChange={(v) => patch({ sound: v })}
             />
+            {/* M59: volume + per-kind switches, hidden while muted */}
+            {prefs.sound && (
+              <div className="rounded-lg border-2 border-foreground bg-card px-3 py-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-foreground">
+                  <span className="text-muted-foreground">Volume</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round(prefs.volume * 100)}
+                    onChange={(e) => patch({ volume: Number(e.target.value) / 100 })}
+                    aria-label="Sound volume"
+                    className="h-2 flex-1 accent-accent cursor-pointer"
+                  />
+                  <span className="w-8 text-right font-mono text-[10px]">{Math.round(prefs.volume * 100)}%</span>
+                </label>
+                <div className="mt-1.5 flex gap-1.5">
+                  <KindToggle
+                    label="Taps"
+                    checked={prefs.soundTaps}
+                    onChange={(v) => patch({ soundTaps: v })}
+                  />
+                  <KindToggle
+                    label="Alerts"
+                    checked={prefs.soundAlerts}
+                    onChange={(v) => patch({ soundAlerts: v })}
+                  />
+                </div>
+              </div>
+            )}
             <Toggle
               label="Reduce motion"
               icon={Waves}
@@ -159,8 +195,7 @@ function Toggle({
   icon: typeof Sun;
   checked: boolean;
   onChange: (value: boolean) => void;
-}) {
-  return (
+}) {  return (
     <button
       role="switch"
       aria-checked={checked}
@@ -181,6 +216,31 @@ function Toggle({
           className={`absolute h-3 w-3 rounded-full bg-foreground transition-all ${checked ? 'left-4.5' : 'left-0.5'}`}
         />
       </span>
+    </button>
+  );
+}
+
+// M59: the compact twin of Toggle for the two sound kinds
+function KindToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`flex-1 rounded-md border-2 border-foreground px-2 py-1 text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${
+        checked ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
+      }`}
+    >
+      {label}
     </button>
   );
 }

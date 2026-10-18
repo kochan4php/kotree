@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { Sparkles, TerminalSquare, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import FooterNav from './footer-nav';
+import FooterSecret from './footer-secret';
 
 export default function Footer() {
   return (
@@ -18,10 +19,7 @@ export default function Footer() {
               System Online
             </p>
           </div>
-          <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-            <TerminalSquare className="w-3.5 h-3.5" />
-            &copy; 2022-{new Date().getFullYear()} Deo Subarno
-          </p>
+          <FooterSecret />
         </div>
 
         <FooterNav />

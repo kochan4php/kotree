@@ -6,6 +6,7 @@ import StateCard from '@/components/ui/state-card';
 import { socialLinks } from '@/data/social-links';
 import { ArrowLeft, Dices, ExternalLink, Home, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { pickLucky } from '@/lib/lucky';
 
 const PAGES = [
   { label: 'Home', href: '/', description: 'Every link in one place' },
@@ -48,16 +49,7 @@ export default function NotFound() {
   };
 
   const feelingLucky = () => {
-    const pool: Suggestion[] = [
-      ...PAGES.map((page) => ({ ...page })),
-      ...socialLinks.map((link) => ({
-        label: link.name,
-        href: link.url,
-        description: link.description,
-        external: true,
-      })),
-    ];
-    go(pool[Math.floor(Math.random() * pool.length)]);
+    go(pickLucky());
   };
 
   const onSubmit = (e: React.FormEvent) => {

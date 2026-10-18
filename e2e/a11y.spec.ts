@@ -30,6 +30,9 @@ const PAGES = [
   { name: 'uses', path: '/uses' },
   { name: 'links', path: '/links' },
   { name: 'og-gallery', path: '/og' },
+  // M51/M56: the map and the QR code page
+  { name: 'explore', path: '/explore' },
+  { name: 'qr', path: '/qr' },
 ];
 
 for (const { name, path } of PAGES) {

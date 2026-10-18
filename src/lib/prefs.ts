@@ -13,11 +13,38 @@ export interface Prefs {
   sound: boolean;
   /** M20: explicit "Reduce motion" switch, on top of the OS setting. */
   reduceMotion: boolean;
+  /** M58: seasonal greetings and decorations. */
+  seasons: boolean;
+  /** M59: master volume for the little synth, 0–1. */
+  volume: number;
+  /** M59: sound preferences per action kind — taps vs alerts. */
+  soundTaps: boolean;
+  soundAlerts: boolean;
 }
 
 export const PREFS_KEY = 'kotree-prefs';
 
-export const DEFAULT_PREFS: Prefs = { theme: 'auto', accent: 'orange', fx: true, sound: true, reduceMotion: false };
+export const DEFAULT_PREFS: Prefs = {
+  theme: 'auto',
+  accent: 'orange',
+  fx: true,
+  sound: true,
+  reduceMotion: false,
+  seasons: true,
+  volume: 0.7,
+  soundTaps: true,
+  soundAlerts: true,
+};
+
+export type SoundKind = 'tap' | 'alert';
+
+// M59: one gate for every blip — master switch, per-kind switch, and a silent
+// tab (no audio while the visitor is looking elsewhere).
+export function soundAllowed(kind: SoundKind, prefs: Prefs = readPrefs()): boolean {
+  if (!prefs.sound) return false;
+  if (typeof document !== 'undefined' && document.hidden) return false;
+  return kind === 'tap' ? prefs.soundTaps : prefs.soundAlerts;
+}
 
 // M20: one gate for every effect — the OS setting or the in-app preference.
 export function prefersReducedMotion(): boolean {
@@ -41,7 +68,16 @@ export function readPrefs(): Prefs {
   if (typeof window === 'undefined') return DEFAULT_PREFS;
   try {
     const raw = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') as Partial<Prefs>;
-    return { ...DEFAULT_PREFS, ...raw };
+    const merged = { ...DEFAULT_PREFS, ...raw };
+    // Hand-edited storage gets clamped like any other untrusted input
+    merged.volume =
+      typeof merged.volume === 'number' && Number.isFinite(merged.volume)
+        ? Math.min(1, Math.max(0, merged.volume))
+        : DEFAULT_PREFS.volume;
+    merged.soundTaps = merged.soundTaps !== false;
+    merged.soundAlerts = merged.soundAlerts !== false;
+    merged.seasons = merged.seasons !== false;
+    return merged;
   } catch {
     return DEFAULT_PREFS;
   }

@@ -3,32 +3,38 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { socialLinks } from '@/data/social-links';
-import { COMMAND_NAMES, THEME_VALUES, runCommand, INITIAL_HISTORY } from './commands';
+import { runCommand, INITIAL_HISTORY } from './commands';
+import { completeCommand } from './complete';
 import { discoverSecret } from '@/lib/secrets';
 
-// K32: tab-completion for command names and the `theme` values
-function complete(value: string): string | null {
-  const raw = value.trimStart();
-  if (raw.startsWith('theme ')) {
-    const partial = raw.slice('theme '.length).toLowerCase();
-    const matches = THEME_VALUES.filter((v) => v.startsWith(partial));
-    if (matches.length === 1 && matches[0] !== partial) return `theme ${matches[0]}`;
-    return null;
+// M49: command history survives reloads (capped, best-effort in private mode)
+const HISTORY_KEY = 'kotree-term-history';
+
+function readHistory(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]');
+    return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string').slice(-50) : [];
+  } catch {
+    return [];
   }
-  if (raw.includes(' ')) return null;
-  const partial = raw.toLowerCase();
-  if (!partial) return null;
-  const matches = COMMAND_NAMES.filter((c) => c.startsWith(partial));
-  if (matches.length === 1 && matches[0] !== partial) return matches[0];
-  if (matches.length > 1) {
-    // Extend to the shared prefix when that reveals something new
-    let prefix: string = matches[0];
-    for (const match of matches) {
-      while (!match.startsWith(prefix)) prefix = prefix.slice(0, -1);
-    }
-    if (prefix.length > partial.length) return prefix;
+}
+
+interface PollPayload {
+  active: { question: string; options: { label: string; count: number }[]; total: number } | null;
+}
+
+// M49: `poll` prints the live question of the day
+async function fetchPollReply(url: string): Promise<string> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('poll unavailable');
+    const data = (await res.json()) as PollPayload;
+    if (!data.active) return 'No question right now — check back later.';
+    const lines = data.active.options.map((option) => `- ${option.label} (${option.count})`);
+    return [`Question: ${data.active.question}`, ...lines, `${data.active.total} vote(s) so far.`].join('\n');
+  } catch {
+    return 'Could not reach the poll — the wire is asleep.';
   }
-  return null;
 }
 
 // All AI-terminal state, effects and the command/AI submit flow
@@ -38,8 +44,10 @@ export function useTerminal() {
   const [isRendered, setIsRendered] = useState(false);
   const [history, setHistory] = useState(INITIAL_HISTORY);
   const [input, setInput] = useState('');
-  // K32: ↑/↓ walk back through what was typed this session
-  const [cmdHistory, setCmdHistory] = useState<string[]>([]);
+  // K32 + M49: ↑/↓ walk back through what was typed before, across reloads
+  const [cmdHistory, setCmdHistory] = useState<string[]>(() =>
+    typeof window === 'undefined' ? [] : readHistory(),
+  );
   const [historyIndex, setHistoryIndex] = useState(-1);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
@@ -102,8 +110,16 @@ export function useTerminal() {
     const cmd = raw.toLowerCase();
     if (!cmd) return;
 
-    // K32: keep the raw text for ↑/↓ recall
-    setCmdHistory((prev) => (prev[prev.length - 1] === raw ? prev : [...prev, raw]).slice(-50));
+    // K32: keep the raw text for ↑/↓ recall — and persist it (M49)
+    setCmdHistory((prev) => {
+      const next = (prev[prev.length - 1] === raw ? prev : [...prev, raw]).slice(-50);
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      } catch {
+        // private mode — history just doesn't persist
+      }
+      return next;
+    });
     setHistoryIndex(-1);
 
     const result = runCommand(cmd, socialLinks);
@@ -121,6 +137,14 @@ export function useTerminal() {
       setTimeout(() => {
         setHistory(prev => [...prev, { type: 'bot', text: result.reply as string }]);
       }, 400);
+      // M49: `poll` follows up with live data once the placeholder lands
+      if (result.fetchReply) {
+        const url = result.fetchReply;
+        setTimeout(async () => {
+          const text = await fetchPollReply(url);
+          setHistory(prev => [...prev, { type: 'bot', text }]);
+        }, 800);
+      }
       // K32: leave a beat so the reply is readable, then close and navigate
       if (result.navigate) {
         const target = result.navigate;
@@ -182,7 +206,7 @@ export function useTerminal() {
       return;
     }
     if (e.key === 'Tab') {
-      const completed = complete(input);
+      const completed = completeCommand(input);
       if (completed && completed !== input) {
         e.preventDefault();
         e.stopPropagation(); // keep the dialog's Tab trap out of it while completing

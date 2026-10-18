@@ -157,3 +157,19 @@ html[data-motion='off'] ::after {
 .kt-react-pop {
   animation: kt-react-pop 320ms ease-out;
 }
+
+/* M58: Halloween decorations drift gently around the profile card. The global
+   motion gates above flatten this to a static emoji. */
+@keyframes kt-spooky-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(4deg);
+  }
+}
+
+.kt-spooky {
+  animation: kt-spooky-float 4s ease-in-out infinite;
+}

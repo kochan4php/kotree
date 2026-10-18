@@ -23,8 +23,19 @@ export function seasonFor(date: Date): string {
   // Eid first: it butts right up against the end of the Ramadan window
   for (const [from, to] of EID_WINDOWS) if (iso >= from && iso <= to) return '🌙 Eid Mubarak';
   for (const [from, to] of RAMADAN_WINDOWS) if (iso >= from && iso <= to) return '🌙 Ramadan';
+  // M58: two single days, checked before the month-long ranges
+  if (md === 214) return '💘 Valentine';
+  if (md === 401) return '🤡 April Fools — trust nothing today';
   if (md >= 1230 || md <= 102) return '🎆 New year, new clicks';
-  if (md >= 1025 && md <= 1031) return '🎃 Spooky season';
+  if (md >= 1025 && md <= 1031) return '🎃 Spooky season — the walls have eyes';
   if (md >= 1201 && md <= 1226) return '🎄 Festive season';
   return '';
+}
+
+// M58: whether a season deserves decorations on top of the greeting. The
+// profile card floats these around itself while the window is open.
+export function seasonDecorations(date: Date): string[] {
+  const md = (date.getMonth() + 1) * 100 + date.getDate();
+  if (md >= 1025 && md <= 1031) return ['🦇', '🎃', '👻'];
+  return [];
 }

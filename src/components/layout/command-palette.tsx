@@ -6,7 +6,9 @@ import {
   ArrowUp,
   BarChart3,
   BookOpen,
+  Compass,
   CornerDownLeft,
+  Dices,
   FolderGit2,
   History,
   Laptop,
@@ -33,12 +35,16 @@ import { trackLinkClick } from '@/lib/track-click';
 import { refreshLinkCounts } from '@/hooks/use-link-counts';
 import { cycleTheme, readPrefs, writePrefs } from '@/lib/prefs';
 import { clientToken } from '@/lib/csrf-client';
+import { fuzzy } from '@/lib/fuzzy';
+import { pickLucky } from '@/lib/lucky';
 import Skeleton from '@/components/ui/skeleton';
 
 interface PaletteItem {
   id: string;
   label: string;
   description?: string;
+  /** M50: a longer body shown while the row is active (notes, projects) */
+  preview?: string;
   hint?: string;
   icon: ComponentType<{ className?: string }>;
   group: 'Recent' | 'Links' | 'Go to' | 'Notes' | 'Projects' | 'Actions';
@@ -94,23 +100,8 @@ function pushRecent(id: string): void {
   }
 }
 
-// Subsequence match with a small score so word starts beat mid-word hits.
-function fuzzy(query: string, text: string): { score: number; indices: number[] } | null {
-  const q = query.toLowerCase();
-  const t = text.toLowerCase();
-  const indices: number[] = [];
-  let qi = 0;
-  let score = 0;
-  for (let i = 0; i < t.length && qi < q.length; i++) {
-    if (t[i] === q[qi]) {
-      indices.push(i);
-      if (i === 0 || t[i - 1] === ' ') score += 3;
-      if (indices.length > 1 && i === indices[indices.length - 2] + 1) score += 2;
-      qi++;
-    }
-  }
-  return qi === q.length ? { score: score - indices[0], indices } : null;
-}
+// Subsequence matching now lives in src/lib/fuzzy.ts (M50) — it scores word
+// starts, adjacent runs and prefix hits, and the unit tests pin it.
 
 function Highlight({ text, indices }: { text: string; indices: number[] }) {
   if (indices.length === 0) return <>{text}</>;
@@ -227,6 +218,7 @@ export default function CommandPalette() {
       ['Guestbook', '/guestbook', MessageSquare, 'The full confession wall'],
       ['Stats', '/stats', BarChart3, 'Clicks, links, reactions and trends'],
       ['Secrets', '/secrets', Trophy, 'Easter eggs and spoilers'],
+      ['Explore', '/explore', Compass, 'The visual sitemap and secret map'],
       ['Projects', '/projects', FolderGit2, 'Things I have built'],
       ['Notes', '/notes', NotebookPen, 'Short notes, newest first'],
       ['About', '/about', User, 'Who is behind Kotree'],
@@ -271,18 +263,30 @@ export default function CommandPalette() {
       group: 'Actions',
       run: () => window.dispatchEvent(new Event('kotree:terminal')),
     },
-    ...(pathname === '/'
-      ? [
-          {
-            id: 'action:qr',
-            label: 'Show QR code',
-            description: 'Scan to open this page on your phone',
-            icon: QrCode,
-            group: 'Actions' as const,
-            run: () => window.dispatchEvent(new Event('kotree:qr')),
-          },
-        ]
-      : []),
+    {
+      id: 'action:qr',
+      label: 'Show QR code',
+      description: 'Scan to open this page on your phone',
+      icon: QrCode,
+      group: 'Actions',
+      run: () => {
+        // The home page has the pretty modal; elsewhere the /qr page does it
+        if (pathname === '/') window.dispatchEvent(new Event('kotree:qr'));
+        else router.push(`/qr?url=${encodeURIComponent(pathname)}`);
+      },
+    },
+    {
+      id: 'action:lucky',
+      label: 'I’m feeling lucky',
+      description: 'A page you rarely visit, picked for you',
+      icon: Dices,
+      group: 'Actions',
+      run: () => {
+        const page = pickLucky();
+        toast.info(`Off to ${page.label}…`);
+        router.push(page.href);
+      },
+    },
     {
       id: 'action:copy',
       label: 'Copy page link',
@@ -352,6 +356,8 @@ export default function CommandPalette() {
     id: `content:${entry.url}`,
     label: entry.title,
     description: entry.summary,
+    // M50: the summary doubles as the preview panel while the row is active
+    preview: entry.summary,
     hint: entry.type === 'note' ? 'note' : 'project',
     icon: entry.type === 'note' ? NotebookPen : FolderGit2,
     group: entry.type === 'note' ? ('Notes' as const) : ('Projects' as const),
@@ -387,6 +393,20 @@ export default function CommandPalette() {
       )
       .slice(0, 9);
     shown = matches.map((m) => m.item);
+    // M50: argument action — "wrapped 2025" jumps into that year's recap
+    const wrappedArg = trimmed.match(/^wrapped\s+(\d{4})$/i);
+    if (wrappedArg) {
+      const year = wrappedArg[1];
+      const argItem: PaletteItem = {
+        id: `arg:wrapped:${year}`,
+        label: `Open Kotree Wrapped ${year}`,
+        description: `The ${year} recap, straight from the counter`,
+        icon: Sparkles,
+        group: 'Actions',
+        run: () => router.push(`/wrapped?year=${year}`),
+      };
+      shown = [argItem, ...shown];
+    }
   } else {
     const recentItems = recents
       .map((id) => byId.get(id))
@@ -396,6 +416,8 @@ export default function CommandPalette() {
   }
 
   const clampedIndex = Math.min(activeIndex, Math.max(0, shown.length - 1));
+  // M50: the active row's preview (notes and projects) sits under the list
+  const previewText = shown[clampedIndex]?.preview;
 
   // K31: groups are labelled in both views — results and the idle list
   const groupHeaderAt = (index: number): string | null =>
@@ -524,6 +546,16 @@ export default function CommandPalette() {
           );
         })}
       </ul>
+
+      {previewText && (
+        <div
+          role="region"
+          aria-label="Preview"
+          className="mt-2 max-h-24 overflow-y-auto rounded-xl border-[3px] border-foreground bg-card px-3 py-2 shadow-[4px_4px_0_0_var(--foreground)]"
+        >
+          <p className="text-xs font-medium leading-snug text-muted-foreground">{previewText}</p>
+        </div>
+      )}
 
       {indexLoading && trimmed && searchIndex.length === 0 && (
         <div className="mt-2 rounded-xl border-[3px] border-foreground bg-card p-3 shadow-[4px_4px_0_0_var(--foreground)]">

@@ -15,13 +15,13 @@ import type { CSSProperties } from 'react';
 // activity and your own secret tally. Live reads, fail-soft to zeros.
 // M3: the shell (back link + title) paints first, the numbers stream in.
 
-const year = new Date().getFullYear();
+const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Kotree Wrapped ${year}`,
-  description: `The ${year} recap — clicks, the busiest day and everything the guestbook got up to.`,
+  title: `Kotree Wrapped ${currentYear}`,
+  description: `The ${currentYear} recap — clicks, the busiest day and everything the guestbook got up to.`,
   alternates: { canonical: `${site.baseUrl}/wrapped` },
-  ...pageOg('wrapped', `Kotree Wrapped ${year}`),
+  ...pageOg('wrapped', `Kotree Wrapped ${currentYear}`),
 };
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -33,7 +33,15 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function WrappedPage() {
+// M50: ?year=2025 opens that year's recap (clamped to the site's own lifetime)
+export default async function WrappedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ year?: string }>;
+}) {
+  const params = await searchParams;
+  const parsed = Number(params.year);
+  const year = Number.isInteger(parsed) && parsed >= 2022 && parsed <= currentYear ? parsed : currentYear;
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
       <script
@@ -63,7 +71,7 @@ export default function WrappedPage() {
         </Card>
 
         <Suspense fallback={<WrappedFallback />}>
-          <WrappedBody />
+          <WrappedBody year={year} />
         </Suspense>
       </div>
     </main>
@@ -87,7 +95,7 @@ function WrappedFallback() {
   );
 }
 
-async function WrappedBody() {
+async function WrappedBody({ year }: { year: number }) {
   const stats = await getYearStats(year);
   const share =
     stats.topLink && stats.yearClicks > 0 ? Math.round((stats.topLink.count / stats.yearClicks) * 100) : 0;

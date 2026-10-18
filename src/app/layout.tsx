@@ -22,6 +22,7 @@ import HeaderBar from '@/components/layout/header-bar';
 import KeyboardHelp from '@/components/layout/keyboard-help';
 import ThemeSync from '@/components/layout/theme-sync';
 import RouteFocus from '@/components/layout/route-focus';
+import VisitTracker from '@/components/layout/visit-tracker';
 import CommandPalette from '@/components/layout/command-palette';
 import SelfDestruct from '@/components/self-destruct';
 import EasterEggLauncher from '@/components/easter-eggs';
@@ -147,6 +148,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <PageViewReporter />
         <ThemeSync />
         <RouteFocus />
+        <VisitTracker />
         <WhatsNew />
         <KonamiCode />
         <KeyboardHelp />

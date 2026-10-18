@@ -3,10 +3,11 @@
 import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
 import QRCode from 'react-qr-code';
-import { Check, Copy, Download, X } from 'lucide-react';
+import { Check, Copy, Download, FileImage, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSensory } from '@/hooks/use-sensory';
+import { downloadBlob, downloadQrSvg, qrPngBlob } from '@/lib/qr-download';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -52,41 +53,20 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
   const downloadPng = async () => {
     const svg = qrRef.current?.querySelector('svg');
     if (!svg) return;
-    // Re-render the SVG into a padded 512px PNG so it scans well when shared
-    const clone = svg.cloneNode(true) as SVGElement;
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    const svgUrl = URL.createObjectURL(
-      new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml' }),
-    );
     try {
-      const img = new Image();
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('svg load failed'));
-        img.src = svgUrl;
-      });
-      const size = 512;
-      const pad = 48;
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('no canvas');
-      ctx.fillStyle = colors.bg;
-      ctx.fillRect(0, 0, size, size);
-      ctx.drawImage(img, pad, pad, size - pad * 2, size - pad * 2);
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) throw new Error('no blob');
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'kotree-qr.png';
-      a.click();
-      URL.revokeObjectURL(a.href);
+      downloadBlob(await qrPngBlob(svg as SVGSVGElement, colors.bg), 'kotree-qr.png');
       toast.success('QR code downloaded!');
     } catch {
       toast.error('Could not create the PNG');
-    } finally {
-      URL.revokeObjectURL(svgUrl);
     }
+  };
+
+  // M56: vector download for people who want to print it large
+  const downloadSvg = () => {
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg) return;
+    downloadQrSvg(svg as SVGSVGElement);
+    toast.success('SVG downloaded!');
   };
 
   return createPortal(
@@ -148,7 +128,14 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
             onClick={downloadPng}
             className="inline-flex items-center gap-1.5 rounded-lg bg-accent text-accent-foreground border-[3px] border-foreground px-3 py-2 text-xs font-bold shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all cursor-pointer min-h-11"
           >
-            <Download className="w-4 h-4" aria-hidden="true" /> Download PNG
+            <FileImage className="w-4 h-4" aria-hidden="true" /> Download PNG
+          </button>
+          <button
+            type="button"
+            onClick={downloadSvg}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent text-accent-foreground border-[3px] border-foreground px-3 py-2 text-xs font-bold shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all cursor-pointer min-h-11"
+          >
+            <Download className="w-4 h-4" aria-hidden="true" /> Download SVG
           </button>
           <button
             type="button"
