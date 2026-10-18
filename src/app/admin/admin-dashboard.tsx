@@ -30,8 +30,22 @@ interface Overview {
   vitals: { page: string; metric: string; p75: number; rating: 'good' | 'ni' | 'poor'; good: number; total: number; weeks?: (number | null)[] }[];
   pageviews: { path: string; count: number }[];
   audit: { id: string; event: string; detail?: string; at: string }[];
+  // M67: action types for the audit filter
+  auditEvents?: string[];
+  // M65: the sharpest slice of the client-error stream
+  csp?: { message: string; count: number; lastSeenAt: string }[];
   // M44: the active poll, if one is running
   poll?: { id: string; question: string; options: { label: string; count: number }[]; total: number } | null;
+}
+
+// M61: one row in the sessions registry (ids arrive truncated)
+interface SessionRow {
+  id: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  bound: boolean;
+  current: boolean;
 }
 
 // M10: tiny four-week p75 sparkline. For every vital a lower number is better,
@@ -176,6 +190,14 @@ export default function AdminDashboard() {
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState('');
   const [pollBusy, setPollBusy] = useState(false);
+  // M60: the second factor — only surfaced when the server asks for it
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState('');
+  // M61: the revocable session registry
+  const [sessions, setSessions] = useState<SessionRow[] | null>(null);
+  // M67: audit filter — a fetched view wins over the overview's first page
+  const [auditEvent, setAuditEvent] = useState('all');
+  const [auditView, setAuditView] = useState<{ entries: Overview['audit']; events: string[] } | null>(null);
 
   // A session cookie may still be live from a previous visit: try it silently
   useEffect(() => {
@@ -226,17 +248,27 @@ export default function AdminDashboard() {
     if (!token.trim() || isLoading) return;
     setIsLoading(true);
     try {
-      // Exchange the token for an HttpOnly session cookie (R6)
+      // Exchange the token (+ 2FA code, when on) for an HttpOnly session (R6/M60)
       const res = await fetch('/api/admin/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.trim() }),
+        body: JSON.stringify({ token: token.trim(), code: code.trim() }),
       });
       if (res.status === 503) throw new Error('Admin is not configured — set ADMIN_TOKEN in the environment.');
-      if (res.status === 401) throw new Error('Wrong token.');
       if (res.status === 429) throw new Error('Too many attempts — wait a minute and try again.');
+      if (res.status === 401) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (data?.error === 'totp_required') {
+          setNeedsCode(true);
+          throw new Error('Enter the 2FA code to continue.');
+        }
+        if (data?.error === 'totp_invalid') throw new Error('Invalid 2FA code.');
+        throw new Error('Wrong token.');
+      }
       if (!res.ok) throw new Error(`Failed to sign in (${res.status})`);
       setToken('');
+      setCode('');
+      setNeedsCode(false);
       await refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to sign in');
@@ -256,6 +288,68 @@ export default function AdminDashboard() {
     setToken('');
     setAuthed(false);
     setOverview(null);
+  };
+
+  // M61: the registry follows the sign-in state
+  const loadSessions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/sessions');
+      if (!res.ok) throw new Error(`Failed to load sessions (${res.status})`);
+      const data = (await res.json()) as { sessions: SessionRow[] };
+      setSessions(data.sessions);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load sessions');
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loadSessions awaits the fetch before setState
+    if (authed) void loadSessions();
+  }, [authed, loadSessions]);
+
+  const revokeSession = async (row: SessionRow) => {
+    try {
+      const res = await fetch('/api/admin/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ id: row.id }),
+      });
+      if (!res.ok) throw new Error(`Revoke failed (${res.status})`);
+      if (row.current) {
+        // Revoking yourself is a logout with extra steps
+        toast.success('Session revoked — signing out');
+        setAuthed(false);
+        setOverview(null);
+        return;
+      }
+      toast.success('Session revoked');
+      setSessions((prev) => (prev ? prev.filter((session) => session.id !== row.id) : prev));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Revoke failed');
+    }
+  };
+
+  // M67: filtered audit pages + the CSV download
+  const loadAudit = useCallback(async (event: string) => {
+    try {
+      const suffix = event && event !== 'all' ? `?event=${encodeURIComponent(event)}` : '';
+      const res = await fetch(`/api/admin/audit${suffix}`);
+      if (!res.ok) throw new Error(`Failed to load audit (${res.status})`);
+      setAuditView((await res.json()) as { entries: Overview['audit']; events: string[] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load audit');
+    }
+  }, []);
+
+  const exportAuditCsv = async () => {
+    try {
+      const suffix = auditEvent && auditEvent !== 'all' ? `&event=${encodeURIComponent(auditEvent)}` : '';
+      const res = await fetch(`/api/admin/audit?format=csv${suffix}`);
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      downloadBlob(await res.blob(), 'kotree-audit.csv');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Export failed');
+    }
   };
 
   const removeEntry = async (id: string) => {
@@ -443,6 +537,9 @@ export default function AdminDashboard() {
 
   const maxCount = Math.max(1, ...(overview?.links?.map((link) => link.count) ?? []));
   const maxPageviews = Math.max(1, ...(overview?.pageviews?.map((page) => page.count) ?? []));
+  const maxCsp = Math.max(1, ...(overview?.csp?.map((violation) => violation.count) ?? []));
+  // M67: the fetched (filtered) view wins over the overview's first page
+  const auditEntries = auditView?.entries ?? overview?.audit ?? [];
   const query = filter.trim().toLowerCase();
   const filteredEntries = (overview?.guestbook ?? [])
     .filter((entry) => !query || entry.message.toLowerCase().includes(query))
@@ -466,26 +563,48 @@ export default function AdminDashboard() {
             </div>
 
             {!probeDone ? null : !authed ? (
-              <form onSubmit={handleConnect} className="flex gap-2">
-                <label htmlFor="admin-token" className="sr-only">
-                  Admin token
-                </label>
-                <input
-                  id="admin-token"
-                  type="password"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  placeholder="Admin token"
-                  autoComplete="current-password"
-                  className="flex-1 rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
-                />
-                <button
-                  type="submit"
-                  disabled={!token.trim() || isLoading}
-                  className="rounded-lg bg-accent border-[3px] border-foreground px-4 py-2 text-sm font-bold text-accent-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {isLoading ? 'Checking…' : 'Connect'}
-                </button>
+              <form onSubmit={handleConnect} className="space-y-2">
+                <div className="flex gap-2">
+                  <label htmlFor="admin-token" className="sr-only">
+                    Admin token
+                  </label>
+                  <input
+                    id="admin-token"
+                    type="password"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder="Admin token"
+                    autoComplete="current-password"
+                    className="flex-1 rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!token.trim() || isLoading || (needsCode && !code.trim())}
+                    className="rounded-lg bg-accent border-[3px] border-foreground px-4 py-2 text-sm font-bold text-accent-foreground shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {isLoading ? 'Checking…' : 'Connect'}
+                  </button>
+                </div>
+                {needsCode && (
+                  <div>
+                    <label htmlFor="admin-code" className="sr-only">
+                      2FA code
+                    </label>
+                    <input
+                      id="admin-code"
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="2FA code"
+                      autoComplete="one-time-code"
+                      inputMode="text"
+                      className="w-full rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
+                    />
+                    <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                      Two-factor is on — enter the code from your authenticator, or a recovery code.
+                    </p>
+                  </div>
+                )}
               </form>
             ) : (
               <div className="flex items-center justify-between gap-2">
@@ -638,6 +757,40 @@ export default function AdminDashboard() {
                 )}
               </div>
             </Card>
+
+            <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Bug className="w-5 h-5 text-accent-ink" />
+                  <h2 className="text-lg font-bold text-foreground">CSP violations (top 5)</h2>
+                </div>
+                {(overview.csp ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">Nothing blocked lately — the policy is quiet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(overview.csp ?? []).map((violation) => (
+                      <div key={violation.message} className="flex items-center gap-3">
+                        <span
+                          className="w-40 shrink-0 truncate font-mono text-xs font-bold text-foreground"
+                          title={violation.message}
+                        >
+                          {violation.message}
+                        </span>
+                        <div className="flex-1 h-4 rounded border-2 border-foreground bg-secondary overflow-hidden">
+                          <div
+                            className="h-full bg-accent"
+                            style={{ width: `${Math.max(3, (violation.count / maxCsp) * 100)}%` }}
+                          />
+                        </div>
+                        <span className="w-10 shrink-0 text-right text-xs font-mono font-bold text-foreground">
+                          {violation.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
           </>
         )}
 
@@ -646,30 +799,127 @@ export default function AdminDashboard() {
           <>
             <Card className="fluid-glass">
               <div className="relative z-10 space-y-3">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <ScrollText className="w-5 h-5 text-accent-ink" />
                   <h2 className="text-lg font-bold text-foreground">Audit log</h2>
+                  <label htmlFor="audit-event" className="sr-only">
+                    Filter by action
+                  </label>
+                  <select
+                    id="audit-event"
+                    value={auditEvent}
+                    onChange={(e) => {
+                      setAuditEvent(e.target.value);
+                      void loadAudit(e.target.value);
+                    }}
+                    className="rounded-lg border-2 border-foreground bg-card px-2 py-1 text-xs font-bold text-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none"
+                  >
+                    <option value="all">All actions</option>
+                    {(auditView?.events ?? overview.auditEvents ?? []).map((event) => (
+                      <option key={event} value={event}>
+                        {event.replace(/_/g, ' ')}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={exportAuditCsv}
+                    className="ml-auto inline-flex items-center gap-1.5 rounded-lg border-2 border-foreground bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:bg-accent hover:text-accent-foreground active:translate-y-0.5 active:shadow-none transition-all"
+                  >
+                    <FileDown className="w-3.5 h-3.5" />
+                    Export audit CSV
+                  </button>
                 </div>
-                {(overview.audit ?? []).length === 0 ? (
+                {auditEntries.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic">No activity recorded yet.</p>
                 ) : (
                   <ul className="space-y-1.5">
-                    {(overview.audit ?? []).map((entry) => (
+                    {auditEntries.map((entry) => (
                       <li
                         key={entry.id}
                         className="flex flex-wrap items-center gap-2 rounded-lg border-2 border-foreground bg-secondary px-3 py-1.5 shadow-[2px_2px_0_0_var(--foreground)]"
                       >
                         <span
                           className={`inline-block rounded border-2 border-foreground px-1.5 text-[10px] font-black uppercase text-[#14110f] ${
-                            entry.event === 'login_failed' ? 'bg-red-300' : entry.event === 'login_ok' ? 'bg-green-300' : 'bg-card'
+                            entry.event === 'login_failed' || entry.event === 'login_totp_failed'
+                              ? 'bg-red-300'
+                              : entry.event === 'login_ok'
+                                ? 'bg-green-300'
+                                : 'bg-card'
                           }`}
                         >
                           {entry.event.replace(/_/g, ' ')}
                         </span>
-                        {entry.detail && <span className="font-mono text-[10px] text-muted-foreground">{entry.detail}</span>}
+                        {entry.detail &&
+                          (/^[a-f0-9]{24}$/.test(entry.detail) ? (
+                            // M67: entry ids jump straight to the moderation row
+                            <a
+                              href={`#gb-${entry.detail}`}
+                              className="font-mono text-[10px] font-bold text-accent-ink underline decoration-dotted"
+                            >
+                              {entry.detail}
+                            </a>
+                          ) : (
+                            <span className="font-mono text-[10px] text-muted-foreground">{entry.detail}</span>
+                          ))}
                         <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                           {new Date(entry.at).toLocaleString()}
                         </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Card>
+
+            <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-accent-ink" />
+                    <h2 className="text-lg font-bold text-foreground">Active sessions</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void loadSessions()}
+                    aria-label="Refresh sessions"
+                    className={iconButton}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </div>
+                {sessions === null ? (
+                  <p className="text-sm text-muted-foreground italic">Loading sessions…</p>
+                ) : sessions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No browser sessions — signed in with a token only.</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {sessions.map((row) => (
+                      <li
+                        key={row.id}
+                        className="flex flex-wrap items-center gap-2 rounded-lg border-2 border-foreground bg-secondary px-3 py-1.5 shadow-[2px_2px_0_0_var(--foreground)]"
+                      >
+                        <span className="font-mono text-[10px] font-bold text-foreground">{row.id}…</span>
+                        {row.current && (
+                          <span className="inline-block rounded border-2 border-foreground bg-green-300 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
+                            this device
+                          </span>
+                        )}
+                        {row.bound && (
+                          <span className="inline-block rounded border-2 border-foreground bg-card px-1.5 text-[10px] font-black uppercase text-foreground">
+                            browser-bound
+                          </span>
+                        )}
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          seen {new Date(row.lastSeenAt).toLocaleString()}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => void revokeSession(row)}
+                          className="ml-auto rounded-lg border-2 border-foreground bg-card px-2 py-0.5 text-[11px] font-bold text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:bg-accent hover:text-accent-foreground active:translate-y-0.5 active:shadow-none transition-all"
+                        >
+                          Revoke
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -752,7 +1002,8 @@ export default function AdminDashboard() {
                     {filteredEntries.map((entry) => (
                       <li
                         key={entry.id}
-                        className="flex items-start gap-3 rounded-lg border-2 border-foreground bg-secondary p-3 shadow-[2px_2px_0_0_var(--foreground)]"
+                        id={`gb-${entry.id}`}
+                        className="flex items-start gap-3 rounded-lg border-2 border-foreground bg-secondary p-3 shadow-[2px_2px_0_0_var(--foreground)] target:ring-4 target:ring-accent"
                       >
                         <input
                           type="checkbox"

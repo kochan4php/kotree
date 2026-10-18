@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
 import { addAudit, getLinkCounts, getGuestbookAdminEntries, getDailyClickCounts, getClientErrors, getPageViews } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
-import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { adminRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 // Full JSON backup of everything the admin can see (R42). Complements
 // scripts/backup-data.mjs: this one works from a browser session.
 export async function GET(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
-    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
-  }
+  const limited = await adminRateLimited('read', request);
+  if (limited) return limited;
 
-  const forbidden = guardAdmin(request);
+  const forbidden = await guardAdmin(request);
   if (forbidden) return forbidden;
 
   try {

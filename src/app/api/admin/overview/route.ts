@@ -7,10 +7,12 @@ import {
   getVitalsP75,
   getPageViews,
   getAuditLog,
+  getAuditEvents,
+  getTopCspViolations,
   getActivePoll,
 } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
-import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { adminRateLimited } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,12 +20,10 @@ export const dynamic = 'force-dynamic';
 // renders as soon as its data lands (a slow moderation query no longer blocks
 // the click stats). No `section` returns everything, for the session probe.
 export async function GET(request: Request) {
-  // Throttle before the token check: slows down brute force
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
-    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
-  }
+  const limited = await adminRateLimited('read', request);
+  if (limited) return limited;
 
-  const forbidden = guardAdmin(request);
+  const forbidden = await guardAdmin(request);
   if (forbidden) return forbidden;
 
   const section = new URL(request.url).searchParams.get('section');
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const wantModeration = section !== 'stats';
 
   try {
-    const [links, guestbook, daily, errors, vitals, pageviews, audit, poll] = await Promise.all([
+    const [links, guestbook, daily, errors, vitals, pageviews, audit, auditEvents, csp, poll] = await Promise.all([
       wantStats ? getLinkCounts() : null,
       wantModeration ? getGuestbookAdminEntries() : null,
       // Trend + side panels are nice-to-have: an empty chart beats a 500
@@ -40,6 +40,10 @@ export async function GET(request: Request) {
       wantStats ? getVitalsP75(7).catch(() => []) : null,
       wantStats ? getPageViews(7).catch(() => []) : null,
       wantModeration ? getAuditLog(30).catch(() => []) : null,
+      // M67: action types for the audit filter
+      wantModeration ? getAuditEvents().catch(() => []) : null,
+      // M65: CSP violations are the sharp end of the client-error stream
+      wantStats ? getTopCspViolations(5).catch(() => []) : null,
       // M44: the active poll (if any) rides in the moderation payload
       wantModeration ? getActivePoll().catch(() => null) : null,
     ]);
@@ -52,11 +56,13 @@ export async function GET(request: Request) {
       payload.daily = daily;
       payload.vitals = vitals;
       payload.pageviews = pageviews;
+      payload.csp = csp;
     }
     if (guestbook) {
       payload.guestbook = guestbook;
       payload.errors = errors;
       payload.audit = audit;
+      payload.auditEvents = auditEvents;
       payload.poll = poll;
     }
 

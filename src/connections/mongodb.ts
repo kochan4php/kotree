@@ -49,6 +49,9 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       db.collection('vitals').createIndex({ day: 1, page: 1 }),
       db.collection('page_views').createIndex({ day: 1 }),
       db.collection('audit_log').createIndex({ at: 1 }, { expireAfterSeconds: 180 * DAY }),
+      // M61: admin sessions expire themselves; recovery codes (M60) are
+      // single-use rows keyed by their hash
+      db.collection('admin_sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       db.collection('client_errors').createIndex({ hash: 1 }),
       db.collection('client_errors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 7 * DAY }),
       db.collection('click_visitors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 35 * DAY }),
@@ -664,9 +667,10 @@ export async function addAudit(event: string, detail?: string, ip?: string): Pro
   await collection.insertOne({ event, detail, ipHash, at: new Date() }, { maxTimeMS: 3_000 });
 }
 
-export async function getAuditLog(limit = 100): Promise<AuditEntry[]> {
+export async function getAuditLog(limit = 100, event?: string): Promise<AuditEntry[]> {
   const collection = await auditCollection();
-  const docs = await collection.find({}, { maxTimeMS: 3_000 }).sort({ at: -1 }).limit(limit).toArray();
+  const query = event && event !== 'all' ? { event } : {};
+  const docs = await collection.find(query, { maxTimeMS: 3_000 }).sort({ at: -1 }).limit(limit).toArray();
   return docs.map((d) => ({
     id: d._id.toString(),
     event: d.event,
@@ -674,6 +678,148 @@ export async function getAuditLog(limit = 100): Promise<AuditEntry[]> {
     ipHash: d.ipHash,
     at: d.at,
   }));
+}
+
+// M67: the distinct event names, for the admin filter dropdown
+export async function getAuditEvents(): Promise<string[]> {
+  const collection = await auditCollection();
+  const events = await collection.distinct('event', {}, { maxTimeMS: 3_000 });
+  return events.filter((event): event is string => typeof event === 'string').sort();
+}
+
+// ---------- Admin sessions (M61) ----------
+
+export interface AdminSession {
+  id: string;
+  createdAt: Date;
+  lastSeenAt: Date;
+  expiresAt: Date;
+  uaHash?: string;
+  revokedAt?: Date | null;
+}
+
+// The stored shape: string _id, because the id is our random token, not an
+// ObjectId — the collection generic says so once and the filters stay simple.
+interface AdminSessionDoc {
+  _id: string;
+  createdAt: Date;
+  lastSeenAt: Date;
+  expiresAt: Date;
+  uaHash?: string;
+  revokedAt?: Date | null;
+}
+
+const adminSessionsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<AdminSessionDoc>('admin_sessions'));
+
+export async function createAdminSessionDoc(id: string, expiresAt: Date, uaHash?: string): Promise<void> {
+  const collection = await adminSessionsCollection();
+  await collection.insertOne({ _id: id, createdAt: new Date(), lastSeenAt: new Date(), expiresAt, uaHash, revokedAt: null }, {
+    maxTimeMS: 3_000,
+  });
+}
+
+// The guard runs on every admin request; a doc lookup is the price of being
+// able to revoke sessions. A missing/revoked/expired row means "not live".
+export async function isAdminSessionLive(id: string, uaHash?: string): Promise<AdminSession | null> {
+  const collection = await adminSessionsCollection();
+  const doc = await collection.findOne({ _id: id }, { maxTimeMS: 3_000 });
+  if (!doc) return null;
+  if (doc.revokedAt) return null;
+  const expiresAt = new Date(doc.expiresAt);
+  if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() < Date.now()) return null;
+  if (uaHash !== undefined && doc.uaHash && doc.uaHash !== uaHash) return null;
+  return { ...doc, id: doc._id };
+}
+
+export async function touchAdminSession(id: string): Promise<void> {
+  const collection = await adminSessionsCollection();
+  await collection.updateOne({ _id: id }, { $set: { lastSeenAt: new Date() } }, { maxTimeMS: 3_000 });
+}
+
+export async function listAdminSessions(): Promise<AdminSession[]> {
+  const collection = await adminSessionsCollection();
+  const docs = await collection
+    .find({ revokedAt: null, expiresAt: { $gt: new Date() } }, { maxTimeMS: 3_000 })
+    .sort({ lastSeenAt: -1 })
+    .limit(50)
+    .toArray();
+  return docs.map((doc) => ({ ...doc, id: doc._id }));
+}
+
+export async function revokeAdminSession(id: string): Promise<boolean> {
+  const collection = await adminSessionsCollection();
+  const { matchedCount } = await collection.updateOne(
+    { _id: id, revokedAt: null },
+    { $set: { revokedAt: new Date() } },
+    { maxTimeMS: 3_000 },
+  );
+  return matchedCount === 1;
+}
+
+// ---------- TOTP recovery codes (M60) ----------
+// Single-use by construction: the hash is the _id, so the second insert of the
+// same hash fails. Mongo being unreachable fails CLOSED (false) — a recovery
+// code must not be reusable just because the ledger blinked.
+export async function claimRecoveryCode(hash: string): Promise<boolean> {
+  try {
+    const collection = await getClientPromise().then((client) =>
+      client.db('kotreedb').collection<{ _id: string; at: Date }>('admin_recovery'),
+    );
+    await collection.insertOne({ _id: hash, at: new Date() }, { maxTimeMS: 3_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ---------- CSP violations (M65) ----------
+
+export interface CspViolation {
+  message: string;
+  count: number;
+  lastSeenAt: Date;
+}
+
+export async function getTopCspViolations(limit = 5): Promise<CspViolation[]> {
+  const collection = await clientErrorsCollection();
+  const rows = await collection
+    .aggregate<{ _id: string; count: number; lastSeenAt: Date }>(
+      [
+        { $match: { source: 'csp' } },
+        { $group: { _id: '$message', count: { $sum: '$count' }, lastSeenAt: { $max: '$lastSeenAt' } } },
+        { $sort: { count: -1, lastSeenAt: -1 } },
+        { $limit: limit },
+      ],
+      { maxTimeMS: 3_000 },
+    )
+    .toArray();
+  return rows.map((row) => ({ message: row._id, count: row.count, lastSeenAt: row.lastSeenAt }));
+}
+
+// M63: the alert workflow polls /api/health and compares this against a
+// repository-variable threshold; a Mongo hiccup reports zero rather than 500.
+export async function getCspViolationCount24h(): Promise<number> {
+  try {
+    const collection = await clientErrorsCollection();
+    const rows = await collection
+      .aggregate<{ total: number }>(
+        [
+          {
+            $match: {
+              source: 'csp',
+              lastSeenAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$count' } } },
+        ],
+        { maxTimeMS: 3_000 },
+      )
+      .toArray();
+    return rows[0]?.total ?? 0;
+  } catch {
+    return 0;
+  }
 }
 
 export async function pingDb(): Promise<boolean> {

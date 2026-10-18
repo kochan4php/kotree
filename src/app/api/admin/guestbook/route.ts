@@ -10,7 +10,7 @@ import {
   unbanGuestbookIpHash,
 } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
-import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { adminRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,11 +20,10 @@ const BAN_HOURS = 24;
 // K30/M43/M47: pin, hide (one entry or a bulk selection) and reply — all from
 // the moderation list. Each branch audits what it changed.
 export async function PATCH(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
-    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
-  }
+  const limited = await adminRateLimited('write', request);
+  if (limited) return limited;
 
-  const forbidden = guardAdmin(request, { csrf: true });
+  const forbidden = await guardAdmin(request, { csrf: true });
   if (forbidden) return forbidden;
 
   try {
@@ -68,11 +67,10 @@ export async function PATCH(request: Request) {
 
 // M47: temporary ban / unban keyed on the hashed IP shown in the panel
 export async function POST(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
-    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
-  }
+  const limited = await adminRateLimited('write', request);
+  if (limited) return limited;
 
-  const forbidden = guardAdmin(request, { csrf: true });
+  const forbidden = await guardAdmin(request, { csrf: true });
   if (forbidden) return forbidden;
 
   try {
@@ -97,11 +95,10 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
-    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
-  }
+  const limited = await adminRateLimited('write', request);
+  if (limited) return limited;
 
-  const forbidden = guardAdmin(request, { csrf: true });
+  const forbidden = await guardAdmin(request, { csrf: true });
   if (forbidden) return forbidden;
 
   const id = new URL(request.url).searchParams.get('id') ?? '';

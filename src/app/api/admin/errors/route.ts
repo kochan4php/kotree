@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import { addAudit, resolveClientError } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
-import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { adminRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 // K7: mark a reported client error as resolved (or bring it back)
 export async function PATCH(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
-    return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
-  }
+  const limited = await adminRateLimited('write', request);
+  if (limited) return limited;
 
-  const forbidden = guardAdmin(request, { csrf: true });
+  const forbidden = await guardAdmin(request, { csrf: true });
   if (forbidden) return forbidden;
 
   let id = '';

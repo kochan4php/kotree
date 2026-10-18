@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { currentTotpCode } from './helpers/totp';
 
 // The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token
 const TOKEN = 'e2e-admin-token';
@@ -12,11 +13,17 @@ test('guestbook GET answers If-None-Match with 304', async ({ request }) => {
   const etag = first.headers()['etag'];
   expect(etag).toBeTruthy();
 
-  const revalidated = await request.get('/api/guestbook?limit=5', {
-    headers: { 'If-None-Match': etag },
-  });
-  expect(revalidated.status()).toBe(304);
-  expect((await revalidated.body()).length).toBe(0);
+  // Other tests write entries in parallel, which rotates the ETag mid-test —
+  // retry the pair until a revalidation happens on an unchanged payload.
+  await expect(async () => {
+    const fresh = await request.get('/api/guestbook?limit=5');
+    const tag = fresh.headers()['etag'];
+    const revalidated = await request.get('/api/guestbook?limit=5', {
+      headers: { 'If-None-Match': tag },
+    });
+    expect(revalidated.status()).toBe(304);
+    expect((await revalidated.body()).length).toBe(0);
+  }).toPass({ timeout: 15000 });
 });
 
 test('boss leaderboard answers If-None-Match with 304', async ({ request }) => {
@@ -50,7 +57,7 @@ test('health reports version, uptime, commit and Mongo state', async ({ request 
 test('admin overview splits into stats and moderation sections', async ({ request }) => {
   const login = await request.post('/api/admin/session', {
     headers: { origin: 'http://localhost:3000', 'sec-fetch-site': 'same-origin' },
-    data: { token: TOKEN },
+    data: { token: TOKEN, code: await currentTotpCode() },
   });
   expect(login.ok()).toBe(true);
 

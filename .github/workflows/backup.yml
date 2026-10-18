@@ -29,4 +29,6 @@ jobs:
         with:
           name: kotree-backup-${{ github.run_id }}
           path: backups/
-          retention-days: 30
+          # M64: keep three months of weekly backups; the monthly restore
+          # drill consumes the newest of them
+          retention-days: 90

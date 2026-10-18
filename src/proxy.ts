@@ -41,6 +41,10 @@ function contentSecurityPolicy(nonce: string): string {
 
   return [
     "default-src 'self'",
+    // M65: 'wasm-unsafe-eval' stays — the Doom engine (wasm-engine.tsx) runs
+    // WebAssembly, and dropping the directive would break it for a threat
+    // (JIT spray through hand-written wasm) that cannot execute without an
+    // injection in the first place. Evaluated, kept, documented.
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://avatars.githubusercontent.com",
@@ -53,6 +57,9 @@ function contentSecurityPolicy(nonce: string): string {
     "frame-ancestors 'none'",
     ...(httpsDeployment ? ['upgrade-insecure-requests'] : []),
     "worker-src 'self' blob:",
+    // M65: both reporting generations — report-to is what Chromium reads now,
+    // report-uri is the fallback every other engine still uses
+    'report-to default',
     'report-uri /api/csp-report',
   ].join('; ');
 }
@@ -101,6 +108,8 @@ export function proxy(request: NextRequest, event: NextFetchEvent) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('content-security-policy', csp);
+  // M65: the group the policy's `report-to default` points at
+  response.headers.set('reporting-endpoints', 'default="/api/csp-report"');
   return response;
 }
 

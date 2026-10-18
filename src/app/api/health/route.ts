@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { pingDb } from '@/connections/mongodb';
+import { getCspViolationCount24h, pingDb } from '@/connections/mongodb';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 import pkg from '../../../../package.json';
 
@@ -14,11 +14,15 @@ export async function GET(request: Request) {
   }
 
   const mongo = await pingDb();
+  // M63: the alert workflow watches this number against a repo-variable
+  // threshold; reporting it here keeps the check to one anonymous request.
+  const cspViolations24h = mongo ? await getCspViolationCount24h() : 0;
   return NextResponse.json(
     {
       status: mongo ? 'ok' : 'degraded',
       mongo,
       version: pkg.version,
+      cspViolations24h,
       // Netlify sets COMMIT_REF; GitHub Actions sets GITHUB_SHA
       commit: (process.env.COMMIT_REF ?? process.env.GITHUB_SHA ?? 'dev').slice(0, 12),
       uptime: Math.round(process.uptime()),

@@ -22,6 +22,22 @@ export async function isRateLimited(key: string, maxHits = 30, windowMs = WINDOW
   }
 }
 
+// M62: admin traffic gets two separate budgets per IP — reads are cheap and
+// plentiful (the dashboard polls), writes are the ones that touch data, so the
+// ceiling is three times lower. A 429 always carries `Retry-After: 60`, the
+// same second-granularity window the Mongo counters use.
+export const ADMIN_READ_MAX = 90;
+export const ADMIN_WRITE_MAX = 30;
+
+export async function adminRateLimited(kind: 'read' | 'write', request: Request): Promise<Response | null> {
+  const key = `admin-${kind}:${getClientIp(request)}`;
+  const max = kind === 'read' ? ADMIN_READ_MAX : ADMIN_WRITE_MAX;
+  if (await isRateLimited(key, max)) {
+    return new Response('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
+  }
+  return null;
+}
+
 // Global budget shared by ALL visitors: protects money-burning resources
 // (Gemini quota) from floods spread across many IPs, where per-IP limits
 // don't help. Same Mongo-backed counters, so the budget is truly global.

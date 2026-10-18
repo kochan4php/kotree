@@ -34,6 +34,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Fail on high/critical advisories in the lockfile
       - run: pnpm audit --audit-level high
+      # M66: no secrets in the tree — the scanner runs before anything else
+      - run: pnpm scan:secrets
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test:unit

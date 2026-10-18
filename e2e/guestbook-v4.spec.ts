@@ -1,6 +1,7 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { encryptMessage } from '../src/components/guestbook/obfuscation';
+import { currentTotpCode } from './helpers/totp';
 
 // The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token
 const TOKEN = 'e2e-admin-token';
@@ -47,7 +48,7 @@ async function postSecret(request: APIRequestContext, message: string, owner: st
 async function adminLogin(request: APIRequestContext): Promise<Record<string, string>> {
   const login = await request.post('/api/admin/session', {
     headers: { ...ORIGIN, 'x-forwarded-for': RUN_XFF },
-    data: { token: TOKEN },
+    data: { token: TOKEN, code: await currentTotpCode() },
   });
   expect(login.ok()).toBe(true);
   const cookies = login.headers()['set-cookie'] ?? '';
@@ -70,6 +71,16 @@ async function openAdmin(page: Page) {
   if (await tokenField.isVisible()) {
     await tokenField.fill(TOKEN);
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    // M60: the second factor is on in the e2e server
+    const codeField = page.getByLabel('2FA code');
+    const needsCode = await codeField
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    if (needsCode) {
+      await codeField.fill(await currentTotpCode());
+      await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    }
   }
   await expect(page.getByRole('heading', { name: 'Guestbook moderation' })).toBeVisible({ timeout: 15000 });
 }

@@ -47,6 +47,11 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     // Token the admin e2e tests authenticate with (server sees the same value)
-    env: { ADMIN_TOKEN: 'e2e-admin-token' },
+    env: {
+      ADMIN_TOKEN: 'e2e-admin-token',
+      // M60: the e2e server enforces the second factor, and the tests compute
+      // matching codes from this shared base32 secret (RFC 6238 test vector).
+      ADMIN_TOTP_SECRET: 'JBSWY3DPEHPK3PXP',
+    },
   },
 });

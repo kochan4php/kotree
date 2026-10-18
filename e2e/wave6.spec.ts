@@ -141,6 +141,8 @@ test('the palette jumps straight into a past Wrapped year', async ({ page }) => 
 
 test('the 404 "Surprise me" button lands on a real page', async ({ page }) => {
   await page.goto('/this-page-does-not-exist');
+  // The button is React: a click before hydration goes nowhere
+  await waitHydrated(page);
   await page.getByRole('button', { name: 'Surprise me' }).click();
   await page.waitForURL((url) => url.pathname !== '/this-page-does-not-exist');
   const hrefs = LUCKY_POOL.map((entry) => entry.href);

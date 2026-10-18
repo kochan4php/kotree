@@ -1,0 +1,53 @@
+name: Backup restore drill
+
+# M64: monthly proof that the newest backup artifact actually restores. It
+# downloads the latest successful "Weekly backup" run's artifact, loads it
+# into an ephemeral Mongo service and verifies the counts match
+# (scripts/restore-drill.mjs). A red run here means: fix the backups BEFORE
+# you need one for real.
+on:
+  schedule:
+    - cron: '0 4 1 * *' # first of each month, 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Download the newest backup artifact
+        id: fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=$(gh run list --workflow backup.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$RUN_ID" ]; then
+            echo "::notice::No successful backup run yet — nothing to drill"
+            exit 0
+          fi
+          mkdir -p backups
+          gh run download "$RUN_ID" -n "kotree-backup-$RUN_ID" -D backups
+          ls -l backups
+          echo "ready=1" >> "$GITHUB_OUTPUT"
+
+      - name: Restore into a scratch database
+        if: steps.fetch.outputs.ready == '1'
+        run: |
+          FILE=$(find backups -name '*.json' | head -1)
+          test -n "$FILE"
+          node scripts/restore-drill.mjs "$FILE"

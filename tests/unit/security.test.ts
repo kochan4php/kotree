@@ -2,9 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import {
-  ADMIN_CSRF_COOKIE,
   ADMIN_SESSION_COOKIE,
-  createAdminSession,
   generateToken,
   guardAdmin,
   validateToken,
@@ -21,61 +19,43 @@ function withCookies(cookies: Record<string, string>): Request {
   return new Request('http://localhost/api/admin/overview', { headers: { cookie: header } });
 }
 
-test('guardAdmin returns 503 when ADMIN_TOKEN is not configured', () => {
+test('guardAdmin returns 503 when ADMIN_TOKEN is not configured', async () => {
   const saved = process.env.ADMIN_TOKEN;
   delete process.env.ADMIN_TOKEN;
   try {
-    assert.equal(guardAdmin(new Request('http://localhost/'))?.status, 503);
+    assert.equal((await guardAdmin(new Request('http://localhost/')))?.status, 503);
   } finally {
     process.env.ADMIN_TOKEN = saved;
   }
 });
 
-test('guardAdmin accepts the right bearer token and rejects others', () => {
+test('guardAdmin accepts the right bearer token and rejects others', async () => {
   const good = new Request('http://localhost/', { headers: { authorization: `Bearer ${TOKEN}` } });
-  assert.equal(guardAdmin(good), null);
+  assert.equal(await guardAdmin(good), null);
 
   const wrong = new Request('http://localhost/', { headers: { authorization: 'Bearer nope' } });
-  assert.equal(wrong ? guardAdmin(wrong)?.status : 0, 401);
+  assert.equal((await guardAdmin(wrong))?.status, 401);
 
-  assert.equal(guardAdmin(new Request('http://localhost/'))?.status, 401);
+  assert.equal((await guardAdmin(new Request('http://localhost/')))?.status, 401);
 });
 
-test('a fresh session passes; expired and tampered ones do not', () => {
-  const { session } = createAdminSession();
-  assert.equal(guardAdmin(withCookies({ [ADMIN_SESSION_COOKIE]: session })), null);
-
-  // A correctly signed but expired session (same forgery the clock will make)
+test('cookie sessions fail closed: expired, tampered and unknown ones are 401', async () => {
+  // Correctly signed but expired — the same forgery the clock will make
   const expiredExp = Date.now() - 1000;
-  const signedExpired = `${expiredExp}.${createHmac('sha256', TOKEN).update(String(expiredExp)).digest('hex')}`;
-  assert.equal(guardAdmin(withCookies({ [ADMIN_SESSION_COOKIE]: signedExpired }))?.status, 401);
+  const signedExpired = `${expiredExp}.abcdef.${createHmac('sha256', TOKEN)
+    .update(`${expiredExp}.abcdef`)
+    .digest('hex')}`;
+  assert.equal((await guardAdmin(withCookies({ [ADMIN_SESSION_COOKIE]: signedExpired })))?.status, 401);
 
+  // Right shape, wrong signature
   const future = Date.now() + 60_000;
-  const tampered = `${future}.deadbeef`;
-  assert.equal(guardAdmin(withCookies({ [ADMIN_SESSION_COOKIE]: tampered }))?.status, 401);
-});
+  const tampered = `${future}.abcdef.deadbeef`;
+  assert.equal((await guardAdmin(withCookies({ [ADMIN_SESSION_COOKIE]: tampered })))?.status, 401);
 
-test('cookie mutations need the CSRF double-submit pair', () => {
-  const { session, csrf } = createAdminSession();
-
-  const noCsrf = withCookies({ [ADMIN_SESSION_COOKIE]: session });
-  assert.equal(guardAdmin(noCsrf, { csrf: true })?.status, 403);
-
-  const good = new Request('http://localhost/api/admin/guestbook', {
-    headers: {
-      cookie: `${ADMIN_SESSION_COOKIE}=${session}; ${ADMIN_CSRF_COOKIE}=${csrf}`,
-      'x-csrf-token': csrf,
-    },
-  });
-  assert.equal(guardAdmin(good, { csrf: true }), null);
-
-  const mismatched = new Request('http://localhost/api/admin/guestbook', {
-    headers: {
-      cookie: `${ADMIN_SESSION_COOKIE}=${session}; ${ADMIN_CSRF_COOKIE}=${csrf}`,
-      'x-csrf-token': 'other',
-    },
-  });
-  assert.equal(guardAdmin(mismatched, { csrf: true })?.status, 403);
+  // Well-signed but the registry is unreachable in this process — prove
+  // nothing, allow nothing (M61)
+  const signed = `${future}.abcdef.${createHmac('sha256', TOKEN).update(`${future}.abcdef`).digest('hex')}`;
+  assert.equal((await guardAdmin(withCookies({ [ADMIN_SESSION_COOKIE]: signed })))?.status, 401);
 });
 
 test('the hourly form token validates for this hour and the last, not older', () => {

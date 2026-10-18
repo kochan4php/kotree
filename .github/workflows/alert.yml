@@ -1,0 +1,68 @@
+name: Production alerts
+
+# M63: every six hours, smoke-test production and watch the CSP violation
+# counter. Failures land in a single rolling issue (commented, not duplicated)
+# instead of piling up notifications.
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Smoke + CSP threshold
+        id: check
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          CSP_ALERT_THRESHOLD: ${{ vars.CSP_ALERT_THRESHOLD }}
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "::notice::Set the SITE_URL repository variable to enable production alerts"
+            exit 0
+          fi
+          set +e
+          node scripts/smoke.mjs "$SITE_URL" > smoke.log 2>&1
+          SMOKE=$?
+          VIOLATIONS=$(curl -fsS --max-time 20 "$SITE_URL/api/health" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).cspViolations24h ?? 0)}catch{console.log(0)}})')
+          case "$VIOLATIONS" in ''|*[!0-9]*) VIOLATIONS=0 ;; esac
+          THRESHOLD=${CSP_ALERT_THRESHOLD:-25}
+          echo "smoke=$SMOKE violations=$VIOLATIONS threshold=$THRESHOLD"
+          {
+            echo "smoke_failed=$([ "$SMOKE" -ne 0 ] && echo 1 || echo 0)"
+            echo "spike=$([ "$VIOLATIONS" -gt "$THRESHOLD" ] && echo 1 || echo 0)"
+            echo "violations=$VIOLATIONS"
+          } >> "$GITHUB_OUTPUT"
+          tail -n 20 smoke.log || true
+
+      - name: Open or update the alert issue
+        if: steps.check.outputs.smoke_failed == '1' || steps.check.outputs.spike == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SMOKE_FAILED: ${{ steps.check.outputs.smoke_failed }}
+          VIOLATIONS: ${{ steps.check.outputs.violations }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="Production alert: smoke test or CSP spike"
+          if [ "$SMOKE_FAILED" = "1" ]; then
+            REASON="The smoke test against production failed."
+          else
+            REASON="CSP violations in the last 24h: ${VIOLATIONS} — over the threshold."
+          fi
+          BODY="$(printf '%s\n\nRun: %s\n' "$REASON" "$RUN_URL")"
+          EXISTING=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
