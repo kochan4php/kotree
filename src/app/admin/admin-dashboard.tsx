@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import Skeleton from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { BarChart3, Bug, Check, Download, Eye, FileDown, Gauge, LogOut, Pin, PinOff, RefreshCw, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
 
@@ -126,6 +127,19 @@ function TrendChart({ data }: { data: { day: string; count: number }[] }) {
   );
 }
 
+// M27: a panel-shaped placeholder so each half of the dashboard can render
+// the moment its data lands instead of waiting for the slowest query.
+function SectionSkeleton({ label }: { label: string }) {
+  return (
+    <Card className="fluid-glass">
+      <div className="relative z-10 space-y-3">
+        <h2 className="sr-only">{label}</h2>
+        <Skeleton rows={4} />
+      </div>
+    </Card>
+  );
+}
+
 export default function AdminDashboard() {
   const [token, setToken] = useState('');
   const [authed, setAuthed] = useState(false);
@@ -153,16 +167,22 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  // Cookie-authenticated: no token ever travels from the client
+  // Cookie-authenticated: no token ever travels from the client.
+  // M27: the two halves load in parallel and each one lands in its own
+  // panels — a slow moderation query no longer blocks the click stats.
   const refresh = useCallback(async () => {
     setIsLoading(true);
-    try {
-      const res = await fetch('/api/admin/overview');
+    const loadPart = async (section: 'stats' | 'moderation') => {
+      const res = await fetch(`/api/admin/overview?section=${section}`);
       if (res.status === 503) throw new Error('Admin is not configured — set ADMIN_TOKEN in the environment.');
       if (res.status === 401) throw new Error('Session expired — sign in again.');
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
-      setOverview(await res.json());
+      const part = (await res.json()) as Partial<Overview>;
+      setOverview((prev) => ({ ...(prev ?? {}), ...part }) as Overview);
       setAuthed(true);
+    };
+    try {
+      await Promise.all([loadPart('stats'), loadPart('moderation')]);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load');
       setAuthed(false);
@@ -258,7 +278,7 @@ export default function AdminDashboard() {
   };
 
   const exportCsv = () => {
-    if (!overview) return;
+    if (!overview?.guestbook) return;
     const rows = [
       ['id', 'createdAt', 'message', 'userAgent'],
       ...overview.guestbook.map((entry) => [entry.id, entry.createdAt, entry.message, entry.userAgent ?? '']),
@@ -279,11 +299,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const maxCount = Math.max(1, ...(overview?.links.map((link) => link.count) ?? []));
+  const maxCount = Math.max(1, ...(overview?.links?.map((link) => link.count) ?? []));
   const maxPageviews = Math.max(1, ...(overview?.pageviews?.map((page) => page.count) ?? []));
   const query = filter.trim().toLowerCase();
   const filteredEntries =
-    overview?.guestbook.filter((entry) => !query || entry.message.toLowerCase().includes(query)) ?? [];
+    overview?.guestbook?.filter((entry) => !query || entry.message.toLowerCase().includes(query)) ?? [];
 
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
@@ -343,7 +363,8 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        {authed && overview && (
+        {authed && overview?.links === undefined && <SectionSkeleton label="Loading click stats" />}
+        {authed && overview?.links !== undefined && (
           <>
             <Card className="fluid-glass">
               <div className="relative z-10 space-y-4">
@@ -468,7 +489,12 @@ export default function AdminDashboard() {
                 )}
               </div>
             </Card>
+          </>
+        )}
 
+        {authed && overview?.guestbook === undefined && <SectionSkeleton label="Loading moderation panels" />}
+        {authed && overview?.guestbook !== undefined && (
+          <>
             <Card className="fluid-glass">
               <div className="relative z-10 space-y-3">
                 <div className="flex items-center gap-2">

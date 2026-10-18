@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { getBossLeaderboard, submitBossScore } from '@/connections/mongodb';
 import { guardOrigin, validateToken } from '@/lib/security';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { jsonWithEtag } from '@/lib/http-cache';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return NextResponse.json(await getBossLeaderboard());
+    // M26: conditional GET — the board only changes when a score lands
+    return jsonWithEtag(request, await getBossLeaderboard());
   } catch {
     // Leaderboard is decoration — an empty board beats a broken score screen
     return NextResponse.json([]);

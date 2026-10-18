@@ -20,7 +20,7 @@ export function createEngine(container: HTMLDivElement): DoomEngine {
   camera.position.y = 10;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); // M24: one rAF loop, DPR capped at 2
   renderer.setSize(window.innerWidth, window.innerHeight);
   container.appendChild(renderer.domElement);
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getGuestbookEntries, addGuestbookEntry, reactToGuestbookEntry } from '@/connections/mongodb';
 import { guardOrigin, validateToken } from '@/lib/security';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { jsonWithEtag } from '@/lib/http-cache';
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +13,8 @@ export async function GET(request: Request) {
     const before = beforeRaw && !Number.isNaN(Date.parse(beforeRaw)) ? beforeRaw : undefined;
     const sort = searchParams.get('sort') === 'top' ? ('top' as const) : ('newest' as const);
     const entries = await getGuestbookEntries(limit, before, sort);
-    return NextResponse.json(entries);
+    // M26: conditional GET — unchanged walls cost a 304, not a payload
+    return jsonWithEtag(request, entries);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 });
   }

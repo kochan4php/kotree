@@ -56,7 +56,32 @@ content/          markdown notes and projects
 | `boss_scores`, `rate_limits`, `vitals` … | gameplay and telemetry | `rate_limits` rows self-expire |
 
 Rate limiting is MongoDB-backed (`consumeRateHit`), keyed by IP or IP+route,
-windowed per minute. Buckets are short-lived by TTL.
+windowed per minute. Buckets are short-lived by TTL. Every operation carries a
+`maxTimeMS` guard (M25), and the indexes in `ensureIndexes()` mirror the query
+shapes the app actually runs — `node scripts/audit-indexes.mjs` rebuilds them
+in a scratch database and explains every hot query, failing on a COLLSCAN that
+no TTL bound justifies.
+
+## Effects and motion
+
+Every ambient effect (background canvas, ghost cursor, confetti, scroll
+fades, Doom, boss fight) sits behind three gates:
+
+1. **The `fx` preference** — the "Background effects" switch in the dock panel
+   starts and stops them live via the `kotree:prefs` event.
+2. **Reduced motion** — `prefersReducedMotion()` in `src/lib/prefs.ts` checks
+   the OS media query *and* the in-app "Reduce motion" switch (mirrored onto
+   `html[data-motion]` before first paint). A CSS gate in `animations.css`
+   flattens every animation and transition; the JS checks stop the loop's
+   start; `animations.css` also disables the view-timeline reveals.
+3. **Device hints** — `save-data` connections skip the ghost cursor, the
+   background degrades to a single painted frame, and loops pause while the
+   tab is hidden (`document.hidden`).
+
+Canvas pixel ratios are capped at 2 (background, confetti, Doom) — 4K screens
+at 200% scaling would otherwise render four times the pixels for no visible
+gain. Game loops cancel their `requestAnimationFrame` and release the WebGL
+context on unmount.
 
 ## Security layers
 
@@ -87,6 +112,8 @@ tabs are not swapped underneath the reader.
 | --- | --- | --- |
 | Unit | `pnpm test:unit` | `node --test`, pure TS modules, no runner dependency |
 | E2E | `npx playwright test` | chromium by default; `@crossbrowser` runs on Firefox/WebKit, `@mobile` on Pixel 7 / iPhone 13 viewports |
+| Perf | `pnpm test:perf` | LCP/CLS/TTFB budgets, 4× CPU throttle, runs isolated (`playwright.perf.config.ts`) |
+| Index audit | `node scripts/audit-indexes.mjs` | explain() on every hot query against a scratch database |
 | Visual | same | baselines are Windows-only (`*-win32.png`); regenerate with `--update-snapshots` on Windows |
 | Bundle | `pnpm check:bundle` | ranked per-chunk budgets + diff against `scripts/bundle-baseline.json` |
 | Smoke | `node scripts/smoke.mjs <url>` | post-deploy status/content check |

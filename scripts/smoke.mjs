@@ -27,6 +27,7 @@ const CHECKS = [
   ['/llms.txt', 200, ['Kotree', 'AI assistants']],
   ['/search-index.json', 200, ['"title"', '/projects/']],
   ['/api/boss-scores', 200, []],
+  ['/api/health', 200, ['"status":"ok"', '"version"', '"uptime"']],
   ['/sitemap.xml', 200, ['/projects/kotree', '/notes/', '<image:image>', '/notes/tags/']],
   ['/robots.txt', 200, ['Sitemap:', 'GPTBot']],
   ['/manifest.json', 200, ['Kotree']],

@@ -68,8 +68,21 @@ export default function GhostCursor() {
     fromPrefs();
     window.addEventListener('kotree:prefs', fromPrefs);
 
+    // M23: the rAF loop parks itself in a hidden tab, but the "pick a new
+    // target" interval would keep firing — clear it until the tab returns.
+    const onVisibility = () => {
+      if (document.hidden) {
+        if (interval) clearInterval(interval);
+        interval = null;
+      } else {
+        fromPrefs();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       window.removeEventListener('kotree:prefs', fromPrefs);
+      document.removeEventListener('visibilitychange', onVisibility);
       stop();
     };
   }, []);

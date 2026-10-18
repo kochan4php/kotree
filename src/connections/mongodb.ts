@@ -53,9 +53,13 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       db.collection('client_errors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 7 * DAY }),
       db.collection('click_visitors').createIndex({ createdAt: 1 }, { expireAfterSeconds: 35 * DAY }),
       db.collection('guestbook').createIndex({ createdAt: -1 }),
+      // M25: the wall's page-1 sort is (pinned, createdAt) — the plain
+      // createdAt index cannot serve it, this one covers it exactly
+      db.collection('guestbook').createIndex({ pinned: -1, createdAt: -1 }),
       db.collection('daily_clicks').createIndex({ day: 1 }),
       db.collection('link_counter').createIndex({ name: 1 }),
-      db.collection('boss_scores').createIndex({ score: -1 }),
+      // M25: leaderboard sort is (score desc, createdAt asc) — cover both
+      db.collection('boss_scores').createIndex({ score: -1, createdAt: 1 }),
     ]);
   })();
   return indexesPromise;
@@ -66,16 +70,18 @@ const linkCounterCollection = () =>
 
 export async function getLinkCounts(): Promise<LinkCounter[]> {
   const collection = await linkCounterCollection();
-  return collection.find({}, { projection: { _id: 0, name: 1, count: 1 } }).toArray();
+  // M25: every operation carries a server-side timeout — a stuck query must
+  // never hold a serverless invocation open.
+  return collection.find({}, { projection: { _id: 0, name: 1, count: 1 }, maxTimeMS: 3_000 }).toArray();
 }
 
 export async function incrementLinkCount(name: string, count: number = 1): Promise<void> {
   const collection = await linkCounterCollection();
-  await collection.updateOne({ name }, { $inc: { count } }, { upsert: true });
+  await collection.updateOne({ name }, { $inc: { count } }, { upsert: true, maxTimeMS: 3_000 });
   // Daily rollup for the admin trend chart — one small doc per link per day
   const day = new Date().toISOString().slice(0, 10);
   const daily = await dailyClicksCollection();
-  await daily.updateOne({ day, name }, { $inc: { count } }, { upsert: true });
+  await daily.updateOne({ day, name }, { $inc: { count } }, { upsert: true, maxTimeMS: 3_000 });
 }
 
 interface DailyClick {
@@ -95,7 +101,7 @@ export async function getDailyClickCounts(days = 14): Promise<{ day: string; cou
     .aggregate<{ _id: string; count: number }>([
       { $match: { day: { $gte: since } } },
       { $group: { _id: '$day', count: { $sum: '$count' } } },
-    ])
+    ], { maxTimeMS: 3_000 })
     .toArray();
   const byDay = new Map(rows.map((row) => [row._id, row.count]));
   const out: { day: string; count: number }[] = [];
@@ -120,7 +126,7 @@ export async function claimDailyClick(linkName: string, visitorHash: string): Pr
   const collection = await visitorClaimsCollection();
   const day = new Date().toISOString().slice(0, 10);
   try {
-    await collection.insertOne({ _id: `${day}:${linkName}:${visitorHash}`, createdAt: new Date() });
+    await collection.insertOne({ _id: `${day}:${linkName}:${visitorHash}`, createdAt: new Date() }, { maxTimeMS: 3_000 });
     return true;
   } catch (err) {
     if ((err as { code?: number }).code === 11000) return false; // already counted today
@@ -174,7 +180,7 @@ export async function getGuestbookEntries(
 
   if (sort === 'top') {
     const docs = await collection
-      .find({ hidden: { $ne: true } }, { projection })
+      .find({ hidden: { $ne: true } }, { projection, maxTimeMS: 3_000 })
       .sort({ 'reactions.❤️': -1, createdAt: -1 })
       .limit(limit)
       .toArray();
@@ -184,7 +190,7 @@ export async function getGuestbookEntries(
   if (before) {
     // Pinned entries only ride along on page 1, so later pages skip them
     const docs = await collection
-      .find({ hidden: { $ne: true }, pinned: { $ne: true }, createdAt: { $lt: new Date(before) } }, { projection })
+      .find({ hidden: { $ne: true }, pinned: { $ne: true }, createdAt: { $lt: new Date(before) } }, { projection, maxTimeMS: 3_000 })
       .sort({ createdAt: -1 })
       .limit(limit)
       .toArray();
@@ -192,7 +198,7 @@ export async function getGuestbookEntries(
   }
 
   const docs = await collection
-    .find({ hidden: { $ne: true } }, { projection })
+    .find({ hidden: { $ne: true } }, { projection, maxTimeMS: 3_000 })
     .sort({ pinned: -1, createdAt: -1 })
     .limit(limit)
     .toArray();
@@ -210,11 +216,11 @@ export async function reportGuestbookEntry(id: string): Promise<'ok' | 'hidden' 
   const updated = await collection.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $inc: { reports: 1 } },
-    { returnDocument: 'after' },
+    { returnDocument: 'after', maxTimeMS: 3_000 },
   );
   if (!updated) return 'missing';
   if ((updated.reports ?? 0) >= REPORTS_TO_HIDE && !updated.pinned) {
-    await collection.updateOne({ _id: updated._id }, { $set: { hidden: true } });
+    await collection.updateOne({ _id: updated._id }, { $set: { hidden: true } }, { maxTimeMS: 3_000 });
     return 'hidden';
   }
   return 'ok';
@@ -223,7 +229,7 @@ export async function reportGuestbookEntry(id: string): Promise<'ok' | 'hidden' 
 export async function setGuestbookPinned(id: string, pinned: boolean): Promise<boolean> {
   if (!ObjectId.isValid(id)) return false;
   const collection = await guestbookCollection();
-  const { matchedCount } = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { pinned } });
+  const { matchedCount } = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { pinned } }, { maxTimeMS: 3_000 });
   return matchedCount === 1;
 }
 
@@ -235,6 +241,7 @@ export async function reactToGuestbookEntry(id: string, reaction: string): Promi
   const { matchedCount } = await collection.updateOne(
     { _id: new ObjectId(id) },
     { $inc: { [`reactions.${reaction}`]: 1 } },
+    { maxTimeMS: 3_000 }
   );
   return matchedCount === 1;
 }
@@ -243,7 +250,7 @@ export async function addGuestbookEntry(message: string, ip?: string, userAgent?
   const collection = await guestbookCollection();
   // Store a hash, not the raw IP: same visitor correlates for moderation, no PII kept
   const hashedIp = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 32) : undefined;
-  await collection.insertOne({ message, ip: hashedIp, userAgent, createdAt: new Date() });
+  await collection.insertOne({ message, ip: hashedIp, userAgent, createdAt: new Date() }, { maxTimeMS: 3_000 });
 }
 
 export interface GuestbookAdminEntry {
@@ -260,7 +267,7 @@ export interface GuestbookAdminEntry {
 // user-agent. The hashed IP stays out — not needed to moderate.
 export async function getGuestbookAdminEntries(limit = 100): Promise<GuestbookAdminEntry[]> {
   const collection = await guestbookCollection();
-  const docs = await collection.find({}, { projection: { ip: 0 } }).sort({ createdAt: -1 }).limit(limit).toArray();
+  const docs = await collection.find({}, { projection: { ip: 0 }, maxTimeMS: 3_000 }).sort({ createdAt: -1 }).limit(limit).toArray();
   return docs.map((d) => ({
     id: d._id.toString(),
     message: d.message,
@@ -274,7 +281,7 @@ export async function getGuestbookAdminEntries(limit = 100): Promise<GuestbookAd
 
 export async function deleteGuestbookEntry(id: string): Promise<boolean> {
   const collection = await guestbookCollection();
-  const { deletedCount } = await collection.deleteOne({ _id: new ObjectId(id) });
+  const { deletedCount } = await collection.deleteOne({ _id: new ObjectId(id) }, { maxTimeMS: 3_000 });
   return deletedCount === 1;
 }
 
@@ -311,14 +318,14 @@ export async function addClientError(entry: { message: string; source: string; s
       // resolved is left alone on recurrence: the fix decision is the owner's
       $setOnInsert: { hash, source: entry.source, createdAt: now, resolved: false },
     },
-    { upsert: true }
+    { upsert: true, maxTimeMS: 3_000 }
   );
 }
 
 export async function getClientErrors(limit = 20): Promise<ClientError[]> {
   const collection = await clientErrorsCollection();
   const docs = await collection
-    .find({ resolved: { $ne: true } })
+    .find({ resolved: { $ne: true } }, { maxTimeMS: 3_000 })
     .sort({ lastSeenAt: -1, createdAt: -1 })
     .limit(limit)
     .toArray();
@@ -338,7 +345,7 @@ export async function getClientErrors(limit = 20): Promise<ClientError[]> {
 export async function resolveClientError(id: string, resolved: boolean): Promise<boolean> {
   if (!ObjectId.isValid(id)) return false;
   const collection = await clientErrorsCollection();
-  const { matchedCount } = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { resolved } });
+  const { matchedCount } = await collection.updateOne({ _id: new ObjectId(id) }, { $set: { resolved } }, { maxTimeMS: 3_000 });
   return matchedCount === 1;
 }
 
@@ -364,7 +371,7 @@ export async function recordPageView(path: string, visitorHash: string): Promise
   await collection.updateOne(
     { _id: `${day}:${path}` },
     { $inc: { count: 1 }, $setOnInsert: { day, path } },
-    { upsert: true }
+    { upsert: true, maxTimeMS: 3_000 }
   );
 }
 
@@ -377,7 +384,7 @@ export async function getPageViews(days = 7): Promise<{ path: string; count: num
       { $group: { _id: '$path', count: { $sum: '$count' } } },
       { $sort: { count: -1 } },
       { $limit: 20 },
-    ])
+    ], { maxTimeMS: 3_000 })
     .toArray();
   return rows.map((row) => ({ path: row._id, count: row.count }));
 }
@@ -398,12 +405,12 @@ const auditCollection = () =>
 export async function addAudit(event: string, detail?: string, ip?: string): Promise<void> {
   const collection = await auditCollection();
   const ipHash = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 16) : undefined;
-  await collection.insertOne({ event, detail, ipHash, at: new Date() });
+  await collection.insertOne({ event, detail, ipHash, at: new Date() }, { maxTimeMS: 3_000 });
 }
 
 export async function getAuditLog(limit = 100): Promise<AuditEntry[]> {
   const collection = await auditCollection();
-  const docs = await collection.find({}).sort({ at: -1 }).limit(limit).toArray();
+  const docs = await collection.find({}, { maxTimeMS: 3_000 }).sort({ at: -1 }).limit(limit).toArray();
   return docs.map((d) => ({
     id: d._id.toString(),
     event: d.event,
@@ -415,7 +422,7 @@ export async function getAuditLog(limit = 100): Promise<AuditEntry[]> {
 
 export async function pingDb(): Promise<boolean> {
   try {
-    await (await getClientPromise()).db('kotreedb').command({ ping: 1 });
+    await (await getClientPromise()).db('kotreedb').command({ ping: 1 }, { timeoutMS: 2_000 });
     return true;
   } catch {
     return false;
@@ -441,7 +448,7 @@ export async function consumeRateHit(key: string, windowMs = 60_000): Promise<nu
   const doc = await collection.findOneAndUpdate(
     { _id: `${bucket}:${key}` },
     { $inc: { count: 1 }, $setOnInsert: { expiresAt: new Date((bucket + 2) * windowMs) } },
-    { upsert: true, returnDocument: 'after' }
+    { upsert: true, returnDocument: 'after', maxTimeMS: 3_000 }
   );
   return doc?.count ?? 1;
 }
@@ -486,7 +493,7 @@ export async function getVitalsP75(days = 7): Promise<VitalAggregate[]> {
   const since = new Date(now - 4 * WEEK);
   const collection = await vitalsCollection();
   const docs = await collection
-    .find({ createdAt: { $gte: since } }, { projection: { _id: 0 } })
+    .find({ createdAt: { $gte: since } }, { projection: { _id: 0 }, maxTimeMS: 5_000 })
     .limit(10_000)
     .toArray();
 
@@ -546,7 +553,7 @@ export async function consumeDailyBudget(key: string, max: number): Promise<bool
     const doc = await (await collection).findOneAndUpdate(
       { _id: `${key}:${today}` },
       { $inc: { count: 1 } },
-      { upsert: true, returnDocument: 'after' }
+      { upsert: true, returnDocument: 'after', maxTimeMS: 3_000 }
     );
     return (doc?.count ?? 0) <= max;
   } catch {
@@ -581,7 +588,7 @@ async function getTopReactions(limit = 5): Promise<{ emoji: string; count: numbe
       { $group: { _id: '$r.k', count: { $sum: '$r.v' } } },
       { $sort: { count: -1 } },
       { $limit: limit },
-    ])
+    ], { maxTimeMS: 3_000 })
     .toArray();
   return rows.map((row) => ({ emoji: row._id, count: row.count }));
 }
@@ -592,7 +599,7 @@ export async function getPublicStats(): Promise<PublicStats> {
       getLinkCounts(),
       getDailyClickCounts(30),
       getTopReactions(5),
-      guestbookCollection().then((collection) => collection.countDocuments()),
+      guestbookCollection().then((collection) => collection.countDocuments({}, { maxTimeMS: 3_000 })),
     ]);
     const topLinks = links
       .filter((link) => link.count > 0)
@@ -625,7 +632,7 @@ export async function getYearStats(year: number): Promise<YearStats> {
     const inYear = { $gte: `${year}-01-01`, $lte: `${year}-12-31` };
     const [totalRows, topLinkRows, busiestRows, guestbookCount, reactions] = await Promise.all([
       collection
-        .aggregate<{ count: number }>([{ $match: { day: inYear } }, { $group: { _id: null, count: { $sum: '$count' } } }])
+        .aggregate<{ count: number }>([{ $match: { day: inYear } }, { $group: { _id: null, count: { $sum: '$count' } } }], { maxTimeMS: 3_000 })
         .toArray(),
       collection
         .aggregate<{ _id: string; count: number }>([
@@ -633,7 +640,7 @@ export async function getYearStats(year: number): Promise<YearStats> {
           { $group: { _id: '$name', count: { $sum: '$count' } } },
           { $sort: { count: -1 } },
           { $limit: 1 },
-        ])
+        ], { maxTimeMS: 3_000 })
         .toArray(),
       collection
         .aggregate<{ _id: string; count: number }>([
@@ -641,12 +648,12 @@ export async function getYearStats(year: number): Promise<YearStats> {
           { $group: { _id: '$day', count: { $sum: '$count' } } },
           { $sort: { count: -1 } },
           { $limit: 1 },
-        ])
+        ], { maxTimeMS: 3_000 })
         .toArray(),
       guestbookCollection().then((entries) =>
         entries.countDocuments({
           createdAt: { $gte: new Date(`${year}-01-01T00:00:00Z`), $lte: new Date(`${year}-12-31T23:59:59Z`) },
-        })
+        }, { maxTimeMS: 3_000 })
       ),
       getTopReactions(1),
     ]);
@@ -677,7 +684,7 @@ const bossScoreCollection = () =>
 export async function getBossLeaderboard(limit = 5): Promise<{ name: string; score: number }[]> {
   const collection = await bossScoreCollection();
   return collection
-    .find({}, { projection: { _id: 0, name: 1, score: 1 } })
+    .find({}, { projection: { _id: 0, name: 1, score: 1 }, maxTimeMS: 3_000 })
     .sort({ score: -1, createdAt: 1 })
     .limit(limit)
     .toArray();
@@ -685,6 +692,6 @@ export async function getBossLeaderboard(limit = 5): Promise<{ name: string; sco
 
 export async function submitBossScore(name: string, score: number): Promise<{ name: string; score: number }[]> {
   const collection = await bossScoreCollection();
-  await collection.insertOne({ name, score, createdAt: new Date() });
+  await collection.insertOne({ name, score, createdAt: new Date() }, { maxTimeMS: 3_000 });
   return getBossLeaderboard();
 }
