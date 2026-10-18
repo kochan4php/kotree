@@ -11,7 +11,7 @@ export default function Win95Mode() {
   const [isActive, setIsActive] = useState(false);
   const { windows, topZ, setWindows, openWindow, closeWindow, bringToFront, toggleMinimize, toggleMaximize, openProfileWindow } =
     useWindows();
-  const { setWindowRef, handlePointerDown } = useDrag({ windows, setWindows, isActive, bringToFront });
+  const { setWindowRef, handlePointerDown, nudge } = useDrag({ windows, setWindows, isActive, bringToFront });
 
   // Listen for the activation event: mount the overlay AND auto-open the profile window
   useEffect(() => {
@@ -42,6 +42,7 @@ export default function Win95Mode() {
           onMaximize={toggleMaximize}
           onClose={closeWindow}
           onPointerDown={handlePointerDown}
+          onNudge={nudge}
           setWindowRef={setWindowRef}
         />
       ))}

@@ -49,7 +49,7 @@ export default function StatsCard() {
         </Link>
         <Link
           href="/stats"
-          className="mt-2 inline-flex items-center justify-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+          className="mt-2 inline-flex min-h-6 items-center justify-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
         >
           Full stats
           <ArrowRight className="w-3 h-3" aria-hidden="true" />

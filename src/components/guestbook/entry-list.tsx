@@ -191,7 +191,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                 onClick={() => onToggle(i)}
                 aria-pressed={isDecrypted}
                 title="Click to reveal/hide"
-                className="flex-1 min-w-0 text-left cursor-pointer py-0.5"
+                className="flex-1 min-w-0 min-h-6 text-left cursor-pointer py-0.5"
               >
                 <p className={isDecrypted ? 'text-foreground' : 'text-muted-foreground'}>
                   {isDecrypted ? '👁 ' + decryptMessage(entry.message) : entry.message}
@@ -211,7 +211,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                         aria-label={`React with ${emoji}`}
                         aria-pressed={mine}
                         disabled={Boolean(reacted[anchorKey])}
-                        className={`text-[11px] leading-none rounded px-1 py-0.5 cursor-pointer hover:bg-muted disabled:cursor-default ${
+                        className={`text-[11px] leading-none rounded px-1 min-w-6 min-h-6 cursor-pointer hover:bg-muted disabled:cursor-default ${
                           mine ? 'bg-accent/40' : ''
                         }`}
                       >
@@ -224,7 +224,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                   type="button"
                   onClick={() => copyPermalink(anchorKey)}
                   aria-label="Copy permalink"
-                  className="p-1 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="p-1.5 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <Link2 className="w-3 h-3" />
                 </button>
@@ -232,7 +232,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                   type="button"
                   onClick={() => shareEntry(entry, anchorKey)}
                   aria-label="Share secret"
-                  className="p-1 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="p-1.5 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <Share2 className="w-3 h-3" />
                 </button>
@@ -243,7 +243,7 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
                     aria-label="Report secret"
                     title={reported[anchorKey] ? 'Already reported' : 'Report this secret'}
                     disabled={Boolean(reported[anchorKey])}
-                    className="p-1 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:cursor-default disabled:opacity-40"
+                    className="p-1.5 rounded cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:cursor-default disabled:opacity-40"
                   >
                     <Flag className="w-3 h-3" />
                   </button>

@@ -75,5 +75,22 @@ export function useDrag({ setWindows, isActive, bringToFront }: UseDragOptions) 
     if (el) el.style.transition = 'none';
   };
 
-  return { setWindowRef, handlePointerDown };
+  // WCAG 2.5.7: dragging must have a non-drag alternative — the focused title
+  // bar nudges the window with the arrow keys (Shift jumps further).
+  const nudge = (id: string, dx: number, dy: number) => {
+    const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), Math.max(0, max));
+    setWindows((prev) =>
+      prev.map((w) =>
+        w.id === id && !w.isMaximized
+          ? {
+              ...w,
+              x: clamp(w.x + dx, window.innerWidth - 80),
+              y: clamp(w.y + dy, window.innerHeight - 60),
+            }
+          : w
+      )
+    );
+  };
+
+  return { setWindowRef, handlePointerDown, nudge };
 }

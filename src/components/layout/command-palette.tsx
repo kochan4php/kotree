@@ -494,7 +494,7 @@ export default function CommandPalette() {
                   i === clampedIndex ? 'bg-accent text-accent-foreground' : ''
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <Icon aria-hidden="true" className="w-4 h-4 shrink-0" />
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-bold truncate">
                     <Highlight text={item.label} indices={scored.get(item.id) ?? []} />

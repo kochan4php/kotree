@@ -37,7 +37,7 @@ export default function Footer() {
               ['Privacy', '/privacy'],
             ] as const
           ).map(([label, href]) => (
-            <Link key={href} href={href} className="hover:text-foreground hover:underline underline-offset-2 transition-colors">
+            <Link key={href} href={href} className="inline-flex min-h-6 items-center hover:text-foreground hover:underline underline-offset-2 transition-colors">
               {label}
             </Link>
           ))}

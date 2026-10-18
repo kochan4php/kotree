@@ -166,7 +166,7 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
               key={c.id}
               type="button"
               onClick={() => setColors(c)}
-              aria-label={`${c.label} colours`}
+              aria-label={`QR, ${c.label} colours`}
               aria-pressed={colors.id === c.id}
               style={{ backgroundColor: c.bg, color: c.fg }}
               className={`w-10 h-10 rounded-lg border-[3px] border-foreground shadow-[2px_2px_0_0_var(--foreground)] cursor-pointer text-[10px] font-black transition-transform hover:-translate-y-0.5 ${

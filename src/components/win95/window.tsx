@@ -10,6 +10,7 @@ interface Win95WindowProps {
   onMaximize: (id: string) => void;
   onClose: (id: string) => void;
   onPointerDown: (e: React.PointerEvent, id: string, w: WindowState) => void;
+  onNudge: (id: string, dx: number, dy: number) => void;
   setWindowRef: (id: string) => (el: HTMLDivElement | null) => void;
 }
 
@@ -23,6 +24,7 @@ export default function Win95Window({
   onMaximize,
   onClose,
   onPointerDown,
+  onNudge,
   setWindowRef,
 }: Win95WindowProps) {
   // Calculate transform for minimize animation
@@ -49,7 +51,23 @@ export default function Win95Window({
       <div
         onPointerDown={(e) => onPointerDown(e, w.id, w)}
         onDoubleClick={() => onMaximize(w.id)}
-        className="bg-[#000080] text-white font-bold p-1 m-0.5 flex justify-between items-center cursor-default select-none touch-none"
+        onKeyDown={(e) => {
+          const step = e.shiftKey ? 48 : 16;
+          const moves: Record<string, [number, number]> = {
+            ArrowLeft: [-step, 0],
+            ArrowRight: [step, 0],
+            ArrowUp: [0, -step],
+            ArrowDown: [0, step],
+          };
+          const move = moves[e.key];
+          if (!move) return;
+          e.preventDefault();
+          onNudge(w.id, move[0], move[1]);
+        }}
+        tabIndex={0}
+        role="group"
+        aria-label={`Move ${w.title} — arrow keys, Shift to jump`}
+        className="bg-[#000080] text-white font-bold p-1 m-0.5 flex justify-between items-center cursor-default select-none touch-none focus:outline-2 focus:outline-offset-1 focus:outline-white"
       >
         <span className="pl-1 truncate">{w.title}</span>
         <div className="flex gap-0.5 pointer-events-auto">

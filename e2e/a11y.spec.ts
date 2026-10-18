@@ -128,3 +128,206 @@ test.describe('forced colors', () => {
     });
   }
 });
+
+// M11: WCAG 2.2 target size (2.5.8) — every control is at least 24×24 CSS px.
+// Inline links inside running text are exempt by the spec, so `display: inline`
+// elements are skipped.
+test.describe('target size', () => {
+  for (const { name, path } of [
+    { name: 'home', path: '/' },
+    { name: 'guestbook', path: '/guestbook' },
+    { name: 'notes', path: '/notes' },
+    { name: 'status', path: '/status' },
+    { name: 'secrets', path: '/secrets' },
+    { name: 'changelog', path: '/changelog' },
+    { name: 'about', path: '/about' },
+  ]) {
+    test(`target size: ${name}`, async ({ page }) => {
+      await page.goto(path);
+      await page.waitForLoadState('networkidle');
+      const small = await page.evaluate(() => {
+        const out: { tag: string; label: string; w: number; h: number }[] = [];
+        const candidates = document.querySelectorAll<HTMLElement>(
+          'a[href], button, [role="button"], input:not([type="hidden"]), select, textarea'
+        );
+        for (const el of candidates) {
+          const style = getComputedStyle(el);
+          if (style.display === 'inline' || style.visibility === 'hidden' || style.display === 'none') continue;
+          const rect = el.getBoundingClientRect();
+          // Screen-reader-only pattern (1×1 clipped, e.g. the skip link before
+          // focus): not a presented target, exempt.
+          if (rect.width <= 2 && rect.height <= 2) continue;
+          if (rect.width === 0 || rect.height === 0) continue;
+          if (rect.width < 24 || rect.height < 24) {
+            out.push({
+              tag: el.tagName.toLowerCase(),
+              label: (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 40),
+              w: Math.round(rect.width),
+              h: Math.round(rect.height),
+            });
+          }
+        }
+        return out;
+      });
+      expect(small).toEqual([]);
+    });
+  }
+});
+
+// M13: WCAG 1.4.12 text spacing — the layout must survive doubled spacing.
+test.describe('text spacing', () => {
+  for (const { name, path } of [
+    { name: 'home', path: '/' },
+    { name: 'guestbook', path: '/guestbook' },
+    { name: 'notes', path: '/notes' },
+    { name: 'note', path: '/notes/2026-10-12-offline-first' },
+  ]) {
+    test(`text spacing: ${name} stays usable with expanded text`, async ({ page }) => {
+      await page.goto(path);
+      await page.waitForLoadState('networkidle');
+      await page.addStyleTag({
+        content: `* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
+                  p, li, dd { margin-bottom: 2em !important; }`,
+      });
+      await page.waitForTimeout(250);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      expect(overflow).toBeLessThanOrEqual(1);
+      await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+    });
+  }
+});
+
+// M14: axe with the interactive states open — palette, prefs, terminal, QR and
+// the Win95 shell each get their own audit pass.
+test.describe('interactive states', () => {
+  const STATES: { name: string; open: (page: import('@playwright/test').Page) => Promise<void> }[] = [
+    {
+      name: 'command palette',
+      open: async (page) => {
+        await page.keyboard.press('Control+k');
+        await expect(page.getByRole('dialog').first()).toBeVisible();
+      },
+    },
+    {
+      name: 'preferences panel',
+      open: async (page) => {
+        await page.evaluate(() => window.dispatchEvent(new Event('kotree:prefs-open')));
+        await expect(page.getByRole('dialog').first()).toBeVisible();
+      },
+    },
+    {
+      name: 'terminal',
+      open: async (page) => {
+        await page.evaluate(() => window.dispatchEvent(new Event('kotree:terminal')));
+        await expect(page.getByRole('dialog').first()).toBeVisible();
+      },
+    },
+    {
+      name: 'QR dialog',
+      open: async (page) => {
+        await page.evaluate(() => window.dispatchEvent(new Event('kotree:qr')));
+        await expect(page.getByRole('dialog', { name: 'QR Code' })).toBeVisible();
+      },
+    },
+    {
+      name: 'Win95 shell',
+      open: async (page) => {
+        await page.evaluate(() => window.dispatchEvent(new Event('ACTIVATE_WIN95')));
+        await expect(page.getByRole('button', { name: 'Exit Win95' })).toBeVisible();
+      },
+    },
+  ];
+
+  for (const state of STATES) {
+    test(`axe: ${state.name} has no serious or critical violations`, async ({ page }) => {
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+      await state.open(page);
+      await page.waitForTimeout(300);
+
+      const results = await new AxeBuilder({ page }).analyze();
+      const blocking = results.violations.filter(
+        (v) => v.impact === 'serious' || v.impact === 'critical'
+      );
+      expect(
+        blocking.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length }))
+      ).toEqual([]);
+    });
+  }
+});
+
+// M15: a journey that only uses the keyboard — skip link, palette navigation,
+// and typing a secret on the wall.
+test('keyboard journey: skip link, palette, guestbook post', async ({ page }) => {
+  // The journey proves keyboard operability, not the API — answer the POST
+  // locally so the run never depends on the wall's rate limit or Mongo.
+  await page.route('**/api/guestbook', (route) =>
+    route.request().method() === 'POST' ? route.fulfill({ status: 200, body: '{}' }) : route.continue()
+  );
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#main$/);
+
+  await page.keyboard.press('Control+k');
+  await expect(page.getByRole('dialog').first()).toBeVisible();
+  await page.keyboard.type('guestbook');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/guestbook$/);
+
+  const input = page.getByLabel('Secret message');
+  for (let i = 0; i < 80; i++) {
+    if (await input.evaluate((el) => el === document.activeElement)) break;
+    await page.keyboard.press('Tab');
+  }
+  await expect(input).toBeFocused();
+  await page.keyboard.type('sent with the keyboard only');
+
+  const send = page.getByLabel('Send message');
+  for (let i = 0; i < 8; i++) {
+    if (await send.evaluate((el) => el === document.activeElement)) break;
+    await page.keyboard.press('Tab');
+  }
+  await expect(send).toBeFocused();
+  const before = await page.locator('[id^="secret-"]').count();
+  await page.keyboard.press('Enter');
+  // Optimistic UI: the wall gains the entry and the box empties.
+  await expect(page.locator('[id^="secret-"]')).toHaveCount(before + 1);
+  await expect(input).toHaveValue('');
+});
+
+// M17: landmarks and heading order — one h1, exactly one main landmark, and no
+// skipped heading levels on any page.
+test.describe('landmarks and headings', () => {
+  for (const { name, path } of PAGES) {
+    test(`landmarks: ${name} has one h1, one main, ordered headings`, async ({ page }) => {
+      await page.goto(path);
+      await page.waitForLoadState('networkidle');
+      const report = await page.evaluate(() => {
+        const visible = (el: Element) => el.getClientRects().length > 0;
+        const headings = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')]
+          .filter(visible)
+          .map((h) => Number(h.tagName[1]));
+        let skip = false;
+        let prev = 0;
+        for (const level of headings) {
+          if (prev !== 0 && level > prev + 1) skip = true;
+          prev = level;
+        }
+        return {
+          h1: headings.filter((level) => level === 1).length,
+          skip,
+          main: [...document.querySelectorAll('main,[role="main"]')].filter(visible).length,
+        };
+      });
+      expect(report.h1).toBe(1);
+      expect(report.main).toBe(1);
+      expect(report.skip, `heading order: ${JSON.stringify(report)}`).toBe(false);
+    });
+  }
+});
