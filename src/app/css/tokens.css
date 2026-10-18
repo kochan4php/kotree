@@ -92,6 +92,34 @@
   --tint-6: #8a4415;
 }
 
+/* M83: OLED — the dark option that asks for true black. Same ink, blacker
+   paper; every pair stays AA (muted ink clears ~7:1 on these surfaces). */
+[data-theme="oled"] {
+  --background: #000000;
+  --foreground: #f5ead6;
+  --card: #0b0a09;
+  --card-foreground: #f5ead6;
+  --primary: #f5ead6;
+  --primary-foreground: #000000;
+  --secondary: #16130f;
+  --secondary-foreground: #f5ead6;
+  --muted: #1a1612;
+  --muted-foreground: #b7a892;
+  --accent: #ff7c47;
+  --accent-ink: #ffb08a;
+  --accent-foreground: #000000;
+  --destructive: #ff6b6b;
+  --border: #f5ead6;
+  --input: #f5ead6;
+  --ring: #f5ead6;
+  --tint-1: #7a6110;
+  --tint-2: #8f2f6b;
+  --tint-3: #155a72;
+  --tint-4: #4b7016;
+  --tint-5: #4f3a94;
+  --tint-6: #8a4415;
+}
+
 /* Accent colours: backgrounds stay bright stickers in both themes
    (dark ink text on top), only the accent-ink text colour flips. */
 [data-accent="pink"] {
@@ -115,19 +143,19 @@
   --accent-ink: #854d0e;
 }
 
-[data-theme="dark"][data-accent="pink"] {
+:is([data-theme="dark"], [data-theme="oled"])[data-accent="pink"] {
   --accent-ink: #ffb3ef;
 }
-[data-theme="dark"][data-accent="blue"] {
+:is([data-theme="dark"], [data-theme="oled"])[data-accent="blue"] {
   --accent-ink: #7dd3fc;
 }
-[data-theme="dark"][data-accent="green"] {
+:is([data-theme="dark"], [data-theme="oled"])[data-accent="green"] {
   --accent-ink: #bef264;
 }
-[data-theme="dark"][data-accent="violet"] {
+:is([data-theme="dark"], [data-theme="oled"])[data-accent="violet"] {
   --accent-ink: #c4b5fd;
 }
-[data-theme="dark"][data-accent="yellow"] {
+:is([data-theme="dark"], [data-theme="oled"])[data-accent="yellow"] {
   --accent-ink: #fde047;
 }
 
@@ -138,7 +166,7 @@
     --muted: #e9d8b8;
     --muted-foreground: #4a3f35;
   }
-  [data-theme="dark"] {
+  :is([data-theme="dark"], [data-theme="oled"]) {
     --secondary: #3a322a;
     --muted: #413830;
     --muted-foreground: #e0d3bf;

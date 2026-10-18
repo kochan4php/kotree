@@ -2,6 +2,43 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
+## [3.4.0]
+
+A big, quiet release: more to find, more to play with, and a lot of work you will only notice when something stops being annoying.
+
+### Added
+
+- Three more apps in the Windows 95 desktop — Notepad (its draft survives a reload), Calculator and a real Paint with PNG export
+- A metro-style map on /explore showing every secret and which ones you have found
+- Shareable badges: a small SVG image for any stat, ready for a README
+- Streaks and achievements, with your progress exportable and importable as one file
+- A five-question quiz about the site, with a best score worth beating
+- QR codes for any page in three contrast-safe styles, downloadable as SVG or PNG
+- Three new secrets — fourteen in total — plus seasonal touches for Valentine's, April Fools' and Halloween, switchable off
+- Volume control and separate switches for tap sounds and alerts; haptics follow the same rules
+- Six iOS launch images, so the app opens without a white flash on an iPhone
+- Swipe down to close any dialog, and a year carousel inside Wrapped
+- Gentle page transitions where the browser supports them, and none where it should not
+- An OLED theme — true black, for the dark that wants to be darker — with every pair of colours still checked to stay readable
+- A free accent colour picker that verifies contrast before it applies anything
+- A print button on notes, so a note turns into a clean PDF
+
+### Changed
+
+- The guestbook explains itself honestly when JavaScript is off, and moderation can preview a decrypted message in full formatting and hide messages in bulk
+- Admin sign-in now needs a second factor (a code from your authenticator app, with recovery codes), sessions are listed and can be revoked, and every action lands in an audit log you can filter and export
+- The offline promise is stronger: the shell opens with the network down, and queued messages are clearly marked
+- Empty states across the site now use one honest style instead of stock imagery
+- Reduced motion is respected everywhere — dialogs, page fades, transitions and carousels
+- The icon set got a proper audit: maskable safe areas verified, and a favicon that finally exists
+
+### Fixed
+
+- A missing favicon file the browser had been asking for (and not getting) since the last redesign
+- The URL bar colour on phones now stays correct whatever the theme, accent or browser does with duplicate hints
+- The guestbook message cleaner tidied text in the wrong order, so some joined characters never composed; the order is now right
+- Page transitions no longer start while a page is still loading — that could crash the tab outright on some browsers (it did in ours); they now run only once the page has settled
+
 ## [3.3.0]
 
 The biggest update yet in polish rather than pixels: new places to look, a search that actually searches, and a pile of invisible work that keeps the whole thing standing.

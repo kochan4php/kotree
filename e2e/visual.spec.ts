@@ -96,6 +96,20 @@ for (const { name, path, theme, widths } of EXTRA_PAGES) {
   }
 }
 
+// M82: the two sizes the audit wanted eyes on — a 2560px ultrawide and a
+// phone held sideways. Both must read like the same site, not a stretched one.
+test('visual: home ultrawide at 2560x1440', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1440 });
+  await freeze(page, '/');
+  await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
+});
+
+test('visual: home landscape at 844x390', async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await freeze(page, '/');
+  await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
+});
+
 // M74: live UI states — the overlays and modes the page baselines never
 // reach: palette, QR modal, terminal, the Win95 desktop, forced colors and
 // the in-app reduced-motion rendering.

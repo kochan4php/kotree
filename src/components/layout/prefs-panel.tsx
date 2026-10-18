@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CalendarHeart, Check, Moon, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
+import { CalendarHeart, Check, Moon, MoonStar, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
 import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
+import { deriveAccent } from '@/lib/colour';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
 const THEMES: { id: Theme; label: string; icon: typeof Sun }[] = [
   { id: 'auto', label: 'Auto', icon: MonitorSmartphone },
   { id: 'light', label: 'Light', icon: Sun },
   { id: 'dark', label: 'Dark', icon: Moon },
+  { id: 'oled', label: 'OLED', icon: MoonStar },
 ];
 
 // Dock button + popover. Non-modal: the page behind stays usable, so no
@@ -83,7 +85,7 @@ export default function PrefsPanel() {
           {/* Theme */}
           <div className="mb-3">
             <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Theme</div>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
               {THEMES.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -107,17 +109,42 @@ export default function PrefsPanel() {
               {ACCENTS.map(({ id, label, swatch }) => (
                 <button
                   key={id}
-                  onClick={() => patch({ accent: id })}
+                  onClick={() => patch({ accent: id, customAccent: null })}
                   aria-label={`${label} accent`}
-                  aria-pressed={prefs.accent === id}
+                  aria-pressed={!prefs.customAccent && prefs.accent === id}
                   className={`kt-swatch w-8 h-8 rounded-full border-2 border-foreground flex items-center justify-center transition-transform cursor-pointer hover:scale-110 ${
-                    prefs.accent === id ? 'shadow-[2px_2px_0_0_var(--foreground)] scale-105' : ''
+                    !prefs.customAccent && prefs.accent === id ? 'shadow-[2px_2px_0_0_var(--foreground)] scale-105' : ''
                   }`}
                   style={{ backgroundColor: swatch }}
                 >
-                  {prefs.accent === id && <Check className="w-4 h-4 text-[#14110f]" aria-hidden="true" />}
+                  {!prefs.customAccent && prefs.accent === id && <Check className="w-4 h-4 text-[#14110f]" aria-hidden="true" />}
                 </button>
               ))}
+            </div>
+            {/* M84: free colour — inks are derived and AA-checked before they
+                are stored; malformed input simply keeps the current preset. */}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input
+                type="color"
+                aria-label="Custom accent colour"
+                value={prefs.customAccent?.hex ?? '#ff7c47'}
+                onChange={(event) => {
+                  const derived = deriveAccent(event.target.value);
+                  if (derived) patch({ customAccent: derived });
+                }}
+                className="h-8 w-10 cursor-pointer rounded border-2 border-foreground bg-card"
+              />
+              <span className="text-[11px] font-bold text-muted-foreground">
+                {prefs.customAccent ? `Custom ${prefs.customAccent.hex}` : 'Custom colour'}
+              </span>
+              {prefs.customAccent && (
+                <button
+                  onClick={() => patch({ customAccent: null })}
+                  className="rounded border-2 border-foreground bg-card px-2 py-1 text-[10px] font-black uppercase tracking-wide cursor-pointer hover:bg-secondary"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
 

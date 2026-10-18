@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import TagChips from '@/components/content/tag-chips';
+import PrintButton from '@/components/content/print-button';
 import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getNote, getNotes, relatedTo } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
@@ -87,6 +88,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
                   </span>
                 </>
               )}
+              <PrintButton />
             </div>
             <h1 className="p-name mt-2 text-3xl font-black tracking-tight text-foreground">{note.title}</h1>
             <a className="u-url sr-only" href={`${site.baseUrl}/notes/${note.slug}`}>

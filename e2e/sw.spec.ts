@@ -28,6 +28,10 @@ test('the app keeps working when the network drops', async ({ page, context }) =
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   await waitForActiveWorker(page);
+  // Install-time precaching is deliberately failure-tolerant, so make sure the
+  // shell is really in the cache: one more online navigation through the
+  // worker (network-first + cache.put) before pulling the plug.
+  await page.reload({ waitUntil: 'networkidle' });
 
   await context.setOffline(true);
   try {

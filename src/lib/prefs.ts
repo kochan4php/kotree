@@ -3,12 +3,22 @@
 // (and the inline script in the layout, which runs before first paint) can
 // react without a flash of the wrong theme.
 
-export type Theme = 'auto' | 'light' | 'dark';
+export type Theme = 'auto' | 'light' | 'dark' | 'oled';
 export type Accent = 'orange' | 'pink' | 'blue' | 'green' | 'violet' | 'yellow';
+
+/** M84: a visitor-picked accent with its inks pre-derived and pre-validated. */
+export interface CustomAccent {
+  hex: string;
+  inkLight: string;
+  inkDark: string;
+  foreground: string;
+}
 
 export interface Prefs {
   theme: Theme;
   accent: Accent;
+  /** M84: free accent colour; null keeps the preset accent. */
+  customAccent: CustomAccent | null;
   fx: boolean;
   sound: boolean;
   /** M20: explicit "Reduce motion" switch, on top of the OS setting. */
@@ -27,6 +37,7 @@ export const PREFS_KEY = 'kotree-prefs';
 export const DEFAULT_PREFS: Prefs = {
   theme: 'auto',
   accent: 'orange',
+  customAccent: null,
   fx: true,
   sound: true,
   reduceMotion: false,
@@ -73,6 +84,8 @@ export const ACCENTS: { id: Accent; label: string; swatch: string }[] = [
   { id: 'yellow', label: 'Yellow', swatch: '#ffd93d' },
 ];
 
+const HEX = /^#[0-9a-f]{6}$/i;
+
 export function readPrefs(): Prefs {
   if (typeof window === 'undefined') return DEFAULT_PREFS;
   try {
@@ -86,6 +99,14 @@ export function readPrefs(): Prefs {
     merged.soundTaps = merged.soundTaps !== false;
     merged.soundAlerts = merged.soundAlerts !== false;
     merged.seasons = merged.seasons !== false;
+    const custom = merged.customAccent;
+    merged.customAccent =
+      custom &&
+      [custom.hex, custom.inkLight, custom.inkDark, custom.foreground].every(
+        (value) => typeof value === 'string' && HEX.test(value)
+      )
+        ? custom
+        : null;
     return merged;
   } catch {
     return DEFAULT_PREFS;
@@ -93,17 +114,21 @@ export function readPrefs(): Prefs {
 }
 
 export function resolveTheme(theme: Theme): 'light' | 'dark' {
-  if (theme !== 'auto') return theme;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (theme === 'auto') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return theme === 'light' ? 'light' : 'dark'; // 'oled' is dark, only blacker
 }
 
-const THEME_COLORS = { light: '#fff7e9', dark: '#1a1613' } as const;
+const THEME_COLORS = { light: '#fff7e9', dark: '#1a1613', oled: '#000000' } as const;
 
 // K15: the mobile URL bar follows the resolved theme AND the accent — the
 // accent swatch in light mode, the calm dark background at night. The inline
 // bootstrap script in the layout mirrors this mapping before first paint.
 function themeColor(prefs: Prefs): string {
+  if (prefs.theme === 'oled') return THEME_COLORS.oled;
   if (resolveTheme(prefs.theme) === 'dark') return THEME_COLORS.dark;
+  if (prefs.customAccent) return prefs.customAccent.hex;
   return ACCENTS.find((accent) => accent.id === prefs.accent)?.swatch ?? THEME_COLORS.light;
 }
 
@@ -111,12 +136,38 @@ export function applyPrefs(prefs: Prefs): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
   const resolved = resolveTheme(prefs.theme);
-  root.dataset.theme = resolved;
-  root.dataset.accent = prefs.accent;
+  root.dataset.theme = prefs.theme === 'oled' ? 'oled' : resolved;
+  root.dataset.accent = prefs.customAccent ? 'custom' : prefs.accent;
   root.dataset.fx = prefs.fx ? 'on' : 'off';
   root.dataset.motion = prefs.reduceMotion ? 'off' : 'on';
+  // M84: inline vars beat any preset block; cleared again when a preset is chosen
+  const style = root.style;
+  if (prefs.customAccent) {
+    style.setProperty('--accent', prefs.customAccent.hex);
+    style.setProperty('--accent-ink', resolved === 'dark' ? prefs.customAccent.inkDark : prefs.customAccent.inkLight);
+    style.setProperty('--accent-foreground', prefs.customAccent.foreground);
+  } else {
+    style.removeProperty('--accent');
+    style.removeProperty('--accent-ink');
+    style.removeProperty('--accent-foreground');
+  }
   // Keep the browser chrome (mobile URL bar) in step with theme + accent
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor(prefs));
+  syncThemeColor(themeColor(prefs));
+}
+
+let lastThemeColor: string | null = null;
+let themeColorWatched = false;
+
+function syncThemeColor(color: string): void {
+  lastThemeColor = color;
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute('content', color));
+  // Hydration re-inserts Next's own static theme-color meta; keep any late
+  // copy in sync so the URL bar keeps the right colour whichever one wins.
+  if (themeColorWatched) return;
+  themeColorWatched = true;
+  new MutationObserver(() => {
+    if (lastThemeColor) syncThemeColor(lastThemeColor);
+  }).observe(document.head, { childList: true });
 }
 
 export function writePrefs(patch: Partial<Prefs>): Prefs {
@@ -141,9 +192,9 @@ export function runViewTransition(update: () => void): void {
   }
 }
 
-// Cycle auto → light → dark, wrapped in a native crossfade where supported.
+// Cycle auto → light → dark → OLED, wrapped in a native crossfade where supported.
 export function cycleTheme(): Theme {
-  const order: Theme[] = ['auto', 'light', 'dark'];
+  const order: Theme[] = ['auto', 'light', 'dark', 'oled'];
   const next = order[(order.indexOf(readPrefs().theme) + 1) % order.length];
   runViewTransition(() => writePrefs({ theme: next }));
   return next;

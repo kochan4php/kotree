@@ -64,18 +64,27 @@ async function openAdmin(page: import('@playwright/test').Page) {
   if (await tokenField.isVisible()) {
     await tokenField.fill(TOKEN);
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    // Wait for the code field OR the moderation view — under load the
+    // roundtrip can take a while, and a five-second guess here is a flake.
     const codeField = page.getByLabel('2FA code');
-    const needsCode = await codeField
-      .waitFor({ state: 'visible', timeout: 5000 })
-      .then(() => true)
-      .catch(() => false);
-    if (needsCode) {
+    const moderation = page.getByRole('heading', { name: 'Guestbook moderation' });
+    await codeField.or(moderation).first().waitFor({ timeout: 15000 });
+    if (await codeField.isVisible()) {
       await codeField.fill(await currentTotpCode());
       await page.getByRole('button', { name: 'Connect', exact: true }).click();
     }
   }
   await expect(page.getByRole('heading', { name: 'Guestbook moderation' })).toBeVisible({ timeout: 15000 });
 }
+
+// The sign-in endpoint buckets per IP (20/min) and every browser request in
+// the suite would otherwise share one 'unknown' bucket under load: each test
+// gets its own address, like real visitors do.
+test.beforeEach(async ({ context }) => {
+  await context.setExtraHTTPHeaders({
+    'x-forwarded-for': `10.9.${Math.floor(Math.random() * 250) + 1}.${Math.floor(Math.random() * 250) + 1}`,
+  });
+});
 
 test('admin can pin a guestbook entry, and the wall shows it featured', async ({ page }) => {
   // Seed one entry through the public API so moderation always has a target
@@ -255,7 +264,13 @@ test('the audit log filters by action and exports a CSV', async ({ page }) => {
 
 // M62: writes share a per-IP budget three times tighter than reads.
 test('admin writes are rate limited per IP with a Retry-After hint', async ({ page }) => {
+  test.setTimeout(90_000); // waiting out one minute boundary is the worst case
   await openAdmin(page);
+
+  // The limiter counts in fixed wall-clock minutes, so a burst that straddles
+  // a boundary never adds up (part of it lands in the next bucket). Start just
+  // after a fresh boundary and all 40 attempts share one bucket.
+  await page.waitForFunction(() => Date.now() % 60_000 < 2_000, null, { timeout: 65_000, polling: 1_000 });
 
   const result = await page.evaluate(async () => {
     const csrf =

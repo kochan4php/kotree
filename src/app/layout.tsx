@@ -1,5 +1,6 @@
 import { Space_Grotesk, Archivo_Black } from 'next/font/google';
 import { headers } from 'next/headers';
+import { ViewTransition } from 'react';
 import Script from 'next/script';
 import { metadata } from './metadata';
 import { jsonLd } from './schema';
@@ -65,11 +66,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${archivoBlack.variable} antialiased transition-colors duration-500`}>
         {/* Resolve the stored theme before anything paints — no flash of the
-            wrong theme. Logic mirrors src/lib/prefs.ts. */}
+            wrong theme. Logic mirrors src/lib/prefs.ts. The script also strips
+            React's `vt-*` markers: they exist only so its inline streaming
+            replay can wrap the first paint in a view transition, and WebKit
+            crashes rendering that on narrow, tall pages. Nothing is lost —
+            React's caller runs the queued work directly when nothing is
+            named — and navigation transitions never read these attributes. */}
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=d?'dark':'light';r.dataset.accent=p.accent||'orange';r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';r.dataset.motion=p.reduceMotion===true?'off':'on';var a={orange:'#ff7c47',pink:'#ff90e8',blue:'#4cc9f0',green:'#a8e94d',violet:'#b39dfb',yellow:'#ffd93d'};var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#1a1613':(a[p.accent]||a.orange));}catch(e){}})();`,
+            __html: `(function(){try{try{var VA=['vt-update','vt-enter','vt-exit','vt-share','vt-name','vt-parent-enter','vt-parent-exit'],VS=function(r){for(var i=0;i<VA.length;i++){var q=r.querySelectorAll?r.querySelectorAll('['+VA[i]+']'):[];for(var j=0;j<q.length;j++)q[j].removeAttribute(VA[i]);}};VS(document);new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes')m.target.removeAttribute(m.attributeName);else for(var j=0;j<m.addedNodes.length;j++){var n=m.addedNodes[j];if(1===n.nodeType||9===n.nodeType)VS(n);}}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:VA});}catch(e){}var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||t==='oled'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=t==='oled'?'oled':(d?'dark':'light');var hx=/^#[0-9a-f]{6}$/i;var c=p.customAccent;var custom=c&&hx.test(c.hex||'')&&hx.test(c.inkLight||'')&&hx.test(c.inkDark||'')&&hx.test(c.foreground||'');if(custom){r.dataset.accent='custom';r.style.setProperty('--accent',c.hex);r.style.setProperty('--accent-ink',d?c.inkDark:c.inkLight);r.style.setProperty('--accent-foreground',c.foreground);}else{r.dataset.accent=p.accent||'orange';}r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';r.dataset.motion=p.reduceMotion===true?'off':'on';var a={orange:'#ff7c47',pink:'#ff90e8',blue:'#4cc9f0',green:'#a8e94d',violet:'#b39dfb',yellow:'#ffd93d'};var ms=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<ms.length;i++)ms[i].setAttribute('content',t==='oled'?'#000000':(d?'#1a1613':(custom?c.hex:(a[p.accent]||a.orange))));}catch(e){}})();`,
           }}
         />
         {/* Prerender the static pages on hover (moderate eagerness) where the
@@ -140,7 +146,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ScrollFades />
 
         <div className="relative z-10">
-          {children}
+          {/* M81: route changes crossfade through the native View Transitions
+              API — React (19.3) drives the default animation, browsers without
+              it navigate exactly as before. */}
+          <ViewTransition>{children}</ViewTransition>
         </div>
         <Toaster
           position="bottom-center"

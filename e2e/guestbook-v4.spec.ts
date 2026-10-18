@@ -71,19 +71,28 @@ async function openAdmin(page: Page) {
   if (await tokenField.isVisible()) {
     await tokenField.fill(TOKEN);
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
-    // M60: the second factor is on in the e2e server
+    // M60: the second factor is on in the e2e server. Wait for the code field
+    // OR the moderation view — under load the roundtrip can take a while, and
+    // a five-second guess here is a flake, not a test.
     const codeField = page.getByLabel('2FA code');
-    const needsCode = await codeField
-      .waitFor({ state: 'visible', timeout: 5000 })
-      .then(() => true)
-      .catch(() => false);
-    if (needsCode) {
+    const moderation = page.getByRole('heading', { name: 'Guestbook moderation' });
+    await codeField.or(moderation).first().waitFor({ timeout: 15000 });
+    if (await codeField.isVisible()) {
       await codeField.fill(await currentTotpCode());
       await page.getByRole('button', { name: 'Connect', exact: true }).click();
     }
   }
   await expect(page.getByRole('heading', { name: 'Guestbook moderation' })).toBeVisible({ timeout: 15000 });
 }
+
+// The sign-in endpoint buckets per IP (20/min) and every browser request in
+// the suite would otherwise share one 'unknown' bucket under load: each test
+// gets its own address, like real visitors do.
+test.beforeEach(async ({ context }) => {
+  await context.setExtraHTTPHeaders({
+    'x-forwarded-for': `10.9.${Math.floor(Math.random() * 250) + 1}.${Math.floor(Math.random() * 250) + 1}`,
+  });
+});
 
 test('the author can delete their own secret; others cannot (M40)', async ({ request }) => {
   const owner = `owner-a-${uid()}`;

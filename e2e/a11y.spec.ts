@@ -253,7 +253,12 @@ test.describe('interactive states', () => {
     test(`axe: ${state.name} has no serious or critical violations`, async ({ page }) => {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
-      await state.open(page);
+      // These events only land once React has hydrated the listeners, which
+      // can lag networkidle under machine load: dispatch until the state is
+      // actually open (the open() helper asserts visibility itself).
+      await expect(async () => {
+        await state.open(page);
+      }).toPass({ timeout: 20000 });
       await page.waitForTimeout(300);
 
       const results = await new AxeBuilder({ page }).analyze();
