@@ -84,6 +84,7 @@ export default function CardProfile() {
               alt={profile.name}
               width={96}
               height={96}
+              sizes="96px"
               priority
               className="rounded-full object-cover border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] pointer-events-none w-24 h-24"
             />

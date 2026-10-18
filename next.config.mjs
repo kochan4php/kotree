@@ -45,6 +45,16 @@ const nextConfig = {
             : []),
         ],
       },
+      {
+        // M6: generated art and icons keep their names, so cache them hard
+        source: '/:dir(og|screenshots|icons)/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        // M6: feeds and the palette index change when content ships
+        source: '/:file(rss\\.xml|feed\\.json|sitemap\\.xml|llms\\.txt|search-index\\.json)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' }],
+      },
     ];
   },
 };

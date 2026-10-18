@@ -11,9 +11,45 @@ interface Overview {
   guestbook: { id: string; message: string; createdAt: string; userAgent?: string; pinned?: boolean; reports?: number; hidden?: boolean }[];
   daily: { day: string; count: number }[];
   errors: { id: string; message: string; source: string; url?: string; count: number; createdAt: string; lastSeenAt?: string }[];
-  vitals: { page: string; metric: string; p75: number; rating: 'good' | 'ni' | 'poor'; good: number; total: number }[];
+  vitals: { page: string; metric: string; p75: number; rating: 'good' | 'ni' | 'poor'; good: number; total: number; weeks?: (number | null)[] }[];
   pageviews: { path: string; count: number }[];
   audit: { id: string; event: string; detail?: string; at: string }[];
+}
+
+// M10: tiny four-week p75 sparkline. For every vital a lower number is better,
+// so a falling line is green and a rising one red.
+function VitalsTrend({ weeks, metric }: { weeks: (number | null)[]; metric: string }) {
+  const known = weeks.filter((week): week is number => week !== null);
+  if (known.length < 2) return <span className="font-mono text-muted-foreground">—</span>;
+  const min = Math.min(...known);
+  const span = Math.max(...known) - min || 1;
+  const points = weeks
+    .map((week, index) => `${index * 12},${18 - (((week ?? min) - min) / span) * 14}`)
+    .join(' ');
+  const newest = weeks[weeks.length - 1];
+  const improved = newest !== null && newest <= known[0];
+  const label = weeks
+    .map((week) => (week === null ? '—' : metric === 'CLS' ? week.toFixed(3) : `${Math.round(week)}ms`))
+    .join(' → ');
+  return (
+    <span className="inline-flex items-center gap-1" title={label}>
+      <svg viewBox="0 0 36 20" width="36" height="20" aria-hidden="true">
+        <polyline
+          points={points}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className={improved ? 'text-green-700' : 'text-red-600'}
+        />
+      </svg>
+      <span className={`font-mono text-[10px] font-bold ${improved ? 'text-green-700' : 'text-red-600'}`} aria-hidden="true">
+        {improved ? '↓' : '↑'}
+      </span>
+      <span className="sr-only">
+        {improved ? 'trending down' : 'trending up'} over four weeks: {label}
+      </span>
+    </span>
+  );
 }
 
 const iconButton =
@@ -368,6 +404,7 @@ export default function AdminDashboard() {
                           <th className="py-1 pr-2 font-bold">Metric</th>
                           <th className="py-1 pr-2 font-bold">p75</th>
                           <th className="py-1 pr-2 font-bold">Rating</th>
+                          <th className="py-1 pr-2 font-bold">30d trend</th>
                           <th className="py-1 font-bold">Samples</th>
                         </tr>
                       </thead>
@@ -387,6 +424,9 @@ export default function AdminDashboard() {
                               >
                                 {vital.rating}
                               </span>
+                            </td>
+                            <td className="py-1.5 pr-2">
+                              <VitalsTrend weeks={vital.weeks ?? []} metric={vital.metric} />
                             </td>
                             <td className="py-1.5 font-mono text-muted-foreground">
                               {vital.good}/{vital.total} good

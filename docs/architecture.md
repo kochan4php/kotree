@@ -14,6 +14,18 @@ the site is small enough that a function render is cheap.
 Files read at request time (`content/**`, `CHANGELOG.md`) ship with the
 serverless function via `outputFileTracingIncludes` in `next.config.mjs`.
 
+Cache Components (`cacheComponents`, the successor of PPR) was evaluated and
+rejected for this reason — a cached shell cannot carry a per-request nonce;
+see `docs/decisions/0001`. The cost is paid back with Suspense streaming on
+the Mongo-backed pages (`/stats`, `/wrapped`) and a perf budget suite
+(`e2e/perf.spec.ts`, `pnpm test:perf`) that gates LCP/CLS/TTFB in CI.
+
+Navigation hints follow the same economics: the speculation rules prerender
+only the cheap content pages, and only on hover (`moderate`). `/stats`,
+`/wrapped` and `/admin` are excluded because prerendering them would burn a
+function render and a Mongo read per hover — `e2e/navigation.spec.ts` guards
+the list.
+
 ## Map
 
 ```

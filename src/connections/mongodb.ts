@@ -463,6 +463,8 @@ export interface VitalAggregate {
   rating: VitalRating;
   good: number;
   total: number;
+  /** M10: p75 per week for the last four weeks, oldest → newest (null = no samples). */
+  weeks: (number | null)[];
 }
 
 const vitalsCollection = () =>
@@ -473,33 +475,53 @@ export async function addVitals(samples: VitalSample[]): Promise<void> {
   await collection.insertMany(samples.map((sample) => ({ ...sample, createdAt: new Date() })));
 }
 
-// p75 per page+metric over the last N days. Raw rows are tiny (10% sampling
-// on a personal site), so grouping in Node beats aggregation gymnastics.
+// p75 per page+metric over the last N days, plus a four-week p75 trend (M10).
+// Raw rows are tiny (10% sampling on a personal site), so grouping in Node
+// beats aggregation gymnastics.
 export async function getVitalsP75(days = 7): Promise<VitalAggregate[]> {
-  const since = new Date(Date.now() - days * 86_400_000);
+  const WEEK = 7 * 86_400_000;
+  const now = Date.now();
+  const weekCutoff = now - days * 86_400_000;
+  // Four weeks of samples: the summary window plus three earlier buckets.
+  const since = new Date(now - 4 * WEEK);
   const collection = await vitalsCollection();
   const docs = await collection
     .find({ createdAt: { $gte: since } }, { projection: { _id: 0 } })
     .limit(10_000)
     .toArray();
 
-  const groups = new Map<string, { page: string; metric: string; values: number[]; good: number }>();
+  const weeksP75 = (values: number[]): number | null => {
+    if (values.length === 0) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75))];
+  };
+
+  const groups = new Map<
+    string,
+    { page: string; metric: string; values: number[]; good: number; weeks: number[][] }
+  >();
   for (const doc of docs) {
     const group = groups.get(`${doc.page}|${doc.metric}`) ?? {
       page: doc.page,
       metric: doc.metric,
       values: [],
       good: 0,
+      weeks: [[], [], [], []],
     };
-    group.values.push(doc.value);
-    if (doc.rating === 'good') group.good++;
+    // Bucket index 3 is the most recent week, 0 the oldest in the window.
+    const bucket = Math.min(3, Math.max(0, 3 - Math.floor((now - doc.createdAt.getTime()) / WEEK)));
+    group.weeks[bucket].push(doc.value);
+    if (doc.createdAt.getTime() >= weekCutoff) {
+      group.values.push(doc.value);
+      if (doc.rating === 'good') group.good++;
+    }
     groups.set(`${doc.page}|${doc.metric}`, group);
   }
 
   return [...groups.values()]
+    .filter((group) => group.values.length > 0)
     .map((group) => {
-      const sorted = [...group.values].sort((a, b) => a - b);
-      const p75 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75))];
+      const p75 = weeksP75(group.values) as number;
       return {
         page: group.page,
         metric: group.metric,
@@ -507,6 +529,7 @@ export async function getVitalsP75(days = 7): Promise<VitalAggregate[]> {
         rating: rateVital(group.metric, p75),
         good: group.good,
         total: group.values.length,
+        weeks: group.weeks.map(weeksP75),
       };
     })
     .sort((a, b) => (a.page === b.page ? a.metric.localeCompare(b.metric) : a.page.localeCompare(b.page)));

@@ -9,6 +9,7 @@
 // Run `pnpm check:bundle --update-baseline` after a deliberate size change.
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { gzipSync } from 'node:zlib';
 
 const STATIC_DIR = join(process.cwd(), '.next', 'static');
 const BASELINE_FILE = join(process.cwd(), 'scripts', 'bundle-baseline.json');
@@ -32,9 +33,16 @@ try {
 }
 
 const sizes = files
-  .map((f) => ({ path: relative(process.cwd(), f), size: statSync(f).size }))
+  .map((f) => ({
+    path: relative(process.cwd(), f),
+    size: statSync(f).size,
+    // M7: what actually crosses the wire — Turbopack emits no per-route chunk
+    // manifest, so the transfer size is the honest per-chunk signal instead.
+    gzip: gzipSync(readFileSync(f)).length,
+  }))
   .sort((a, b) => b.size - a.size);
 const total = sizes.reduce((sum, f) => sum + f.size, 0);
+const totalGzip = sizes.reduce((sum, f) => sum + f.gzip, 0);
 
 const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
 const signed = (n) => `${n >= 0 ? '+' : ''}${kb(n)}`;
@@ -85,14 +93,19 @@ const rows = sizes.slice(0, 8).map((f, i) => {
     String(i + 1).padStart(2),
     f.path,
     kb(f.size).padStart(10),
+    kb(f.gzip).padStart(10),
     budget ? kb(budget).padStart(9) : '        —',
     diff.padStart(10),
   ].join('  ');
 });
 
 console.log('Chunk size table (largest first, diff vs committed baseline):');
-console.log([' #', 'chunk'.padEnd(52), '     size', '   budget', '      diff'].join('  '));
+console.log([' #', 'chunk'.padEnd(52), '     size', '   gzip', '   budget', '      diff'].join('  '));
 for (const row of rows) console.log(row);
+
+console.log(
+  `Transfer total ${kb(totalGzip)} gzipped (${totalGzip > 0 ? ((totalGzip / total) * 100).toFixed(0) : '—'}% of raw)`
+);
 
 if (baseline) {
   console.log(

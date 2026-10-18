@@ -7,6 +7,10 @@ export const profileWindowContent = (
     <img
       src={profile.avatarUrl}
       alt="Avatar"
+      width={96}
+      height={96}
+      loading="lazy"
+      decoding="async"
       className="w-24 h-24 border-2 border-gray-500 shadow-[inset_1px_1px_0px_white,inset_-1px_-1px_0px_#888]"
       style={{ imageRendering: 'pixelated' }}
     />

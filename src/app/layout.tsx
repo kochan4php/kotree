@@ -12,9 +12,11 @@ import ErrorReporter from '@/components/error-reporter';
 import VitalsReporter from '@/components/analytics/vitals-reporter';
 import PageViewReporter from '@/components/analytics/pageview-reporter';
 import { KonamiCode } from '@/components/easter-eggs';
-import { GhostCursor } from '@/components/effects';
 import dynamic from 'next/dynamic';
 const Background = dynamic(() => import('@/components/effects'));
+// M8: the cursor’s JS only matters on desktop after the page is idle-ish —
+// load the chunk lazily instead of shipping it with the initial bundle.
+const GhostCursor = dynamic(() => import('@/components/effects/ghost-cursor'));
 import { ScrollFades } from '@/components/effects';
 import HeaderBar from '@/components/layout/header-bar';
 import KeyboardHelp from '@/components/layout/keyboard-help';
@@ -23,11 +25,25 @@ import CommandPalette from '@/components/layout/command-palette';
 import SelfDestruct from '@/components/self-destruct';
 import EasterEggLauncher from '@/components/easter-eggs';
 import WhatsNew from '@/components/layout/whats-new';
-
 import { Viewport } from 'next';
 
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' });
-const archivoBlack = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-archivo-black' });
+// M4: both faces paint above the fold, so both stay preloaded; the explicit
+// fallback metrics keep the swap from shifting layout (CLS).
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+  preload: true,
+  adjustFontFallback: true,
+});
+const archivoBlack = Archivo_Black({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-archivo-black',
+  display: 'swap',
+  preload: true,
+  adjustFontFallback: true,
+});
 
 export { metadata };
 
