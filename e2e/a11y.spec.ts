@@ -26,6 +26,10 @@ const PAGES = [
   { name: 'privacy', path: '/privacy' },
   // M18: the accessibility statement joins every audit
   { name: 'accessibility', path: '/accessibility' },
+  // M34/M32: the new reference pages and the share-card gallery
+  { name: 'uses', path: '/uses' },
+  { name: 'links', path: '/links' },
+  { name: 'og-gallery', path: '/og' },
 ];
 
 for (const { name, path } of PAGES) {

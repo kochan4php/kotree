@@ -1,83 +1,30 @@
-export type MarkdownBlock =
-  | { type: 'h1' | 'h2' | 'h3'; text: string }
-  | { type: 'p'; text: string }
-  | { type: 'quote'; text: string }
-  | { type: 'list'; items: string[] };
+import CodeCopy from '@/components/content/code-copy';
+import HeadingAnchor from '@/components/content/heading-anchor';
+import { styleOf } from '@/lib/css-vars';
+import { Info, Lightbulb, OctagonAlert, ShieldAlert, TriangleAlert, type LucideIcon } from 'lucide-react';
+import React from 'react';
+import { slugifyHeading, type CalloutKind, type MarkdownBlock } from './markdown-parse';
 
-function headingLevel(line: string): 'h1' | 'h2' | 'h3' | null {
-  if (line.startsWith('### ')) return 'h3';
-  if (line.startsWith('## ')) return 'h2';
-  if (line.startsWith('# ')) return 'h1';
-  return null;
-}
+// The parser moved to markdown-parse.ts (unit-testable without JSX, M38).
+// Everything here re-exports the old surface so imports stay untouched.
+export { extractHeadings, parseMarkdown, readingMinutes, slugifyHeading } from './markdown-parse';
+export type { CalloutKind, MarkdownBlock } from './markdown-parse';
 
-// Markdown-lite, same flavour as the changelog parser: headings, paragraphs,
-// blockquotes and dash lists. Inline **bold**, *italic*, `code` and
-// [links](url) are handled by the renderer.
-// Stable heading anchors (K19): same slug algorithm the TOC links against,
-// with a counter so repeated headings never collide.
-function slugifyHeading(text: string, seen: Map<string, number>): string {
-  const base =
-    text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'section';
-  const count = seen.get(base) ?? 0;
-  seen.set(base, count + 1);
-  return count === 0 ? base : `${base}-${count + 1}`;
-}
+const CALLOUT_ICONS: Record<CalloutKind, LucideIcon> = {
+  note: Info,
+  tip: Lightbulb,
+  important: ShieldAlert,
+  warning: TriangleAlert,
+  caution: OctagonAlert,
+};
 
-// The TOC needs the same ids renderMarkdown will emit for the headings.
-export function extractHeadings(blocks: MarkdownBlock[]): { id: string; text: string; level: 'h2' | 'h3' }[] {
-  const seen = new Map<string, number>();
-  const headings: { id: string; text: string; level: 'h2' | 'h3' }[] = [];
-  for (const block of blocks) {
-    if (block.type === 'h1' || block.type === 'h2' || block.type === 'h3') {
-      const id = slugifyHeading(block.text, seen);
-      if (block.type !== 'h1') headings.push({ id, text: block.text, level: block.type });
-    }
-  }
-  return headings;
-}
-
-// Plain word count / 200, never "0 min". Used next to the date on articles.
-export function readingMinutes(blocks: MarkdownBlock[]): number {
-  const words = blocks.reduce((sum, block) => {
-    const text = block.type === 'list' ? block.items.join(' ') : block.text;
-    return sum + text.split(/\s+/).filter(Boolean).length;
-  }, 0);
-  return Math.max(1, Math.round(words / 200));
-}
-
-export function parseMarkdown(content: string): MarkdownBlock[] {
-  const blocks: MarkdownBlock[] = [];
-  let list: string[] = [];
-
-  const flushList = () => {
-    if (list.length) {
-      blocks.push({ type: 'list', items: list });
-      list = [];
-    }
-  };
-
-  for (const line of content.split(/\r?\n/)) {
-    const level = headingLevel(line);
-    if (level) {
-      flushList();
-      blocks.push({ type: level, text: line.slice(level === 'h3' ? 4 : level === 'h2' ? 3 : 2) });
-    } else if (line.startsWith('- ')) {
-      list.push(line.slice(2));
-    } else if (line.startsWith('> ')) {
-      flushList();
-      blocks.push({ type: 'quote', text: line.slice(2) });
-    } else if (line.trim() !== '') {
-      flushList();
-      blocks.push({ type: 'p', text: line });
-    }
-  }
-  flushList();
-  return blocks;
-}
+const CALLOUT_LABELS: Record<CalloutKind, string> = {
+  note: 'Note',
+  tip: 'Tip',
+  important: 'Important',
+  warning: 'Warning',
+  caution: 'Caution',
+};
 
 const inlineBase = 'bg-secondary border-2 border-foreground rounded px-1 py-0.5 text-[0.85em] font-mono font-bold';
 
@@ -99,6 +46,28 @@ function renderInline(text: string): React.ReactNode {
         flush();
         parts.push(<strong key={key++}>{text.slice(i + 2, end)}</strong>);
         i = end + 1;
+        continue;
+      }
+    }
+    // Footnote reference: [^id] — a superscript linking to the footnote list
+    if (text.startsWith('[^', i)) {
+      const end = text.indexOf(']', i + 2);
+      if (end !== -1) {
+        flush();
+        const id = text.slice(i + 2, end);
+        parts.push(
+          <sup key={key++}>
+            <a
+              href={`#fn-${id}`}
+              id={`fnref-${id}`}
+              aria-label={`Footnote ${id}`}
+              className="font-bold text-accent-ink underline underline-offset-2 decoration-2"
+            >
+              {id}
+            </a>
+          </sup>
+        );
+        i = end;
         continue;
       }
     }
@@ -187,11 +156,107 @@ export function renderMarkdown(blocks: MarkdownBlock[]): React.ReactNode[] {
         </p>
       );
     }
-    // Headings carry a stable id so the table of contents can link to them
+    if (block.type === 'callout') {
+      const Icon = CALLOUT_ICONS[block.kind];
+      return (
+        <aside key={key} className="kt-callout mt-4">
+          <p className="kt-callout-label">
+            <Icon className="h-4 w-4" aria-hidden="true" />
+            {CALLOUT_LABELS[block.kind]}
+          </p>
+          <p className="kt-callout-text">{renderInline(block.text)}</p>
+        </aside>
+      );
+    }
+    if (block.type === 'table') {
+      return (
+        <div key={key} className="kt-table-wrap mt-4">
+          <table className="kt-table">
+            <thead>
+              <tr>
+                {block.head.map((cell, i) => (
+                  <th key={i} scope="col" className="kt-th">
+                    {renderInline(cell)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, r) => (
+                <tr key={r}>
+                  {row.map((cell, c) => (
+                    <td key={c} className="kt-td">
+                      {renderInline(cell)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    // M37: fenced code with a language label, a copy button and per-line ids
+    // so a `#code-1-L3` fragment highlights the line (kt-hl or :target).
+    if (block.type === 'code') {
+      const label = block.lang || 'text';
+      return (
+        <figure key={key} id={`code-${key + 1}`} className="kt-code mt-4 scroll-mt-24">
+          <figcaption className="kt-code-head">
+            <span className="kt-code-lang">{label}</span>
+            <CodeCopy code={block.lines.join('\n')} label={label} />
+          </figcaption>
+          <pre className="kt-code-pre">
+            <code>
+              {block.lines.map((line, n) => (
+                <span
+                  key={n}
+                  id={`code-${key + 1}-L${n + 1}`}
+                  className={`kt-code-line${block.highlight.includes(n + 1) ? ' kt-hl' : ''}`}
+                >
+                  {line === '' ? ' ' : line}
+                </span>
+              ))}
+            </code>
+          </pre>
+        </figure>
+      );
+    }
+    if (block.type === 'footnotes') {
+      return (
+        <section key={key} aria-label="Footnotes" className="kt-footnotes mt-8">
+          <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Footnotes</h2>
+          <ol className="mt-2 space-y-2 list-decimal pl-5">
+            {block.items.map((item) => (
+              <li key={item.id} id={`fn-${item.id}`} className="scroll-mt-24 text-sm text-muted-foreground leading-relaxed">
+                {renderInline(item.text)}{' '}
+                <a
+                  href={`#fnref-${item.id}`}
+                  aria-label={`Back to reference ${item.id}`}
+                  className="font-bold text-accent-ink underline underline-offset-2 decoration-2"
+                >
+                  ↩
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
+    }
+    // Headings carry a stable id so the table of contents can link to them,
+    // plus a named view-timeline for the CSS scroll-spy (M36) and a copy
+    // link button.
     const Tag = block.type;
+    const id = slugifyHeading(block.text, seen);
     return (
-      <Tag key={key} id={slugifyHeading(block.text, seen)} className={`${blockClasses[block.type]} scroll-mt-24`}>
+      <Tag
+        key={key}
+        id={id}
+        style={styleOf({ viewTimelineName: `--kt-${id}` })}
+        className={`${blockClasses[block.type]} scroll-mt-24`}
+      >
         {renderInline(block.text)}
+        <HeadingAnchor id={id} />
       </Tag>
     );
   });

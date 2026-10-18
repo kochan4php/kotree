@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import { TaggedList } from '@/components/content/tags';
 import { collectTags, getProjects, slugifyTag } from '@/lib/content';
 import { site } from '@/lib/site';
-import { breadcrumbLd, pageOg } from '@/lib/seo';
+import { breadcrumbLd, collectionPageLd, pageOg } from '@/lib/seo';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
     title: `Projects tagged ${match.tag}`,
     description: `Kotree projects tagged "${match.tag}".`,
     alternates: { canonical: `${site.baseUrl}/projects/tags/${tag}` },
-    ...pageOg('projects', `Projects tagged ${match.tag}`),
+    ...pageOg(`tag-${tag}`, `Projects tagged ${match.tag}`),
   };
 }
 
@@ -40,6 +40,18 @@ export default async function ProjectTagPage({ params }: { params: Promise<{ tag
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbLd(`Tag: ${match.tag}`, `/projects/tags/${tag}`)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            collectionPageLd(
+              `Projects tagged ${match.tag}`,
+              `/projects/tags/${tag}`,
+              items.map((project) => ({ title: project.title, url: `${site.baseUrl}/projects/${project.slug}` }))
+            )
+          ),
         }}
       />
       <div className="relative mx-auto w-full max-w-2xl">

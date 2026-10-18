@@ -1,0 +1,150 @@
+/* M36–M38: reader-facing content blocks — the table-of-contents scroll-spy,
+   fenced code, GFM tables, callouts and footnotes. Structural styles only;
+   typography stays on Tailwind utilities in the renderer. */
+
+/* Scroll-spy: each heading is a named view-timeline (inline style) and each
+   TOC link consumes it, so a link is highlighted while its heading is inside
+   the scrollport. Pure CSS; browsers without scroll-driven animations keep
+   plain links. */
+@supports (animation-timeline: view()) {
+  .kt-toc-link {
+    animation: kt-toc-active linear;
+    animation-timeline: var(--kt-tl);
+    animation-range: entry 0% exit 0%;
+  }
+
+  @keyframes kt-toc-active {
+    from,
+    to {
+      color: var(--color-accent-ink);
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-decoration-color: var(--color-accent);
+      text-underline-offset: 2px;
+    }
+  }
+}
+
+/* Fenced code (M37) */
+.kt-code {
+  border: 3px solid var(--color-foreground);
+  border-radius: 0.75rem;
+  background: var(--color-card);
+  box-shadow: 3px 3px 0 0 var(--color-foreground);
+  overflow: hidden;
+}
+
+.kt-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-bottom: 3px solid var(--color-foreground);
+  background: var(--color-secondary);
+}
+
+.kt-code-lang {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-foreground);
+}
+
+.kt-code-pre {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--color-foreground);
+  background: var(--color-background);
+}
+
+.kt-code-line {
+  display: block;
+}
+
+/* Highlighted line: either baked in from ```ts {1,3-5} or targeted by the
+   #code-1-L3 fragment. */
+.kt-code-line.kt-hl,
+.kt-code-line:target {
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+.kt-code-line:target {
+  outline: 2px solid var(--color-accent-ink);
+}
+
+/* GFM tables (M38) */
+.kt-table-wrap {
+  overflow-x: auto;
+}
+
+.kt-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 3px solid var(--color-foreground);
+  background: var(--color-card);
+  box-shadow: 3px 3px 0 0 var(--color-foreground);
+  font-size: 0.8125rem;
+}
+
+.kt-th,
+.kt-td {
+  border: 2px solid var(--color-foreground);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.kt-th {
+  background: var(--color-secondary);
+  font-weight: 800;
+  color: var(--color-foreground);
+}
+
+.kt-td {
+  color: var(--color-foreground);
+}
+
+/* Callouts (M38): ink card, accent bar, labelled by kind. */
+.kt-callout {
+  border: 3px solid var(--color-foreground);
+  border-left-width: 10px;
+  border-radius: 0.75rem;
+  background: var(--color-secondary);
+  padding: 0.75rem 1rem;
+  box-shadow: 3px 3px 0 0 var(--color-foreground);
+}
+
+.kt-callout-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-foreground);
+}
+
+.kt-callout-label svg {
+  color: var(--color-accent-ink);
+}
+
+.kt-callout-text {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-foreground);
+}
+
+/* Footnotes (M38) */
+.kt-footnotes {
+  border-top: 3px solid color-mix(in srgb, var(--color-foreground) 20%, transparent);
+  padding-top: 1rem;
+}

@@ -58,3 +58,12 @@ were confirmed with live probes against the deployed site.
 API keys, Redis rate limiting, per-user auth, WAF rules — all would break the
 anonymous guestbook or add cost without protecting anything sensitive. Add
 when the site outgrows "personal linktree".
+
+## Reporting a vulnerability
+
+Open a private advisory at
+<https://github.com/kochan4php/kotree/security/advisories/new> or email
+aprodeosubarno@gmail.com with what you found, how to reproduce it and the
+impact. You should get a reply within a few days. This file is also the
+`Policy` target in `public/.well-known/security.txt`.
+

@@ -1,9 +1,19 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { styleOf } from '@/lib/css-vars';
+import type { CSSProperties } from 'react';
 
 // K19/K20: the reading aids shared by note and project pages — a table of
 // contents built from the article headings, prev/next through the collection
 // and a "related" list ranked by shared tags.
+
+// M36: names the per-heading view-timelines on their common ancestor, so the
+// TOC links (also descendants) can consume them. Spread onto the card wrapper
+// that contains both the article and the table of contents.
+export function tocTimelineScope(headings: { id: string }[]): CSSProperties | undefined {
+  if (headings.length === 0) return undefined;
+  return styleOf({ viewTimelineScope: headings.map((heading) => `--kt-${heading.id}`).join(', ') });
+}
 
 export function TableOfContents({ headings }: { headings: { id: string; text: string; level: 'h2' | 'h3' }[] }) {
   // One heading is just a section, not a table of contents
@@ -19,7 +29,8 @@ export function TableOfContents({ headings }: { headings: { id: string; text: st
           <li key={heading.id} className={heading.level === 'h3' ? 'pl-4' : ''}>
             <a
               href={`#${heading.id}`}
-              className="text-sm font-bold text-foreground decoration-accent decoration-2 underline-offset-2 hover:underline"
+              style={styleOf({ '--kt-tl': `--kt-${heading.id}` })}
+              className="kt-toc-link text-sm font-bold text-foreground decoration-accent decoration-2 underline-offset-2 hover:underline"
             >
               {heading.text}
             </a>

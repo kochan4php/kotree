@@ -1,0 +1,139 @@
+{
+  "cards": [
+    {
+      "file": "/og.png",
+      "label": "Kotree",
+      "kind": "home"
+    },
+    {
+      "file": "/og/changelog.png",
+      "label": "Changelog",
+      "kind": "page"
+    },
+    {
+      "file": "/og/secrets.png",
+      "label": "Secrets",
+      "kind": "page"
+    },
+    {
+      "file": "/og/about.png",
+      "label": "About",
+      "kind": "page"
+    },
+    {
+      "file": "/og/now.png",
+      "label": "Now",
+      "kind": "page"
+    },
+    {
+      "file": "/og/projects.png",
+      "label": "Projects",
+      "kind": "page"
+    },
+    {
+      "file": "/og/notes.png",
+      "label": "Notes",
+      "kind": "page"
+    },
+    {
+      "file": "/og/guestbook.png",
+      "label": "Guestbook",
+      "kind": "page"
+    },
+    {
+      "file": "/og/stats.png",
+      "label": "Stats",
+      "kind": "page"
+    },
+    {
+      "file": "/og/wrapped.png",
+      "label": "Wrapped",
+      "kind": "page"
+    },
+    {
+      "file": "/og/accessibility.png",
+      "label": "Accessibility",
+      "kind": "page"
+    },
+    {
+      "file": "/og/uses.png",
+      "label": "Uses",
+      "kind": "page"
+    },
+    {
+      "file": "/og/links.png",
+      "label": "Links",
+      "kind": "page"
+    },
+    {
+      "file": "/og/project-kotree.png",
+      "label": "Kotree",
+      "kind": "project"
+    },
+    {
+      "file": "/og/project-portfolio.png",
+      "label": "Portfolio",
+      "kind": "project"
+    },
+    {
+      "file": "/og/note-2026-09-30-secrets-everywhere.png",
+      "label": "Secrets everywhere",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-10-12-offline-first.png",
+      "label": "Offline, on purpose",
+      "kind": "note"
+    },
+    {
+      "file": "/og/tag-next-js.png",
+      "label": "Tagged “next.js”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-typescript.png",
+      "label": "Tagged “typescript”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-pwa.png",
+      "label": "Tagged “pwa”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-web.png",
+      "label": "Tagged “web”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-deno.png",
+      "label": "Tagged “deno”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-design.png",
+      "label": "Tagged “design”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-easter-eggs.png",
+      "label": "Tagged “easter-eggs”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-ux.png",
+      "label": "Tagged “ux”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-offline.png",
+      "label": "Tagged “offline”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-service-worker.png",
+      "label": "Tagged “service-worker”",
+      "kind": "tag"
+    }
+  ]
+}

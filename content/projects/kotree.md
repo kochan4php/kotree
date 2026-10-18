@@ -3,6 +3,7 @@ title: Kotree
 summary: The link-in-bio you are standing on — neobrutalist UI, an obfuscated guestbook, hidden easter eggs and an offline-first shell.
 date: 2026-10-17
 tags: next.js, typescript, pwa
+kind: app
 links: Live|/, GitHub|https://github.com/kochan4php
 ---
 

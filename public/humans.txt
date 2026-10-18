@@ -1,0 +1,12 @@
+/* TEAM */
+Developer: Deo Subarno (Kochan)
+Contact: aprodeosubarno@gmail.com
+GitHub: https://github.com/kochan4php
+Location: Jakarta, Indonesia
+
+/* SITE */
+Language: English
+Standards: HTML5, CSS, JavaScript, TypeScript
+Components: Next.js, React, Tailwind CSS, MongoDB
+Built with: pnpm, Playwright, axe-core
+Privacy: no ads, no third-party analytics profiles — see /privacy

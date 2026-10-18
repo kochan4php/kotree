@@ -77,7 +77,8 @@ export default function CardProfile() {
           <div className="liquid-gradient opacity-25"></div>
         </div>
 
-        <div className="relative z-10 flex flex-col items-center gap-3 px-6 pb-6">
+        {/* M30: the profile is one h-card — name, photo, nickname, role, bio */}
+        <div className="h-card relative z-10 flex flex-col items-center gap-3 px-6 pb-6">
           <div className="relative -mt-12 mb-1 w-fit">
             <Image
               src={profile.avatarUrl}
@@ -86,13 +87,13 @@ export default function CardProfile() {
               height={96}
               sizes="96px"
               priority
-              className="rounded-full object-cover border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] pointer-events-none w-24 h-24"
+              className="u-photo rounded-full object-cover border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] pointer-events-none w-24 h-24"
             />
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
-            <p className="text-base text-muted-foreground">{profile.handle}</p>
+            <h1 className="p-name text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
+            <p className="p-nickname text-base text-muted-foreground">{profile.handle}</p>
             {greet && (
               <p className="text-xs font-mono font-bold text-muted-foreground">
                 {greet.text}
@@ -101,12 +102,12 @@ export default function CardProfile() {
             )}
           </div>
 
-          <span className="inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base md:text-sm lg:text-base font-bold w-fit max-w-full mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
+          <span className="p-job-title inline-flex items-center justify-center gap-1.5 bg-accent text-accent-foreground border-[3px] border-foreground rounded-full px-3.5 py-1 text-base md:text-sm lg:text-base font-bold w-fit max-w-full mx-auto shadow-[3px_3px_0_0_var(--foreground)]">
             <Code2 className="w-4 h-4" />
             {profile.role}
           </span>
 
-          <p className="text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
+          <p className="p-note text-foreground/90 max-w-sm mx-auto text-lg leading-snug">{profile.bio}</p>
 
           <ProfileActions onToggleQR={openQR} />
         </div>

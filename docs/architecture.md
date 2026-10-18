@@ -62,6 +62,31 @@ shapes the app actually runs — `node scripts/audit-indexes.mjs` rebuilds them
 in a scratch database and explains every hot query, failing on a COLLSCAN that
 no TTL bound justifies.
 
+## Content, feeds and structured data
+
+Markdown content is parsed by `src/lib/markdown-parse.ts` (headings, paragraphs,
+quotes, lists, GFM tables, `> [!NOTE]` callouts, `[^1]` footnotes, fenced code)
+and rendered by `src/lib/markdown.tsx`. The parser is split from the renderer so
+`node --test` covers it without JSX. Headings get stable ids, a copy-link button
+and a named view-timeline; the table of contents follows the reading position
+with `animation-timeline: view()` — no scroll listeners, gated on `@supports`.
+
+Feeds are built once at build time (`force-static`): `/rss.xml` (full content in
+`<content:encoded>`), `/feed.json` (JSON Feed 1.1 with `content_html` and
+`date_modified`), and `/notes/tags/[tag]/feed.xml` per tag. Every response
+carries an ETag and a Last-Modified taken from its newest item.
+
+`/sitemap.xml` is an index over four hand-built sub-sitemaps
+(pages/notes/projects/tags); notes and projects carry `<image:image>` entries
+pointing at their share cards. `scripts/gen-og.mjs` renders every share card at
+build time and writes `public/og/manifest.json`, which the `/og` gallery reads.
+
+Structured data: the layout carries one Person + WebSite graph; pages add
+BlogPosting (notes), CreativeWork/WebApplication (projects — `kind: app` in
+frontmatter), CollectionPage (tag pages) and BreadcrumbList. Microformats2
+classes (`h-card` on home/about, `h-entry` on note and project pages) make the
+same pages readable to IndieWeb parsers.
+
 ## Effects and motion
 
 Every ambient effect (background canvas, ghost cursor, confetti, scroll

@@ -25,9 +25,10 @@ Built with Next.js, Tailwind CSS, and a small set of dependencies.
 - Crypto tip jar (Web3 wallet)
 - Geo quest — verify your location to unlock a reward
 - Hidden easter eggs: Win95 desktop, DOOM, boss fight, infinite mirror, Konami code
-- QR code popup, share button, RSS feed
+- QR code popup, share button, RSS + JSON feeds (plus one feed per tag)
 - PWA — installable, works offline, clicks sync when you're back online
-- SEO metadata (JSON-LD, Open Graph, sitemap, RSS)
+- SEO metadata (JSON-LD, Open Graph, image sitemaps, microformats2)
+- Reference pages: `/uses`, `/links` and a share-card gallery at `/og`
 - Neobrutalist design — cream and ink palette with colorful card tints
 - Admin dashboard at `/admin` (token-protected) for click stats and guestbook moderation
 - Keyboard shortcut help — press `?`

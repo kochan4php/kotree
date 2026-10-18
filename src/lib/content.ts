@@ -13,6 +13,9 @@ export interface Project {
   updated?: string;
   tags: string[];
   links: { label: string; url: string }[];
+  // M31: marks the project as an application, so JSON-LD can say
+  // WebApplication instead of the generic CreativeWork.
+  kind?: 'app';
   body: string;
 }
 
@@ -69,6 +72,7 @@ export function getProjects(): Project[] {
       date: data.date ?? '',
       updated: data.updated || undefined,
       tags: (data.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
+      kind: data.kind === 'app' ? ('app' as const) : undefined,
       links: (data.links ?? '')
         .split(',')
         .map((pair) => {

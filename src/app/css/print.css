@@ -71,4 +71,32 @@
     font-weight: 400;
     color: #444;
   }
+
+  /* M35/M36/M37: interactive-only affordances don't print */
+  [data-heading-anchor],
+  .kt-code-copy {
+    display: none !important;
+  }
+
+  /* M35: long code lines wrap instead of running off the sheet */
+  .kt-code-pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: visible !important;
+  }
+
+  .kt-code {
+    box-shadow: none !important;
+  }
+
+  /* M35: keep tables and code figures whole across page breaks */
+  figure,
+  .kt-table {
+    break-inside: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
 }

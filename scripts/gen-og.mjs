@@ -1,5 +1,6 @@
 // Pre-renders the social share images at build time (public/og.png for the
-// home page, public/og/<name>.png per page/project/note).
+// home page, public/og/<name>.png per page/project/note/tag, plus the
+// /og gallery manifest — M32).
 // Replaces the old runtime /api/og route (satori + Mongo per request,
 // which 500'd in production when it couldn't reach Google Fonts).
 // Fonts are committed locally so this never touches the network.
@@ -66,10 +67,13 @@ async function render(title, subtitle, footer) {
   return Buffer.from(await img.arrayBuffer());
 }
 
-function writeImage(relPath, buffer) {
+// M32: every card is recorded so /og can show the whole gallery
+const cards = [];
+function writeImage(relPath, buffer, label, kind) {
   const out = path.join(__dirname, '..', 'public', relPath);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, buffer);
+  if (label) cards.push({ file: `/${relPath}`, label, kind });
   console.log(`${relPath} generated: ${buffer.length} bytes`);
 }
 
@@ -80,7 +84,9 @@ writeImage(
     'Kotree',
     'All social links of Deo Subarno (Kochan) — Software & Game Developer',
     'Deo Subarno • Software and Game Developer'
-  )
+  ),
+  'Kotree',
+  'home'
 );
 
 // One card per static page; pages advertise them via lib/seo pageOg()
@@ -95,9 +101,11 @@ const pages = [
   ['stats', 'Stats', 'Clicks, links and reactions'],
   ['wrapped', 'Wrapped', 'The year in clicks and secrets'],
   ['accessibility', 'Accessibility', 'How Kotree is built to be usable'],
+  ['uses', 'Uses', 'What this site runs on'],
+  ['links', 'Links', 'Resources this site leans on'],
 ];
 for (const [name, title, subtitle] of pages) {
-  writeImage(`og/${name}.png`, await render(title, subtitle, 'Deo Subarno • Kotree'));
+  writeImage(`og/${name}.png`, await render(title, subtitle, 'Deo Subarno • Kotree'), title, 'page');
 }
 
 // Per-project and per-note cards, straight from the content folders
@@ -130,6 +138,38 @@ for (const [dir, prefix] of [
     const title = data.title ?? slug;
     const summary = data.summary ?? '';
     const subtitle = summary.length > 120 ? `${summary.slice(0, 117)}…` : summary;
-    writeImage(`og/${prefix}-${slug}.png`, await render(title, subtitle, 'Deo Subarno • Kotree'));
+    writeImage(`og/${prefix}-${slug}.png`, await render(title, subtitle, 'Deo Subarno • Kotree'), title, prefix);
   }
 }
+
+// M32: one card per tag, shared by the notes and projects tag pages.
+// The slug mirrors slugifyTag() in src/lib/content.ts.
+const tagSlug = (tag) => tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const tags = new Map();
+for (const dir of ['projects', 'notes']) {
+  const full = path.join(contentDir, dir);
+  if (!fs.existsSync(full)) continue;
+  for (const f of fs.readdirSync(full).filter((name) => name.endsWith('.md'))) {
+    const data = frontmatter(path.join(full, f));
+    for (const tag of (data.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean)) {
+      const slug = tagSlug(tag);
+      if (slug && !tags.has(slug)) tags.set(slug, tag);
+    }
+  }
+}
+for (const [slug, tag] of tags) {
+  writeImage(
+    `og/tag-${slug}.png`,
+    await render(`#${tag}`, `Notes and projects tagged “${tag}”`, 'Deo Subarno • Kotree'),
+    `Tagged “${tag}”`,
+    'tag'
+  );
+}
+
+// M32: the /og gallery reads this manifest at build time
+fs.mkdirSync(path.join(__dirname, '..', 'public', 'og'), { recursive: true });
+fs.writeFileSync(
+  path.join(__dirname, '..', 'public', 'og', 'manifest.json'),
+  JSON.stringify({ cards }, null, 2) + '\n'
+);
+console.log(`og/manifest.json written: ${cards.length} cards`);

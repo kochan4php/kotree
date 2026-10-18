@@ -8,6 +8,8 @@ import { usePathname } from 'next/navigation';
 const LINKS = [
   ['About', '/about'],
   ['Now', '/now'],
+  ['Uses', '/uses'],
+  ['Links', '/links'],
   ['Projects', '/projects'],
   ['Notes', '/notes'],
   ['Guestbook', '/guestbook'],

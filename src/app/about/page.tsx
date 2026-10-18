@@ -20,6 +20,8 @@ const explore = [
   ['Notes', '/notes'],
   ['Guestbook', '/guestbook'],
   ['Now', '/now'],
+  ['Uses', '/uses'],
+  ['Links', '/links'],
 ] as const;
 
 export default function AboutPage() {
@@ -30,16 +32,19 @@ export default function AboutPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd('About', '/about')) }}
       />
       <div className="relative mx-auto w-full max-w-2xl lg:max-w-3xl space-y-3">
+        {/* M30: the intro is the site's second h-card */}
         <Card className="fluid-glass">
           <div className="liquid-gradient"></div>
-          <div className="relative z-10">
+          <div className="relative z-10 h-card">
             <h1 className="flex items-center gap-2 text-3xl font-black tracking-tight text-foreground">
               <User className="w-6 h-6 text-accent-ink" aria-hidden="true" />
               About
             </h1>
             <p className="mt-2 text-muted-foreground leading-relaxed font-medium">
-              Hi, I&apos;m <strong className="text-foreground">Deo Subarno</strong> — Kochan to most people online — a
-              software and game developer from Jakarta, Indonesia.
+              Hi, I&apos;m{' '}
+              <strong className="text-foreground p-name">Deo Subarno</strong> — Kochan to most people online — a{' '}
+              <span className="p-job-title">software and game developer</span> from{' '}
+              <span className="p-locality">Jakarta</span>, <span className="p-country-name">Indonesia</span>.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed font-medium">
               I build web apps, small games and the tooling in between. Kotree is the front door: one page that gathers

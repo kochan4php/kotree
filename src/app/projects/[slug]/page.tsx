@@ -1,10 +1,10 @@
 import { Card } from '@/components/ui/card';
 import TagChips from '@/components/content/tag-chips';
-import { PrevNext, RelatedList, TableOfContents } from '@/components/content/reading';
+import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getProject, getProjects, relatedTo } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
 import { site } from '@/lib/site';
-import { breadcrumbLd } from '@/lib/seo';
+import { breadcrumbLd, creativeWorkLd } from '@/lib/seo';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -48,6 +48,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           __html: JSON.stringify(breadcrumbLd(project.title, `/projects/${project.slug}`)),
         }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkLd(project)) }}
+      />
       <div className="relative mx-auto w-full max-w-2xl lg:max-w-3xl">
         <Link
           href="/projects"
@@ -59,11 +63,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
         <Card className="fluid-glass mt-3">
           <div className="liquid-gradient"></div>
-          <div className="relative z-10">
+          {/* M30/M36: one h-entry for the whole card; the wrapper also scopes
+              the per-heading view-timelines the TOC links consume. */}
+          <div className="relative z-10 h-entry" style={tocTimelineScope(headings)}>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <time
                 dateTime={project.date}
-                className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
+                className="dt-published text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
               >
                 {formatDate(project.date)}
               </time>
@@ -85,7 +91,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
 
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">{project.title}</h1>
+            <h1 className="p-name mt-2 text-3xl font-black tracking-tight text-foreground">{project.title}</h1>
+            <a className="u-url sr-only" href={`${site.baseUrl}/projects/${project.slug}`}>
+              Permalink
+            </a>
+            <span className="p-author sr-only">{site.name}</span>
 
             {project.tags.length > 0 && (
               <div className="mt-3">
@@ -94,7 +104,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             )}
 
             <TableOfContents headings={headings} />
-            <article className="mt-1">{renderMarkdown(blocks)}</article>
+            <article className="mt-1">
+              <div className="e-content">{renderMarkdown(blocks)}</div>
+            </article>
 
             {project.links.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-3 border-t-[3px] border-foreground pt-5">

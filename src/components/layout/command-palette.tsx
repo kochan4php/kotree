@@ -5,9 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowUp,
   BarChart3,
+  BookOpen,
   CornerDownLeft,
   FolderGit2,
   History,
+  Laptop,
   Link2,
   MessageSquare,
   Moon,
@@ -229,6 +231,8 @@ export default function CommandPalette() {
       ['Notes', '/notes', NotebookPen, 'Short notes, newest first'],
       ['About', '/about', User, 'Who is behind Kotree'],
       ['Now', '/now', Sparkles, 'What I am up to right now'],
+      ['Uses', '/uses', Laptop, 'What this site runs on'],
+      ['Links', '/links', BookOpen, 'Resources this site leans on'],
     ] as const
   )
     .filter(([, href]) => href !== pathname)

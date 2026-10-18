@@ -1,10 +1,10 @@
 import { Card } from '@/components/ui/card';
 import TagChips from '@/components/content/tag-chips';
-import { PrevNext, RelatedList, TableOfContents } from '@/components/content/reading';
+import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getNote, getNotes, relatedTo } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
 import { site } from '@/lib/site';
-import { breadcrumbLd } from '@/lib/seo';
+import { blogPostingLd, breadcrumbLd } from '@/lib/seo';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -46,6 +46,10 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd(note.title, `/notes/${note.slug}`)) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingLd(note)) }}
+      />
       <div className="relative mx-auto w-full max-w-2xl">
         <Link
           href="/notes"
@@ -57,11 +61,13 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
 
         <Card className="fluid-glass mt-3">
           <div className="liquid-gradient"></div>
-          <div className="relative z-10">
+          {/* M30/M36: one h-entry for the whole card; the wrapper also scopes
+              the per-heading view-timelines the TOC links consume. */}
+          <div className="relative z-10 h-entry" style={tocTimelineScope(headings)}>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <time
                 dateTime={note.date}
-                className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
+                className="dt-published text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground"
               >
                 {formatDate(note.date)}
               </time>
@@ -82,14 +88,20 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
                 </>
               )}
             </div>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">{note.title}</h1>
+            <h1 className="p-name mt-2 text-3xl font-black tracking-tight text-foreground">{note.title}</h1>
+            <a className="u-url sr-only" href={`${site.baseUrl}/notes/${note.slug}`}>
+              Permalink
+            </a>
+            <span className="p-author sr-only">{site.name}</span>
             {note.tags.length > 0 && (
               <div className="mt-3">
                 <TagChips tags={note.tags} base="/notes" />
               </div>
             )}
             <TableOfContents headings={headings} />
-            <article className="mt-1">{renderMarkdown(blocks)}</article>
+            <article className="mt-1">
+              <div className="e-content">{renderMarkdown(blocks)}</div>
+            </article>
             <RelatedList items={related} base="/notes" />
             <PrevNext items={notes} currentSlug={note.slug} base="/notes" />
           </div>

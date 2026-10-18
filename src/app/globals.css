@@ -4,6 +4,7 @@
 @import "./css/utilities.css";
 @import "./css/animations.css";
 @import "./css/effects.css";
+@import "./css/content.css";
 @import "./css/print.css";
 
 /* Enable native View Transitions API in Chrome 126+ */
