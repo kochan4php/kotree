@@ -23,14 +23,22 @@ const PAGES = [
   { name: 'not-found', path: '/this-page-does-not-exist' },
 ];
 
-async function freeze(page: Page, path: string, theme: 'light' | 'dark' = 'light') {
+async function freeze(
+  page: Page,
+  path: string,
+  theme: 'light' | 'dark' = 'light',
+  extraPrefs: Record<string, unknown> = {}
+) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript((selected) => {
-    localStorage.setItem(
-      'kotree-prefs',
-      JSON.stringify({ theme: selected, accent: 'orange', fx: false, sound: false })
-    );
-  }, theme);
+  await page.addInitScript(
+    ({ selected, extra }) => {
+      localStorage.setItem(
+        'kotree-prefs',
+        JSON.stringify({ theme: selected, accent: 'orange', fx: false, sound: false, ...extra })
+      );
+    },
+    { selected: theme, extra: extraPrefs }
+  );
   await page.route('**/api/guestbook?*', (route) => route.fulfill({ json: [] }));
   // M44: the guestbook renders the poll card — pin its data so the baseline
   // never depends on whatever question is live in the local database
@@ -87,3 +95,70 @@ for (const { name, path, theme, widths } of EXTRA_PAGES) {
     });
   }
 }
+
+// M74: live UI states — the overlays and modes the page baselines never
+// reach: palette, QR modal, terminal, the Win95 desktop, forced colors and
+// the in-app reduced-motion rendering.
+
+test('visual: palette with results at 1440x900', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await freeze(page, '/');
+  await page.getByRole('button', { name: 'Search links' }).click();
+  await page.getByRole('textbox', { name: 'Search links' }).fill('wrapped 2025');
+  const palette = page.getByRole('dialog', { name: 'Search and commands' });
+  await expect(palette.getByText('Open Kotree Wrapped 2025')).toBeVisible();
+  await expect(palette).toHaveScreenshot({ animations: 'disabled' });
+});
+
+test('visual: QR modal at 1440x900', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await freeze(page, '/');
+  await page.getByRole('button', { name: 'Show QR Code' }).click();
+  const dialog = page.getByRole('dialog', { name: 'QR Code' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveScreenshot({ animations: 'disabled' });
+});
+
+test('visual: AI terminal at 1440x900', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await freeze(page, '/');
+  await page.getByRole('button', { name: 'Open AI Terminal' }).click();
+  const terminal = page.getByRole('dialog', { name: 'AI Terminal' });
+  await expect(terminal).toBeVisible();
+  await expect(terminal).toHaveScreenshot({ animations: 'disabled' });
+});
+
+test('visual: Win95 desktop with Notepad at 1440x900', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await freeze(page, '/');
+  // The window manager places every window at Math.random()×50 — seed it so
+  // two runs agree on where Notepad landed.
+  await page.evaluate(() => {
+    let state = 20261018;
+    Math.random = () => ((state = (state * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  });
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95')));
+  await expect(page.getByRole('button', { name: 'Minesweeper' })).toBeVisible({ timeout: 10000 });
+  await page.waitForTimeout(450); // the desktop slides in — let it settle (same as freeze)
+  // Icons open on double-click or Enter; Enter sidesteps overlapping windows
+  const icon = page.getByRole('button', { name: 'Notepad' });
+  await icon.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('textbox', { name: 'Notepad draft' })).toBeVisible();
+  await page.waitForTimeout(450); // ...and so does the window itself
+  await expect(page).toHaveScreenshot({ animations: 'disabled' });
+});
+
+test('visual: forced colors at 1440x900', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await freeze(page, '/');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.waitForTimeout(200);
+  await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
+});
+
+test('visual: reduced motion keeps home calm at 1440x900', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await freeze(page, '/', 'light', { reduceMotion: true });
+  await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
+});

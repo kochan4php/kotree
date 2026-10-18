@@ -22,6 +22,10 @@ ones the CI runs.
 | `NEXT_PUBLIC_BASE_URL` | yes (prod) | canonical URL; used for metadata, feeds and the CSRF secret |
 | `COMMIT_REF` | Netlify sets it | shown on `/status` |
 | `NETLIFY` | Netlify sets it | gates HSTS + `upgrade-insecure-requests` to HTTPS deployments |
+| `ADMIN_TOTP_SECRET` | no | base32 TOTP secret; when set, login also asks for a 2FA code |
+| `ADMIN_TOTP_RECOVERY` | no | comma-separated sha256 hashes of one-time recovery codes |
+| `ADMIN_BIND_UA` | no | `1` binds admin sessions to the browser user agent |
+| `CSP_ALERT_THRESHOLD` | no | CSP violations/24h that open the alert issue (default 25) |
 
 Never commit real values. Locally `.env.local` holds `ADMIN_TOKEN` only.
 
@@ -35,9 +39,15 @@ Never commit real values. Locally `.env.local` holds `ADMIN_TOKEN` only.
 3. Rollback: Netlify → Deploys → pick the last good deploy → *Publish deploy*.
    Data is untouched by a rollback.
 
-The *Weekly backup* workflow exports production data every Monday; run it by
-hand from the Actions tab any time. Both scheduled workflows stay dormant
-until the `SITE_URL` repository variable is set.
+Three scheduled workflows keep watch in production; all stay dormant until
+the `SITE_URL` repository variable is set, and every one can be run by hand
+from the Actions tab:
+
+- *Weekly backup* (Mondays) — exports production data as a workflow artifact.
+- *Production alerts* (every 6 hours) — smoke test plus the CSP counter;
+  failures collect in one rolling issue instead of piling up notifications.
+- *Backup restore drill* (1st of the month) — restores the newest artifact
+  into an ephemeral database and verifies the counts (see below).
 
 ## Rotating `ADMIN_TOKEN`
 
@@ -72,6 +82,53 @@ Restore is additive — clear the collection first if you mean to replace.
 `page_views` and `link_counter` are aggregates; losing them costs statistics,
 not content.
 
+## Backup restore drill
+
+`scripts/restore-drill.mjs` takes a backup JSON, loads it into a scratch
+database (`kotreedb_restore_drill` — the live database is never touched) and
+compares the counts it finds against the counts recorded in the artifact.
+
+```bash
+node scripts/restore-drill.mjs backups/kotree-backup-YYYY-MM-DD.json
+```
+
+The monthly *Backup restore drill* workflow runs exactly this against an
+ephemeral Mongo, using the newest artifact from the *Weekly backup* runs. A
+red drill means the backup would not restore — investigate it before you
+need it for real.
+
+## Perf budget failed
+
+`pnpm check:bundle` compares the built client chunks against
+`scripts/bundle-baseline.json` and prints a largest-first table with the diff.
+
+1. Find where the growth is: the table names the chunks; the biggest delta
+   points at the import or dependency responsible.
+2. A real regression (a client component pulled into the shell, a new import
+   on a shared chunk): move the work server-side or split it behind a lazy
+   import. Re-run `pnpm build && pnpm check:bundle` and confirm the number.
+3. If the growth is deliberate and understood, refresh the baseline in the
+   same commit (`pnpm check:bundle --update-baseline`) and say why in the
+   message. Never update the baseline to make a red build green.
+4. `pnpm test:perf` guards runtime instead — TTFB < 800 ms, LCP < 2500 ms,
+   CLS < 0.1 locally. Red there is treated the same way: find the cause, do
+   not relax the budget.
+
+## Accessibility regression
+
+The axe audit runs in `e2e/a11y.spec.ts` on every push; `critical` and
+`serious` findings fail the suite.
+
+1. The failure names the rule, the selector and the impact.
+2. Reproduce it in the browser with the same viewport and theme. In this
+   codebase the usual causes are contrast pairs (a tinted card on a tinted
+   background) and focus order after a dialog change.
+3. Fix the component, not the test. If a rule genuinely does not apply,
+   disable it at the single call site with a comment explaining why — never
+   in the shared config.
+4. Re-run the whole a11y project (`npx playwright test e2e/a11y.spec.ts`) —
+   fixes here like to break there.
+
 ## Incident checklist
 
 **Scanner noise (`/.env`, `/wp-login.php`, …)** — expected background
@@ -86,8 +143,12 @@ guestbook and admin show their fail-soft states. The status page reports the
 connection. Restore Atlas access, no deploy needed.
 
 **CSP violations in the wild** — reports land in Admin → Errors with
-`source: csp`. Fix the offending code or extend the policy in `src/proxy.ts`;
-never add `'unsafe-inline'` back to `script-src`.
+`source: csp`, and the 24-hour count shows on `/api/health` as
+`cspViolations24h`. The *Production alerts* workflow opens or comments one
+rolling issue once the count passes `CSP_ALERT_THRESHOLD` (default 25);
+triage there rather than in the raw feed. Then fix the offending code or
+extend the policy in `src/proxy.ts`; never add `'unsafe-inline'` back to
+`script-src`. `wasm-unsafe-eval` is deliberate (ADR 0001).
 
 **Site looks unstyled after a deploy** — usually a stale service worker.
 Bump the cache name in `public/sw.js` and deploy; users get the update toast.

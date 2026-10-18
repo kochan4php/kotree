@@ -20,10 +20,13 @@ const ownerHashOf = (owner: unknown): string | undefined =>
 
 // K58: control and zero-width characters survive trim() and can wreck the
 // wall's layout — strip them here, not in the renderer. Newlines are kept.
-const cleanMessage = (raw: string) =>
+// Normalisation runs after the strip so characters that were only kept apart
+// by a zero-width joiner end up composed. Exported for the deterministic
+// fuzz test (M73).
+export const cleanMessage = (raw: string) =>
   raw
-    .normalize('NFC')
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '')
+    .normalize('NFC')
     .trim()
     .substring(0, 100); // Max 100 chars
 

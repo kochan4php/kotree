@@ -1,41 +1,45 @@
 # Kotree
 
 [![CI](https://github.com/kochan4php/kotree/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kochan4php/kotree/actions/workflows/ci.yml)
+[![Node 22 | 24](https://img.shields.io/badge/node-22%20%7C%2024-5fa04e)](https://nodejs.org)
+[![Bundle budget](https://img.shields.io/badge/bundle-budget%20enforced-1f6feb)](docs/runbook.md#perf-budget-failed)
+[![a11y: axe AA+](https://img.shields.io/badge/a11y-axe%20AA%2B-blueviolet)](e2e/a11y.spec.ts)
 
-A link-in-bio page for Deo Subarno (Kochan). One page, all social links, click counters backed by MongoDB.
+A link-in-bio page for Deo Subarno (Kochan). One page, all social links, click
+counters backed by MongoDB — plus a guestbook, an AI terminal, a Win95 desktop
+and a boss fight hiding behind the easter eggs.
 
-Built with Next.js, Tailwind CSS, and a small set of dependencies.
-
-## Stack
-
-- Next.js (App Router)
-- Tailwind CSS v4
-- MongoDB
-- pnpm
+Next.js App Router, Tailwind CSS v4, MongoDB, no client-state library.
 
 ## Features
 
-- Profile card with avatar, bio, and quote
-- Social link list with per-link click counters
-- Total clicks / links stats, updated live as you click
-- Search (top-bar button or Ctrl+K)
-- AI terminal — chat with a clone of Deo (type `help`)
-- Voice commands with a typing fallback (telepathy mode)
-- Secret Confessions guestbook — leave an encrypted message
-- Crypto tip jar (Web3 wallet)
-- Geo quest — verify your location to unlock a reward
-- Hidden easter eggs: Win95 desktop, DOOM, boss fight, infinite mirror, Konami code
-- QR code popup, share button, RSS + JSON feeds (plus one feed per tag)
-- PWA — installable, works offline, clicks sync when you're back online
-- SEO metadata (JSON-LD, Open Graph, image sitemaps, microformats2)
-- Reference pages: `/uses`, `/links` and a share-card gallery at `/og`
-- Neobrutalist design — cream and ink palette with colorful card tints
-- Admin dashboard at `/admin` (token-protected) for click stats and guestbook moderation
-- Keyboard shortcut help — press `?`
+- Profile card, social links with live click counters, live totals
+- Search palette (`Ctrl+K`) over links, pages and content
+- Reference pages: `/uses`, `/links`, `/og`, `/explore`, `/qr`, `/status`
+- Locked notes with per-note secret pages, tags and a quiz
+- Secret Confessions guestbook — messages are obfuscated in the browser; the
+  wall works without JavaScript via a `<noscript>` fallback
+- Kotree Wrapped (`/wrapped`) — a yearly recap with links, clicks, tags and a
+  Windows 95 guest mode
+- Client-error reporting (with source maps kept server-side) and Core Web
+  Vitals ranking, both rolling up into `/api/health` and the admin dashboard
+- PWA — installable, offline shell, share target, iOS splash screens,
+  background refresh
+- SEO: JSON-LD, Open Graph, image sitemaps, microformats2, RSS + JSON feeds,
+  one feed per tag
+- WCAG AA contrast everywhere, reduced-motion support, focus management;
+  enforced by axe in the e2e suite
+
+## Stack
+
+- Next.js 16 (App Router, Turbopack builds)
+- Tailwind CSS v4
+- MongoDB (driver only)
+- pnpm, Node 22+
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 22 or 24 (CI runs both; unit tests use type stripping)
 - pnpm
 - MongoDB running locally (or a `MONGODB_URL` env var)
 
@@ -58,46 +62,74 @@ Open https://localhost:3000 (the dev server runs with HTTPS).
 
 ## Scripts
 
-| Command          | What it does                      |
-| ---------------- | --------------------------------- |
-| `pnpm dev`       | Start dev server (HTTPS)          |
-| `pnpm build`     | Production build                  |
-| `pnpm start`     | Serve the build                   |
-| `pnpm lint`      | Run ESLint                        |
-| `pnpm typecheck` | TypeScript check (`tsc --noEmit`) |
-| `pnpm test:e2e`  | Playwright e2e + axe a11y tests   |
-| `pnpm backup`    | Export MongoDB data to `backups/` |
+| Command               | What it does                                        |
+| --------------------- | --------------------------------------------------- |
+| `pnpm dev`            | Start dev server (HTTPS)                            |
+| `pnpm build`          | Production build (regenerates OG art + search index)|
+| `pnpm start`          | Serve the build                                     |
+| `pnpm lint`           | Run ESLint                                          |
+| `pnpm typecheck`      | TypeScript check (`tsc --noEmit`)                   |
+| `pnpm test:unit`      | Unit tests (Node test runner, type stripping)       |
+| `pnpm test:e2e`       | Playwright e2e + axe a11y suite                     |
+| `pnpm test:perf`      | Playwright perf budget suite                        |
+| `pnpm check:bundle`   | Bundle-size budget against `bundle-baseline.json`   |
+| `pnpm smoke`          | Smoke-test a deployed site: `pnpm smoke -- <url>`   |
+| `pnpm scan:secrets`   | Fail if a secret pattern sneaks into the repo       |
+| `pnpm gen:splash`     | Regenerate the iOS splash screens                   |
+| `pnpm changelog:draft`| Draft a changelog skeleton from the commit log      |
+| `pnpm backup`         | Export MongoDB data to `backups/`                   |
 
-`pnpm test:e2e` builds and starts the app itself; a local MongoDB is required. CI runs lint, typecheck, and the full e2e suite (including the axe accessibility audit) on every push and pull request.
+`pnpm test:e2e` builds and starts the app itself; a local MongoDB is required.
+CI runs lint, typecheck, unit tests, build, bundle budget and the full e2e
+suite (including the axe audit) on Node 22 and 24, for every push.
 
 ## Environment variables
 
-| Variable                              | Required | Default                       | Purpose                        |
-| ------------------------------------- | -------- | ----------------------------- | ------------------------------ |
-| `MONGODB_URL`                         | no       | `mongodb://localhost:27017`   | MongoDB connection string      |
-| `NEXT_PUBLIC_BASE_URL`                | no       | `http://localhost:3000`       | Canonical URL for SEO          |
-| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`| no       | -                             | Google Search Console token    |
-| `NEXT_PUBLIC_BING_SITE_VERIFICATION`  | no       | -                             | Bing Webmaster token           |
-| `GEMINI_API_KEY`                      | no       | -                             | Real AI answers in the terminal (falls back to mock) |
-| `DISCORD_WEBHOOK_URL` / `TELEGRAM_WEBHOOK_URL` | no | -                     | Notify when a link is clicked  |
-| `ADMIN_TOKEN`                         | no       | -                             | Unlocks the `/admin` dashboard |
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `MONGODB_URL` | no | `mongodb://localhost:27017` | MongoDB connection string |
+| `NEXT_PUBLIC_BASE_URL` | no | `http://localhost:3000` | Canonical URL for SEO and feeds |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no | – | Google Search Console token |
+| `NEXT_PUBLIC_BING_SITE_VERIFICATION` | no | – | Bing Webmaster token |
+| `GEMINI_API_KEY` | no | – | Real AI answers in the terminal (falls back to mock) |
+| `DISCORD_WEBHOOK_URL` / `TELEGRAM_WEBHOOK_URL` | no | – | Notify when a link is clicked |
+| `ADMIN_TOKEN` | no | – | Unlocks `/admin`; also the HMAC key for admin sessions |
+| `ADMIN_TOTP_SECRET` | no | – | Base32 TOTP secret; when set, admin login asks for a 2FA code |
+| `ADMIN_TOTP_RECOVERY` | no | – | Comma-separated SHA-256 hashes of one-time recovery codes |
+| `ADMIN_BIND_UA` | no | – | Set to `1` to bind admin sessions to the browser user agent |
+| `CSP_ALERT_THRESHOLD` | no | `25` | CSP violations per 24h that trigger the alert workflow |
 
-Set `NEXT_PUBLIC_BASE_URL` to your real domain before deploying. Without it, SEO links (canonical, sitemap, Open Graph) point to localhost.
+Set `NEXT_PUBLIC_BASE_URL` to your real domain before deploying. Without it,
+SEO links (canonical, sitemap, Open Graph) point to localhost.
 
 ## API
 
 - `POST /api/click-link-counter` — increments a link counter. Body: `{ "name": "github", "count": 1 }`.
+- `GET /api/click-link-counter` — all link counters.
 - `POST /api/guestbook` — adds a guestbook entry. Body: `{ "message": "...", "_token": "..." }`.
 - `GET /api/guestbook?limit=10&before=<ISO date>` — reads entries, newest first (no IPs or user agents).
+- `POST /api/guestbook/report` — reports an entry; it hides once enough reports pile up.
+- `POST /api/poll` / `GET /api/poll` — vote or read the current poll.
+- `POST /api/pageview`, `POST /api/log`, `POST /api/csp-report` — beacons: page views, client errors, CSP violations.
 - `POST /api/chat` — AI terminal endpoint (guarded by origin + rate limit).
-- `GET /api/health` — uptime check (`200` when Mongo is reachable, `503` otherwise).
-- `GET /api/admin/overview` — click stats + guestbook for moderation. Requires `Authorization: Bearer $ADMIN_TOKEN`.
-- `DELETE /api/admin/guestbook?id=<id>` — deletes a guestbook entry. Same auth.
+- `POST /api/boss-scores` / `GET /api/boss-scores` — leaderboard.
+- `GET /api/badge/<clicks|wrapped>.svg` — embeddable README badges, fail-soft to “offline”.
+- `GET /api/health` — uptime check (`200` when Mongo is reachable, `503` otherwise), including 24h CSP-violation count.
+- Admin (Bearer `ADMIN_TOKEN` or session cookie): `GET /api/admin/overview`, `DELETE /api/admin/guestbook?id=…`, `GET /api/admin/export`, `GET /api/admin/audit`, `GET/DELETE /api/admin/sessions`, `POST /api/admin/session`.
 
 Write endpoints reject requests that:
+
 - come from a different origin (checked via `Origin` and `Sec-Fetch-Site`)
-- send an invalid CSRF token or a link name not in the social links list
-- exceed 30 requests per minute per client IP (last proxy hop — spoof-proof)
+- send an invalid CSRF token, a malformed path, or a link name not in the list
+- exceed their per-IP rate limit (last proxy hop — spoof-proof; 429 with `Retry-After`)
+
+## Gates and budgets
+
+Every batch must pass, in order: `lint` → `typecheck` → `test:unit` → `build`
+→ `check:bundle` → `test:e2e` (chromium) → cross-browser/mobile projects →
+`smoke`. The bundle budget is smaller than the committed baseline; visual
+snapshots are win32-only. See `docs/runbook.md` for what to do when a gate
+fails.
 
 ## Project structure
 
@@ -108,11 +140,25 @@ src/
   connections/  MongoDB client and queries
   data/         profile and social link data
   interfaces/   shared types
-  lib/          utilities (security, rate limit, tracking)
+  lib/          utilities (security, rate limiting, content, feeds)
+e2e/            Playwright suites (features, a11y, visual, waves)
+tests/unit/     Node test-runner suites
+docs/           architecture, runbook, ADRs
+scripts/        build-time and ops scripts (OG art, splash, backup, drill)
 ```
+
+## Documentation
+
+- [Architecture](docs/architecture.md) — how the pieces fit, rendering model
+- [Runbook](docs/runbook.md) — deploy, rollback, incidents, gates
+- [Decisions](docs/decisions/) — ADRs: nonce CSP, rate limits, no new packages
+- `/changelog` — every release in plain language
 
 ## Deployment
 
 1. Install dependencies with `pnpm install`.
-2. Set env vars (see above).
-3. Run `pnpm build`, then `pnpm start`.
+2. Set env vars (see above); at minimum `MONGODB_URL`, `NEXT_PUBLIC_BASE_URL`
+   and `ADMIN_TOKEN`.
+3. Run `pnpm build`, then `pnpm start` — or push to `main` and let the
+   configured host (Netlify) build it.
+4. After it is live: `pnpm smoke -- https://<your-site>`.

@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.18.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "next dev --experimental-https",
@@ -15,10 +15,11 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:perf": "playwright test -c playwright.perf.config.ts",
-    "test:unit": "node --experimental-strip-types --test \"tests/unit/*.test.ts\"",
+    "test:unit": "node --experimental-strip-types --test-force-exit --import ./tests/unit/alias-hook.mjs --test \"tests/unit/*.test.ts\"",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "gen:splash": "node scripts/gen-splash.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
+    "changelog:draft": "node scripts/changelog-draft.mjs",
     "smoke": "node scripts/smoke.mjs",
     "backup": "node scripts/backup-data.mjs"
   },

@@ -1,4 +1,4 @@
-import { SocialLink } from '@/interfaces';
+import type { SocialLink } from '@/interfaces';
 import { Briefcase, FileText, Globe, Mail } from 'lucide-react';
 import { FaDev, FaLinkedinIn } from 'react-icons/fa';
 import { SiGithub, SiGitlab, SiInstagram } from 'react-icons/si';

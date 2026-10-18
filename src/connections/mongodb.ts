@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId, type WithId } from 'mongodb';
 import { createHash } from 'crypto';
-import { LinkCounter } from '@/interfaces';
+import type { LinkCounter } from '@/interfaces';
 import { rateVital, type VitalRating } from '@/lib/vitals';
 
 const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017';

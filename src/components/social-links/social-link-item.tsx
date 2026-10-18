@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { SocialLink } from '@/interfaces';
+import type { SocialLink } from '@/interfaces';
 import { trackLinkClick } from '@/lib/track-click';
 import { refreshLinkCounts } from '@/hooks/use-link-counts';
 import { ExternalLink, Link2, Share2 } from 'lucide-react';
