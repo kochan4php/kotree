@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { addVitals, type VitalSample } from '@/connections/mongodb';
+import { guardOrigin } from '@/lib/security';
 import { VITAL_THRESHOLDS, rateVital } from '@/lib/vitals';
 import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  const forbidden = guardOrigin(request);
+  if (forbidden) return forbidden;
+
   if (await isRateLimited(`vitals:${getClientIp(request)}`, 60)) {
     return new NextResponse(null, { status: 429, headers: { 'Retry-After': '60' } });
   }

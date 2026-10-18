@@ -22,6 +22,8 @@ const PAGES = [
   { name: 'about', path: '/about' },
   { name: 'now', path: '/now' },
   { name: 'secrets', path: '/secrets' },
+  // K59: the privacy note is a page like any other
+  { name: 'privacy', path: '/privacy' },
 ];
 
 for (const { name, path } of PAGES) {

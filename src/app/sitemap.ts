@@ -89,6 +89,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
       images: og('wrapped'),
     },
+    {
+      url: `${site.baseUrl}/privacy`,
+      lastModified: lastModified('src/app/privacy/page.tsx'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
     ...getProjects().map((project) => ({
       url: `${site.baseUrl}/projects/${project.slug}`,
       lastModified: project.date ? new Date(project.date).toISOString() : lastModified(),

@@ -45,7 +45,13 @@ export async function POST(request: Request) {
       return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 
-    const cleanMessage = body.message.trim().substring(0, 100); // Max 100 chars
+    // K58: control and zero-width characters survive trim() and can wreck the
+    // wall's layout — strip them here, not in the renderer. Newlines are kept.
+    const cleanMessage = body.message
+      .normalize('NFC')
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '')
+      .trim()
+      .substring(0, 100); // Max 100 chars
     if (cleanMessage.length === 0) {
       return new NextResponse('Bad Request', { status: 400 });
     }

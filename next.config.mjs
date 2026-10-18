@@ -5,13 +5,12 @@ import { readFileSync } from 'node:fs';
 // without reading the filesystem at request time.
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'));
 
-// HSTS and upgrade-insecure-requests tell the browser to switch to HTTPS for
-// this host. That is only correct where the site actually is served over
-// HTTPS — on a plain-http host (localhost, CI) they lock other engines out.
+// HSTS tells the browser to switch to HTTPS for this host. That is only
+// correct where the site actually is served over HTTPS — on a plain-http host
+// (localhost, CI) it locks other engines out. The CSP is not here: it lives in
+// src/proxy.ts so every response can carry its own nonce (K54).
 const httpsDeployment =
   process.env.NETLIFY === 'true' || (process.env.NEXT_PUBLIC_BASE_URL ?? '').startsWith('https://');
-
-const csp = `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://avatars.githubusercontent.com; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://ipapi.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; ${httpsDeployment ? 'upgrade-insecure-requests; ' : ''}worker-src 'self' blob:;`;
 
 const nextConfig = {
   reactStrictMode: true,
@@ -19,6 +18,11 @@ const nextConfig = {
   env: {
     APP_VERSION: pkg.version,
     COMMIT_REF: process.env.COMMIT_REF ?? '',
+  },
+  // Pages render per request under the nonce CSP, so the files they read at
+  // request time must ship inside the serverless function bundle.
+  outputFileTracingIncludes: {
+    '/**': ['./content/**/*', './CHANGELOG.md'],
   },
   async headers() {
     return [
@@ -28,8 +32,9 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(self)' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(self), payment=()' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
           ...(httpsDeployment
             ? [
                 {
@@ -38,7 +43,6 @@ const nextConfig = {
                 },
               ]
             : []),
-          { key: 'Content-Security-Policy', value: csp },
         ],
       },
     ];

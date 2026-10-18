@@ -1,4 +1,5 @@
 import { Space_Grotesk, Archivo_Black } from 'next/font/google';
+import { headers } from 'next/headers';
 import Script from 'next/script';
 import { metadata } from './metadata';
 import { jsonLd } from './schema';
@@ -35,13 +36,20 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // K54: the per-response CSP nonce set by src/proxy.ts. Next stamps it onto
+  // its own inline scripts; this gives ours the same permission. Reading it
+  // here is what opts routes into dynamic rendering — the cost of not needing
+  // 'unsafe-inline' for scripts in production.
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${archivoBlack.variable} antialiased transition-colors duration-500`}>
         {/* Resolve the stored theme before anything paints — no flash of the
             wrong theme. Logic mirrors src/lib/prefs.ts. */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=d?'dark':'light';r.dataset.accent=p.accent||'orange';r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';var a={orange:'#ff7c47',pink:'#ff90e8',blue:'#4cc9f0',green:'#a8e94d',violet:'#b39dfb',yellow:'#ffd93d'};var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#1a1613':(a[p.accent]||a.orange));}catch(e){}})();`,
           }}
@@ -49,6 +57,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Prerender the static pages on hover (moderate eagerness) where the
             Speculation Rules API exists; the block is inert everywhere else. */}
         <script
+          nonce={nonce}
           type="speculationrules"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
@@ -67,6 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
