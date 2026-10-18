@@ -17,7 +17,7 @@ export default function AITerminal() {
       {/* Dock Icon Button */}
       <button
         onClick={isOpen ? closeTerminal : openTerminal}
-        className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
+        className={`h-9 w-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
           isOpen ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'
         }`}
         aria-label={isOpen ? 'Close AI Terminal' : 'Open AI Terminal'}

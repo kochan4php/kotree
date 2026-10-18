@@ -43,7 +43,7 @@ export default function WebBluetooth() {
       onClick={handleBluetooth}
       aria-label="Connect Bluetooth device"
       title="Connect nearby Bluetooth Device"
-      className="w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-blue-600 hover:bg-secondary"
+      className="h-9 w-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-blue-600 hover:bg-secondary"
     >
       <Bluetooth className="w-5 h-5" />
     </button>

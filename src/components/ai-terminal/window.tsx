@@ -1,6 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
+import { Terminal, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
@@ -46,16 +47,24 @@ export default function TerminalWindow({
           if (e.shiftKey && document.activeElement === els[0]) { e.preventDefault(); els[els.length - 1].focus(); }
           else if (!e.shiftKey && document.activeElement === els[els.length - 1]) { e.preventDefault(); els[0].focus(); }
         }}
-        className="fluid-glass bg-[#14110f]! text-[#4ade80] font-mono text-sm rounded-xl shadow-[6px_6px_0_0_var(--accent)]!"
+        className="fluid-glass bg-[#14110f]! text-[#4ade80] font-mono text-sm rounded-xl p-0 gap-0 shadow-[6px_6px_0_0_var(--accent)]!"
       >
-        {/* Window Controls Header */}
-        <div className="bg-accent px-4 py-3 flex items-center gap-2 border-b-[3px] border-foreground relative z-20">
-          <div className="flex gap-1.5">
-            <button type="button" aria-label="Close terminal" className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:scale-110 border-2 border-foreground" onClick={onClose} />
-            <div className="w-3 h-3 rounded-full bg-yellow-400 border-2 border-foreground" />
-            <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-foreground" />
-          </div>
-          <span className="text-[#14110f] text-[10px] font-mono mx-auto -ml-8 flex-1 text-center font-bold tracking-wider uppercase">root@kochan:~</span>
+        {/* Title bar in the app's dialog language — icon, title, one close
+            button — rather than a fake window's traffic lights. */}
+        <div className="relative z-20 flex items-center gap-2 border-b-[3px] border-foreground bg-accent px-4 py-3">
+          <Terminal className="w-4 h-4 text-accent-foreground" aria-hidden="true" />
+          <span className="text-xs font-black uppercase tracking-wider text-accent-foreground">AI Terminal</span>
+          <span className="ml-auto hidden rounded border-2 border-foreground bg-card px-2 py-0.5 font-mono text-[10px] font-bold text-foreground sm:inline-block">
+            root@kochan:~
+          </span>
+          <button
+            type="button"
+            aria-label="Close terminal"
+            onClick={onClose}
+            className="flex min-w-9 min-h-9 cursor-pointer items-center justify-center rounded-full border-2 border-foreground bg-card p-2 text-foreground shadow-[2px_2px_0_0_var(--foreground)] transition-all hover:-translate-y-0.5 hover:bg-destructive"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="h-64 overflow-y-auto p-4 space-y-2 relative z-20" aria-live="polite">
@@ -70,14 +79,16 @@ export default function TerminalWindow({
           <div ref={bottomRef} />
         </div>
 
-        <form onSubmit={onSubmit} className="px-4 py-3 border-t-[3px] border-foreground flex gap-3 bg-accent items-center relative z-20">
-          <span className="text-[#14110f] font-bold">~%</span>
+        <form onSubmit={onSubmit} className="relative z-20 flex items-center gap-3 border-t-[3px] border-foreground bg-accent px-4 py-3">
+          <span className="font-bold text-accent-foreground" aria-hidden="true">
+            ❯
+          </span>
           <input
             type="text"
             value={input}
             onChange={(e) => onInput(e.target.value)}
             onKeyDown={onInputKeyDown}
-            className="flex-1 bg-transparent border-none outline-none text-[#14110f] focus:ring-0 p-0 placeholder:text-[#14110f]/60 font-bold cursor-text"
+            className="flex-1 cursor-text border-none bg-transparent p-0 font-bold text-accent-foreground outline-none placeholder:text-accent-foreground/60 focus:ring-0"
             placeholder="Execute command..."
             aria-label="Terminal command"
             autoFocus

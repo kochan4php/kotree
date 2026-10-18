@@ -55,7 +55,6 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   // M72: the offline banner needs the connection state, not just the toast
   const [online, setOnline] = useState(true);
   const [nearEnd, setNearEnd] = useState(false);
-  const [hasScrolled, setHasScrolled] = useState(false);
   // M40: ids this device posted — unlock edit/delete on those entries
   const [mine, setMine] = useState<Set<string>>(new Set());
   // M45: search text, filter kind and the URL they are mirrored to
@@ -210,16 +209,8 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     setHasMore(!wide && next === 'newest' && fresh.length === PAGE_SIZE);
   };
 
-  // Infinite scroll: the sentinel only counts once the visitor has actually
-  // scrolled it — otherwise a tall viewport would load pages on its own.
-  useEffect(() => {
-    const onScroll = (e: Event) => {
-      if (e.target === listRef.current) setHasScrolled(true);
-    };
-    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
-    return () => window.removeEventListener('scroll', onScroll, true);
-  }, []);
-
+  // Infinite scroll: reaching the sentinel loads the next page, so the list
+  // never dead-ends behind a button.
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
@@ -229,9 +220,9 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   }, [hasMore]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- infinite scroll: the sentinel was reached by a real scroll, so load the next page
-    if (nearEnd && hasScrolled && hasMore && !isLoadingMore) loadMore();
-  }, [nearEnd, hasScrolled, hasMore, isLoadingMore, loadMore]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- infinite scroll: the sentinel was reached, so load the next page
+    if (nearEnd && hasMore && !isLoadingMore) loadMore();
+  }, [nearEnd, hasMore, isLoadingMore, loadMore]);
 
   const toggleDecrypt = (index: number) => {
     const newSet = new Set(decryptedIndexes);
@@ -477,7 +468,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
 
         <div
           ref={listRef}
-          className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-40 xl:flex-auto'}`}
+          className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-72 xl:flex-auto xl:min-h-72'}`}
         >
           {isLoading && entries.length === 0 ? (
             <Skeleton rows={3} className="mb-3" />
@@ -498,18 +489,15 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         </div>
 
         {hasMore && (
-          <button
-            type="button"
-            onClick={loadMore}
-            disabled={isLoadingMore}
-            className="w-full mb-4 rounded-lg border-[3px] border-foreground bg-secondary px-3 py-2 text-xs font-bold uppercase tracking-wide text-foreground shadow-[2px_2px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[2px_2px_0_0_var(--foreground)] transition-all"
+          <p
+            role="status"
+            className={
+              isLoadingMore ? 'pb-4 text-center font-mono text-[10px] font-bold text-muted-foreground' : 'sr-only'
+            }
           >
-            {isLoadingMore ? 'Loading…' : 'Load more secrets'}
-          </button>
+            {isLoadingMore ? 'Loading more secrets…' : ''}
+          </p>
         )}
-        <span role="status" className="sr-only">
-          {isLoadingMore ? 'Loading more secrets' : ''}
-        </span>
 
         {/* M68: the obfuscation step is client-side by design (plaintext never
             reaches the server), so the form genuinely cannot work without
@@ -524,60 +512,68 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           </p>
         </noscript>
 
-        <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
-          <input
-            type="text"
-            ref={inputRef}
-            value={input}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? 'secret-error' : 'secret-hint'}
-            onChange={(e) => {
-              const value = e.target.value.substring(0, 100);
-              setInput(value);
-              if (error) setError('');
-              try {
-                if (value) localStorage.setItem(DRAFT_KEY, value);
-                else localStorage.removeItem(DRAFT_KEY);
-              } catch {
-                // private mode — the draft just won't survive a reload
-              }
-            }}
-            placeholder="Leave a secret encrypted message..."
-            aria-label="Secret message"
-            className="flex-1 rounded-lg border-[3px] border-foreground bg-card px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
-            disabled={isSubmitting || cooldown > 0}
-            suppressHydrationWarning
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isSubmitting || cooldown > 0}
-            aria-label="Send message"
-            className="inline-flex items-center justify-center rounded-lg bg-destructive border-[3px] border-foreground px-4 py-2 text-sm font-bold text-[#14110f] shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0_0_var(--foreground)] transition-all min-h-11"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+        {/* The composer is a tray on the card's bottom edge: negative margins
+            cancel the card's padding, so the message box is the last row on
+            the card — the counter rides inside the box, and the rate-limit and
+            error lines sit above it instead of pushing it up. */}
+        <div className="-mx-6 -mb-6 mt-4 border-t-[3px] border-foreground bg-secondary p-3">
+          {cooldown > 0 && (
+            <p className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">
+              Rate limited — try again in {cooldown}s
+            </p>
+          )}
+          {error ? (
+            <p id="secret-error" className="mb-2 px-1 font-mono text-[10px] font-bold text-destructive">
+              {error}
+            </p>
+          ) : null}
 
-        <div className="flex items-center justify-between mt-1 px-1">
-          <span className="text-[10px] font-mono text-muted-foreground">
-            {cooldown > 0 ? `Rate limited — try again in ${cooldown}s` : ''}
-          </span>
-          <span
-            aria-hidden="true"
-            className={`text-[10px] font-mono ${input.length >= 90 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}
-          >
-            {input.length}/100
-          </span>
-        </div>
-        <p id="secret-hint" className="sr-only">
-          Up to 100 characters. Messages are obfuscated at rest and shown to others only when revealed. Markdown-lite
-          works: **bold**, *italic*, `code` and bare links.
-        </p>
-        {error ? (
-          <p id="secret-error" className="mt-1 px-1 text-[10px] font-mono font-bold text-destructive">
-            {error}
+          <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
+            <div className="relative flex-1">
+              <input
+                type="text"
+                ref={inputRef}
+                value={input}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'secret-error' : 'secret-hint'}
+                onChange={(e) => {
+                  const value = e.target.value.substring(0, 100);
+                  setInput(value);
+                  if (error) setError('');
+                  try {
+                    if (value) localStorage.setItem(DRAFT_KEY, value);
+                    else localStorage.removeItem(DRAFT_KEY);
+                  } catch {
+                    // private mode — the draft just won't survive a reload
+                  }
+                }}
+                placeholder="Leave a secret encrypted message..."
+                aria-label="Secret message"
+                className="w-full rounded-lg border-[3px] border-foreground bg-card py-2 pl-3 pr-12 text-sm font-medium text-foreground placeholder:text-muted-foreground shadow-[2px_2px_0_0_var(--foreground)] focus:outline-none focus:shadow-[4px_4px_0_0_var(--foreground)] transition-shadow"
+                disabled={isSubmitting || cooldown > 0}
+                suppressHydrationWarning
+              />
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] ${input.length >= 90 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}
+              >
+                {input.length}/100
+              </span>
+            </div>
+            <button
+              type="submit"
+              disabled={!input.trim() || isSubmitting || cooldown > 0}
+              aria-label="Send message"
+              className="inline-flex items-center justify-center rounded-lg bg-destructive border-[3px] border-foreground px-4 py-2 text-sm font-bold text-[#14110f] shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0_0_var(--foreground)] transition-all min-h-11"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+          <p id="secret-hint" className="sr-only">
+            Up to 100 characters. Messages are obfuscated at rest and shown to others only when revealed. Markdown-lite
+            works: **bold**, *italic*, `code` and bare links.
           </p>
-        ) : null}
+        </div>
       </div>
     </Card>
   );

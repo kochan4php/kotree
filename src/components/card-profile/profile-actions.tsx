@@ -55,7 +55,7 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
         <button 
           onClick={handleShare}
           onMouseEnter={playHoverFeedback}
-          className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${copied ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'}`}
+          className={`h-9 w-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${copied ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'}`}
           aria-label="Share Profile"
         >
           <div className="relative w-5 h-5 pointer-events-none">
@@ -70,7 +70,7 @@ export default function ProfileActions({ onToggleQR }: ProfileActionsProps) {
             if (onToggleQR) onToggleQR();
           }}
           onMouseEnter={playHoverFeedback}
-          className="w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-foreground hover:bg-secondary"
+          className="h-9 w-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center bg-transparent text-foreground hover:bg-secondary"
           aria-label="Show QR Code"
         >
           <QrCode className="w-5 h-5 text-purple-500 pointer-events-none" />

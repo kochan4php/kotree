@@ -31,6 +31,8 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - Empty states across the site now use one honest style instead of stock imagery
 - Reduced motion is respected everywhere — dialogs, page fades, transitions and carousels
 - The icon set got a proper audit: maskable safe areas verified, and a favicon that finally exists
+- The AI terminal wears the same window as the rest of the site now — a real title bar with a close button, full-width prompt bar — instead of a pretend operating-system frame
+- The guestbook scrolls forever instead of hiding secrets behind a "load more" button, and the message list is tall enough to read more than two at a time
 
 ### Fixed
 
@@ -38,6 +40,9 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - The URL bar colour on phones now stays correct whatever the theme, accent or browser does with duplicate hints
 - The guestbook message cleaner tidied text in the wrong order, so some joined characters never composed; the order is now right
 - Page transitions no longer start while a page is still loading — that could crash the tab outright on some browsers (it did in ours); they now run only once the page has settled
+- Buttons in the top dock and the share and QR control no longer spill past their border when hovered or active
+- The Web3 and Geo-Quest cards carry the same border and shadow as every other card, and the guestbook message box finally sits at the bottom of its card
+- The left column no longer leaves a bare patch on wide screens — the theme cards stretch to meet the column beside them
 
 ## [3.3.0]
 

@@ -77,7 +77,7 @@ export default function VoiceCommand() {
       <button
         onClick={handleListen}
         disabled={isListening}
-        className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
+        className={`h-9 w-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
           isListening
             ? 'bg-destructive border-2 border-foreground animate-pulse'
             : 'bg-transparent text-foreground hover:bg-secondary'

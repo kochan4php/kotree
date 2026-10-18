@@ -163,10 +163,15 @@ test('/qr renders a code and offers the SVG download', async ({ page }) => {
   await page.goto('/qr');
   await expect(page.getByRole('heading', { name: 'QR code' })).toBeVisible();
   await expect(page.locator('main svg').first()).toBeVisible();
+  await waitHydrated(page);
 
-  const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download SVG' }).click();
-  expect((await download).suggestedFilename()).toBe('kotree-qr.svg');
+  // The SVG is server-rendered, so the download button only answers once the
+  // page has hydrated: retry the click instead of assuming the first one lands.
+  await expect(async () => {
+    const download = page.waitForEvent('download', { timeout: 2000 });
+    await page.getByRole('button', { name: 'Download SVG' }).click();
+    expect((await download).suggestedFilename()).toBe('kotree-qr.svg');
+  }).toPass({ timeout: 20000 });
   await expect(page.getByText('SVG downloaded!')).toBeVisible();
 });
 

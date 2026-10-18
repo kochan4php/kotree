@@ -171,6 +171,13 @@ export default function CommandPalette() {
   useEffect(() => {
     const onToggle = () => (openRef.current ? closePalette() : openPalette());
     const onKey = (e: KeyboardEvent) => {
+      // Escape closes the palette wherever focus happens to be: a dialog must
+      // not depend on the input still holding it (iOS Safari can drop focus).
+      if (e.key === 'Escape' && openRef.current) {
+        e.preventDefault();
+        closePalette();
+        return;
+      }
       const t = e.target as HTMLElement | null;
       if (t && (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable)) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -433,11 +440,6 @@ export default function CommandPalette() {
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closePalette();
-      return;
-    }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setActiveIndex((i) => Math.min(shown.length - 1, i + 1));

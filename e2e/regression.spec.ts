@@ -142,7 +142,7 @@ test('clicking a link triggers a counts refresh', async ({ page }) => {
   expect(gets).toBe(before + 1);
 });
 
-test('guestbook load more appends the next page', async ({ page }) => {
+test('guestbook infinite scroll appends the next page', async ({ page }) => {
   // Stub the API with 12 entries served in pages of 10 + 2
   const all = Array.from({ length: 12 }, (_, i) => ({
     message: `cipher-${i}`,
@@ -162,11 +162,15 @@ test('guestbook load more appends the next page', async ({ page }) => {
   await expect(page.getByText('cipher-9', { exact: true })).toBeVisible();
   await expect(page.getByText('cipher-10', { exact: true })).toHaveCount(0);
 
-  const loadMore = page.getByRole('button', { name: 'Load more secrets' });
-  await expect(loadMore).toBeVisible();
-  await loadMore.click();
+  // No "load more" button any more: reaching the end of the list is what
+  // pulls the next page in.
+  const last = page.getByText('cipher-9', { exact: true });
+  await expect(async () => {
+    await last.hover();
+    await page.mouse.wheel(0, 3000);
+    await expect(page.getByText('cipher-11', { exact: true })).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20000 });
 
-  await expect(page.getByText('cipher-11', { exact: true })).toBeVisible();
-  // 12 < 20 loaded so far → the button must retire
-  await expect(loadMore).toHaveCount(0);
+  // 12 < 20 loaded so far → no further page is coming, so the loading status retires
+  await expect(page.getByRole('status').filter({ hasText: 'Loading more secrets' })).toHaveCount(0);
 });

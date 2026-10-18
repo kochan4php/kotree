@@ -2,9 +2,15 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Copy } from 'lucide-react';
+import { Copy, MapPin } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { ALLOWED_RADIUS, checkDistance, fallbackToIP } from './geo';
 import { discoverSecret } from '@/lib/secrets';
+
+// Same card surface and button geometry as every other tile; only the fills
+// keep this tile's own palette.
+const BUTTON =
+  'flex w-full min-h-11 items-center justify-center gap-2 rounded-lg border-[3px] border-foreground px-3 py-2 text-xs font-bold text-[#14110f] shadow-[3px_3px_0_0_var(--foreground)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all cursor-pointer';
 
 export default function GeoLockedQuest() {
   const [distance, setDistance] = useState<number | null>(null);
@@ -61,52 +67,49 @@ export default function GeoLockedQuest() {
   };
 
   return (
-    <div
-      className="fluid-glass bg-[#ffd9b8]! w-full h-full p-4 text-[#14110f] rounded-lg text-center relative flex flex-col justify-center items-center"
-    >
+    <Card className="fluid-glass cv-auto bg-[#ffd9b8]! h-full gap-1 p-4 text-center text-[#14110f]">
       <div className="liquid-gradient opacity-30 saturate-100"></div>
-      <div className="relative z-10 w-full h-full flex flex-col justify-center items-center">
-        <h2 className="font-bold text-sm text-[#14110f] mb-1 flex items-center justify-center gap-1.5 tracking-wider">
-          <span className="text-sm">📍</span> GEO-QUEST
+      <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center">
+        <h2 className="mb-1 flex items-center justify-center gap-1.5 text-sm font-bold uppercase tracking-wider">
+          <MapPin className="w-4 h-4" aria-hidden="true" /> Geo-Quest
         </h2>
         {distance === null ? (
-          <div className="flex flex-col items-center justify-center flex-1 w-full mt-1">
-            <p className="text-xs font-medium text-[#5f5147] mb-3 px-1 leading-snug">Verify physical location to unlock.</p>
-            <button
-              onClick={handleCheckLocation}
-              className="w-full px-3 py-2 bg-accent text-[#14110f] border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] font-bold rounded-xl hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all text-xs cursor-pointer min-h-11"
-            >
+          <>
+            <p className="mb-3 px-1 text-xs font-medium leading-snug text-[#5f5147]">
+              Verify physical location to unlock.
+            </p>
+            <button onClick={handleCheckLocation} className={`${BUTTON} bg-accent`}>
               Check GPS
             </button>
-          </div>
+          </>
         ) : unlocked ? (
           <a
             href="https://github.com/kochan4php/kotree"
             target="_blank"
             rel="noreferrer"
-            className="block w-full p-2 mt-2 bg-[#a8e94d] border-[3px] border-foreground shadow-[3px_3px_0_0_var(--foreground)] text-[#14110f] font-bold rounded-xl hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--foreground)] active:translate-y-0.5 active:shadow-[1px_1px_0_0_var(--foreground)] transition-all text-xs cursor-pointer min-h-11 flex items-center justify-center"
+            className={`${BUTTON} bg-[#a8e94d]`}
           >
             ENTER SANCTUARY
           </a>
         ) : (
-          <div className="flex flex-col items-center justify-center flex-1 w-full mt-2">
-            <p className="text-xs font-medium text-[#5f5147] mb-1">Distance to target:</p>
-            <p className="font-mono text-xl text-[#14110f] font-black">{distance.toFixed(0)}m</p>
-            <p className="text-[10px] mt-1 font-bold text-red-600">
+          <>
+            <p className="mb-1 text-xs font-medium text-[#5f5147]">Distance to target:</p>
+            <p className="font-mono text-xl font-black">{distance.toFixed(0)}m</p>
+            <p className="mt-1 text-[10px] font-bold text-red-600">
               Must be {'<'} {ALLOWED_RADIUS}m
             </p>
             {coords && (
               <button
                 type="button"
                 onClick={copyCoords}
-                className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-[#5f5147] underline underline-offset-2 cursor-pointer hover:text-[#14110f] transition-colors"
+                className="mt-1.5 inline-flex cursor-pointer items-center gap-1 text-[10px] font-bold text-[#5f5147] underline underline-offset-2 transition-colors hover:text-[#14110f]"
               >
                 <Copy className="w-3 h-3" aria-hidden="true" /> Copy my coordinates
               </button>
             )}
-          </div>
+          </>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

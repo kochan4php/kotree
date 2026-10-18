@@ -32,7 +32,7 @@ export default function HeaderBar() {
           onClick={() => window.dispatchEvent(new Event('kotree:search'))}
           aria-label="Search links"
           aria-pressed={searchOpen}
-          className={`w-11 h-11 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
+          className={`h-9 w-9 p-0 m-0 shrink-0 rounded-full transition-all cursor-pointer flex items-center justify-center ${
             searchOpen ? 'bg-accent/40' : 'bg-transparent text-foreground hover:bg-secondary'
           }`}
         >
