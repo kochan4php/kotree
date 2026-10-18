@@ -20,6 +20,18 @@
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }
+  /* Wrap quality: headlines share their words out evenly instead of leaving
+     one word stranded, running text avoids a lone word on the last line. Both
+     properties are progressive — an unsupporting browser wraps as it always
+     did. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
   /* Neobrutalist focus ring: visible, thick, square-off */
   :focus-visible {
     outline: 3px solid var(--foreground);

@@ -1,5 +1,5 @@
-'use client';
-
+// No 'use client': the card is pure markup, so server components render it
+// without shipping any JS for it, and client components still get it inline.
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 

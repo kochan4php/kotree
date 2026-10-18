@@ -11,6 +11,12 @@ declare global {
 
 const MULT = process.env.CI ? 2 : 1;
 
+// M1b: per-route weight — the raw JS the route pulls in before its load event.
+// Measured on 2026-10-19: home 696 kB, the other four 629-662 kB. These byte
+// counts come from the build, not the machine, so this budget deliberately has
+// no CI multiplier. Raise it only when a route genuinely needs to carry more.
+const JS_BUDGET = 800 * 1024;
+
 const PAGES = [
   { path: '/', name: 'home' },
   { path: '/notes', name: 'notes' },
@@ -49,5 +55,18 @@ for (const { path, name } of PAGES) {
     expect(m.ttfb, `TTFB ${m.ttfb.toFixed(0)}ms`).toBeLessThan(800 * MULT);
     expect(m.lcp, `LCP ${m.lcp.toFixed(0)}ms`).toBeLessThan(2500 * MULT);
     expect(m.cls, `CLS ${m.cls.toFixed(3)}`).toBeLessThan(0.1);
+
+    // Everything the route needed to paint, counted up to the load event so a
+    // lazily loaded chunk arriving later cannot make this flaky.
+    const jsBytes = await page.evaluate(() => {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const cutoff = nav.loadEventEnd || nav.domContentLoadedEventEnd;
+      return (performance.getEntriesByType('resource') as PerformanceResourceTiming[])
+        .filter(
+          (entry) => entry.startTime <= cutoff && /\.js(\?|$)/.test(new URL(entry.name).pathname)
+        )
+        .reduce((sum, entry) => sum + entry.decodedBodySize, 0);
+    });
+    expect(jsBytes, `route JS ${(jsBytes / 1024).toFixed(0)} kB`).toBeLessThan(JS_BUDGET);
   });
 }

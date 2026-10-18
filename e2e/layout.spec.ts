@@ -16,7 +16,9 @@ async function settle(page: Page) {
   // Let the entry animations finish before measuring: the cards rise into
   // place on a per-card delay, and mid-flight positions read as extra rows
   // that are not really there. Looping animations (the status pulse) never
-  // finish, so they are excluded rather than waited on.
+  // finish, so they are excluded rather than waited on. Deliberately not
+  // networkidle — the link-count refresh can keep that busy, and no invariant
+  // here depends on fetched data.
   await page.waitForFunction(
     () =>
       document
@@ -61,9 +63,7 @@ for (const width of WIDTHS) {
   test(`layout holds at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
-    // The fixed settle is deliberate: networkidle can wait on the link-count
-    // refresh, and none of these invariants depends on fetched data.
-    await page.waitForTimeout(600);
+    await settle(page);
     const m = await measure(page);
     const rem = await page.evaluate(() =>
       parseFloat(getComputedStyle(document.documentElement).fontSize),

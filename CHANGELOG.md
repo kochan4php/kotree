@@ -22,6 +22,7 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - An OLED theme — true black, for the dark that wants to be darker — with every pair of colours still checked to stay readable
 - A free accent colour picker that verifies contrast before it applies anything
 - A print button on notes, so a note turns into a clean PDF
+- Real-user timings on /status — the 75th percentile for LCP, INP, CLS, FCP and TTFB, sent anonymously by visitors' own browsers and labelled with the page they came from
 
 ### Changed
 
@@ -34,6 +35,7 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - The AI terminal wears the same window as the rest of the site now — a real title bar with a close button, full-width prompt bar — instead of a pretend operating-system frame
 - The guestbook scrolls forever instead of hiding secrets behind a "load more" button, and the message list is tall enough to read more than two at a time
 - On tablet-sized screens the links now sit two to a row with the guestbook beside them, instead of one stretched link per row
+- Long paragraphs no longer leave one lonely word on the last line, and headlines space their words out evenly
 
 ### Fixed
 

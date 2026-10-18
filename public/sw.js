@@ -155,8 +155,9 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // Return offline fallback if network fails and no cache exists
-        return cachedResponse;
+        // Offline fallback: the cached copy if there is one, otherwise a plain
+        // network error — returning undefined here would be a TypeError.
+        return cachedResponse || Response.error();
       });
 
       return cachedResponse || fetchPromise;

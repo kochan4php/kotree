@@ -1,7 +1,7 @@
-import { pingDb } from '@/connections/mongodb';
+import { getVitalsP75, pingDb, type VitalAggregate } from '@/connections/mongodb';
 import StatusClient from '@/components/status/status-client';
 import { Card } from '@/components/ui/card';
-import { Activity, Database, GitCommitHorizontal } from 'lucide-react';
+import { Activity, Database, Gauge, GitCommitHorizontal } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -27,10 +27,37 @@ async function checkMongo() {
   return { ok, ms: Date.now() - started };
 }
 
+const RATING_STYLES: Record<VitalAggregate['rating'], string> = {
+  good: 'bg-green-300',
+  ni: 'bg-amber-300',
+  poor: 'bg-red-300',
+};
+
+const RATING_LABELS: Record<VitalAggregate['rating'], string> = {
+  good: 'Good',
+  ni: 'Needs work',
+  poor: 'Poor',
+};
+
+const METRIC_ORDER = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'];
+
 export default async function StatusPage() {
   const { ok: mongo, ms: mongoMs } = await checkMongo();
   const version = process.env.APP_VERSION ?? 'dev';
   const commit = process.env.COMMIT_REF ? process.env.COMMIT_REF.slice(0, 7) : null;
+
+  // Real-user timings the browser beacons send to /api/vitals. A p75 cannot be
+  // averaged across pages, so each metric shows the page with the most samples
+  // — the honest number, labelled with where it came from.
+  const vitals = await getVitalsP75(7).catch(() => [] as VitalAggregate[]);
+  const busiestPerMetric = new Map<string, VitalAggregate>();
+  for (const vital of vitals) {
+    const current = busiestPerMetric.get(vital.metric);
+    if (!current || vital.total > current.total) busiestPerMetric.set(vital.metric, vital);
+  }
+  const vitalRows = [...busiestPerMetric.values()].sort(
+    (a, b) => METRIC_ORDER.indexOf(a.metric) - METRIC_ORDER.indexOf(b.metric)
+  );
 
   return (
     <main
@@ -85,6 +112,40 @@ export default async function StatusPage() {
                   )}
                 </dl>
               </section>
+
+              {vitalRows.length > 0 && (
+                <section aria-labelledby="status-vitals">
+                  <h2
+                    id="status-vitals"
+                    className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-foreground"
+                  >
+                    <Gauge className="h-4 w-4 text-accent-ink" aria-hidden="true" />
+                    Real-user timings (p75, last 7 days)
+                  </h2>
+                  <dl className="rounded-lg border-[3px] border-foreground bg-background/80 px-4 py-1 shadow-[4px_4px_0_0_var(--foreground)]">
+                    {vitalRows.map((vital) => (
+                      <Row key={vital.metric} label={vital.metric}>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className={`inline-block rounded border-2 border-foreground px-1.5 text-[11px] font-black uppercase text-[#14110f] ${RATING_STYLES[vital.rating]}`}
+                          >
+                            {RATING_LABELS[vital.rating]}
+                          </span>
+                          <span className="font-mono text-xs">
+                            {vital.metric === 'CLS' ? vital.p75.toFixed(3) : `${vital.p75} ms`}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {vital.page} · {vital.total} samples
+                          </span>
+                        </span>
+                      </Row>
+                    ))}
+                  </dl>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Anonymous timings reported by visitors&apos; browsers, measured in the field.
+                  </p>
+                </section>
+              )}
 
               <StatusClient />
             </div>
