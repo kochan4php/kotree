@@ -45,8 +45,9 @@
   --muted-foreground: #6f6257;
   --accent: #ff7c47;
   /* Darker orange for accent text/icons on light surfaces — #ff7c47 only
-     reaches ~2.4:1 on cream; this one clears WCAG AA (>=4.5:1) */
-  --accent-ink: #c2410c;
+     reaches ~2.4:1 on cream; this one clears WCAG AA (>=4.5:1) even on the
+     darkest light surface (--secondary) */
+  --accent-ink: #b53a0a;
   --accent-foreground: #14110f;
   --destructive: #ff5757;
   --border: #14110f;

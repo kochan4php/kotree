@@ -8,6 +8,10 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
     services:
       # The admin overview reads from Mongo; the e2e suite needs one to talk to
       mongo:
@@ -25,12 +29,23 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Fail on high/critical advisories in the lockfile
+      - run: pnpm audit --audit-level high
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm test:unit
       - run: pnpm build
       - run: pnpm check:bundle
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-node${{ matrix.node-version }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7

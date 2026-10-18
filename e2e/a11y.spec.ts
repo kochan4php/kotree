@@ -25,7 +25,9 @@ const PAGES = [
 ];
 
 for (const { name, path } of PAGES) {
-  test(`a11y: ${name} has no serious or critical violations`, async ({ page }) => {
+  // K44/K45: the home audit doubles as the cross-browser and mobile a11y check
+  const tag = name === 'home' ? ' @crossbrowser @mobile' : '';
+  test(`a11y: ${name} has no serious or critical violations${tag}`, async ({ page }) => {
     await page.goto(path);
     await page.waitForLoadState('networkidle');
 

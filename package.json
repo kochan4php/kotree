@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:unit": "node --experimental-strip-types --test \"tests/unit/*.test.ts\"",
     "check:bundle": "node scripts/check-bundle.mjs",
     "smoke": "node scripts/smoke.mjs",
     "backup": "node scripts/backup-data.mjs"

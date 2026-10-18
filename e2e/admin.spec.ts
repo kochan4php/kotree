@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { createHmac } from 'node:crypto';
 
 // The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token
 const TOKEN = 'e2e-admin-token';
@@ -94,4 +96,81 @@ test('admin can pin a guestbook entry, and the wall shows it featured', async ({
   await expect(page.getByText('Entry unpinned')).toBeVisible();
   await rowAgain.getByRole('button', { name: 'Delete entry' }).click();
   await expect(page.getByText('Entry deleted')).toBeVisible();
+});
+
+// K53: the exports must contain the real data, not just start a download.
+test('admin exports carry real JSON and CSV payloads', async ({ page }) => {
+  await openAdmin(page);
+
+  const [jsonDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Export JSON backup' }).click(),
+  ]);
+  const jsonPath = await jsonDownload.path();
+  if (!jsonPath) throw new Error('JSON export produced no file');
+
+  const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
+  expect(typeof payload.exportedAt).toBe('string');
+  expect(Array.isArray(payload.links)).toBe(true);
+  expect(Array.isArray(payload.guestbook)).toBe(true);
+  expect(payload.totals.guestbook).toBe(payload.guestbook.length);
+
+  const [csvDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Export CSV' }).click(),
+  ]);
+  const csvPath = await csvDownload.path();
+  if (!csvPath) throw new Error('CSV export produced no file');
+
+  const csv = readFileSync(csvPath, 'utf8');
+  expect(csv.split('\r\n')[0]).toBe('"id","createdAt","message","userAgent"');
+});
+
+test('admin mutations without the CSRF header are rejected', async ({ page }) => {
+  await openAdmin(page);
+
+  const withoutToken = await page.evaluate(async () => {
+    const res = await fetch('/api/admin/guestbook', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'missing', pinned: true }),
+    });
+    return res.status;
+  });
+  expect(withoutToken).toBe(403);
+
+  // The double-submit pair passes the CSRF gate (the row itself does not exist)
+  const withToken = await page.evaluate(async () => {
+    const csrf =
+      document.cookie
+        .split('; ')
+        .find((c) => c.startsWith('kotree-csrf='))
+        ?.slice('kotree-csrf='.length) ?? '';
+    const res = await fetch('/api/admin/guestbook', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+      body: JSON.stringify({ id: 'missing', pinned: true }),
+    });
+    return res.status;
+  });
+  expect(withToken).not.toBe(403);
+});
+
+test('an expired admin session falls back to the token form', async ({ page, context }) => {
+  // The session value is `exp.hmac`; the server is the clock authority, so an
+  // expired cookie is signed here exactly as the app would have signed it.
+  const exp = Date.now() - 60_000;
+  const signature = createHmac('sha256', TOKEN).update(String(exp)).digest('hex');
+  await context.addCookies([
+    { name: 'kotree-admin-session', value: `${exp}.${signature}`, url: 'http://localhost:3000' },
+  ]);
+
+  await page.goto('/admin');
+  await waitHydrated(page);
+
+  await expect(page.getByLabel('Admin token')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Guestbook moderation' })).toHaveCount(0);
+
+  const status = await page.evaluate(() => fetch('/api/admin/overview').then((res) => res.status));
+  expect(status).toBe(401);
 });

@@ -70,7 +70,7 @@ export default function PwaInstallPrompt() {
   if (!isInstallable || dismissed) return null;
 
   return (
-    <div className="fixed top-4 left-0 right-0 z-100 px-4 ease-out flex justify-center pointer-events-none">
+    <div className="fixed top-20 sm:top-4 left-0 right-0 z-100 px-4 ease-out flex justify-center pointer-events-none">
       <div className="w-full max-w-sm flex items-center justify-between p-3 bg-card border-[3px] border-foreground shadow-[4px_4px_0_0_var(--foreground)] rounded-full gap-3 pointer-events-auto">
         <div className="flex-1 min-w-0 pl-2">
           <p className="font-bold text-sm text-foreground flex items-center gap-2">

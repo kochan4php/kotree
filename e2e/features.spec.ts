@@ -444,7 +444,8 @@ test('guestbook shows skeleton rows until the first page arrives', async ({ page
   });
 
   await page.goto('/guestbook', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-skeleton]')).toBeVisible({ timeout: 15000 });
+  // The route's loading shell and the guestbook list both use skeletons
+  await expect(page.locator('[data-skeleton]').first()).toBeVisible({ timeout: 15000 });
 
   release();
   await expect(page.locator('[data-skeleton]')).toHaveCount(0);

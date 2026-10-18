@@ -1,0 +1,32 @@
+name: Weekly backup
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # Mondays at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export production data
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
+            echo "::notice::Set SITE_URL (repository variable) and ADMIN_TOKEN (secret) to enable backups"
+            exit 0
+          fi
+          mkdir -p backups
+          curl -fsS -H "Authorization: Bearer $ADMIN_TOKEN" \
+            "$SITE_URL/api/admin/export" \
+            -o "backups/kotree-backup-$(date +%F).json"
+          wc -c backups/*.json
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('backups/*.json') != ''
+        with:
+          name: kotree-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 30

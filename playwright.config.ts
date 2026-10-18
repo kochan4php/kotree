@@ -16,6 +16,28 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // K44: the core smoke on the other engines — only tests tagged @crossbrowser
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+      grep: /@crossbrowser/,
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+      grep: /@crossbrowser/,
+    },
+    // K45: real phone viewports — only tests tagged @mobile
+    {
+      name: 'mobile-pixel',
+      use: { ...devices['Pixel 7'] },
+      grep: /@mobile/,
+    },
+    {
+      name: 'mobile-iphone',
+      use: { ...devices['iPhone 13'] },
+      grep: /@mobile/,
+    },
   ],
   webServer: {
     // CI builds in a previous step, so only start; locally build first

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 // Full JSON backup of everything the admin can see (R42). Complements
 // scripts/backup-data.mjs: this one works from a browser session.
 export async function GET(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 20)) {
+  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 

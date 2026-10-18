@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 // K30: pin / unpin an entry from the moderation list
 export async function PATCH(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 20)) {
+  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 
@@ -32,7 +32,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 20)) {
+  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 

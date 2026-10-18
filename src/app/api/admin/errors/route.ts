@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // K7: mark a reported client error as resolved (or bring it back)
 export async function PATCH(request: Request) {
-  if (await isRateLimited(`admin:${getClientIp(request)}`, 20)) {
+  if (await isRateLimited(`admin:${getClientIp(request)}`, 60)) {
     return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
   }
 
