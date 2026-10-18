@@ -7,6 +7,7 @@
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
+  "launch_handler": { "client_mode": "navigate-existing" },
   "lang": "en",
   "dir": "ltr",
   "background_color": "#fff7e9",
@@ -14,19 +15,39 @@
   "categories": ["social", "entertainment", "utilities"],
   "shortcuts": [
     {
-      "name": "Changelog",
-      "url": "/changelog",
-      "description": "All notable changes to Kotree"
-    },
-    {
       "name": "Guestbook",
       "url": "/guestbook",
       "description": "Read and leave obfuscated secrets"
     },
     {
+      "name": "Notes",
+      "url": "/notes",
+      "description": "Short notes from the desk"
+    },
+    {
+      "name": "Projects",
+      "url": "/projects",
+      "description": "Things that were built"
+    },
+    {
+      "name": "Now",
+      "url": "/now",
+      "description": "What is happening right now"
+    },
+    {
+      "name": "Wrapped 2025",
+      "url": "/wrapped?year=2025",
+      "description": "The 2025 year in clicks"
+    },
+    {
       "name": "Stats",
       "url": "/#stats",
       "description": "Click stats and secrets found"
+    },
+    {
+      "name": "Changelog",
+      "url": "/changelog",
+      "description": "All notable changes to Kotree"
     }
   ],
   "screenshots": [

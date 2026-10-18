@@ -17,6 +17,7 @@
     "test:perf": "playwright test -c playwright.perf.config.ts",
     "test:unit": "node --experimental-strip-types --test \"tests/unit/*.test.ts\"",
     "scan:secrets": "node scripts/scan-secrets.mjs",
+    "gen:splash": "node scripts/gen-splash.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
     "smoke": "node scripts/smoke.mjs",
     "backup": "node scripts/backup-data.mjs"

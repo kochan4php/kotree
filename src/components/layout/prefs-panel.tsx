@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CalendarHeart, Check, Moon, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
 import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
+import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
 const THEMES: { id: Theme; label: string; icon: typeof Sun }[] = [
   { id: 'auto', label: 'Auto', icon: MonitorSmartphone },
@@ -18,6 +19,7 @@ export default function PrefsPanel() {
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const swipe = useSwipeDismiss(() => setOpen(false));
 
   useEffect(() => {
     if (!open) return;
@@ -70,6 +72,7 @@ export default function PrefsPanel() {
           ref={panelRef}
           role="dialog"
           aria-label="Preferences"
+          {...swipe}
           className="fixed right-4 top-[calc(5rem+env(safe-area-inset-top))] z-60 w-[19rem] max-w-[calc(100vw-2rem)] rounded-xl border-[3px] border-foreground bg-card p-4 shadow-[5px_5px_0_0_var(--foreground)] animate-modal-content"
         >
           <div className="flex items-center gap-2 mb-3">

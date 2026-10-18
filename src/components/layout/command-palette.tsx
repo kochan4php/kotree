@@ -33,6 +33,8 @@ import { toast } from 'sonner';
 import { socialLinks } from '@/data/social-links';
 import { trackLinkClick } from '@/lib/track-click';
 import { refreshLinkCounts } from '@/hooks/use-link-counts';
+import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
+import EmptyState from '@/components/ui/empty-state';
 import { cycleTheme, readPrefs, writePrefs } from '@/lib/prefs';
 import { clientToken } from '@/lib/csrf-client';
 import { fuzzy } from '@/lib/fuzzy';
@@ -158,6 +160,7 @@ export default function CommandPalette() {
     setOpen(false);
     openerRef.current?.focus?.();
   }, []);
+  const swipe = useSwipeDismiss(closePalette);
 
   useEffect(() => {
     openRef.current = open;
@@ -457,6 +460,7 @@ export default function CommandPalette() {
   return (
     <div
       id="kt-palette-dialog"
+      {...swipe}
       role="dialog"
       aria-modal="true"
       aria-label="Search and commands"
@@ -497,8 +501,8 @@ export default function CommandPalette() {
         className="mt-2 max-h-[min(60vh,26rem)] overflow-y-auto rounded-xl border-[3px] border-foreground bg-card shadow-[4px_4px_0_0_var(--foreground)]"
       >
         {shown.length === 0 && (
-          <li className="px-4 py-6 text-center text-sm text-muted-foreground">
-            Nothing found for &quot;{trimmed}&quot;
+          <li className="px-4">
+            <EmptyState title={`Nothing found for “${trimmed}”`} hint="Try fewer letters, or a command like “stats”." />
           </li>
         )}
         {shown.map((item, i) => {

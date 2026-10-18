@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { getYearStats } from '@/connections/mongodb';
 import LocalSecrets from '@/components/stats/local-secrets';
+import YearCarousel from '@/components/content/year-carousel';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
 import { formatDate } from '@/lib/content';
@@ -69,6 +70,12 @@ export default async function WrappedPage({
             </p>
           </div>
         </Card>
+
+        {/* M71: every year the site has lived through, one drag away */}
+        <YearCarousel
+          years={Array.from({ length: currentYear - 2022 + 1 }, (_, index) => 2022 + index)}
+          active={year}
+        />
 
         <Suspense fallback={<WrappedFallback />}>
           <WrappedBody year={year} />

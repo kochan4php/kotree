@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { TagIndex } from '@/components/content/tags';
+import EmptyState from '@/components/ui/empty-state';
 import { collectTags, getNotes } from '@/lib/content';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
@@ -40,9 +41,10 @@ export default function NoteTagsPage() {
               {tags.length > 0 ? (
                 <TagIndex tags={tags} base="/notes" />
               ) : (
-                <p className="text-sm font-medium text-muted-foreground">
-                  No tags yet — notes get tagged as they are written.
-                </p>
+                <EmptyState
+                  title="No tags yet."
+                  hint="Notes get tagged as they are written — this page fills itself."
+                />
               )}
             </div>
           </div>

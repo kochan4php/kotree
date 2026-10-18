@@ -1,6 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
+import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
 interface TelepathyModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface TelepathyModalProps {
 }
 
 export default function TelepathyModal({ isOpen, value, onInput, onSubmit, onClose }: TelepathyModalProps) {
+  const swipe = useSwipeDismiss(onClose);
   return createPortal(
     <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
       <div
@@ -31,6 +33,7 @@ export default function TelepathyModal({ isOpen, value, onInput, onSubmit, onClo
         role="dialog"
         aria-modal="true"
         aria-label="Telepathy Mode"
+        {...swipe}
         className={`relative fluid-glass p-8 rounded-lg max-w-md w-full will-change-transform ${
           isOpen ? 'animate-modal-content' : 'animate-modal-content-out'
         }`}

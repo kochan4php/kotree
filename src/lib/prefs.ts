@@ -46,6 +46,15 @@ export function soundAllowed(kind: SoundKind, prefs: Prefs = readPrefs()): boole
   return kind === 'tap' ? prefs.soundTaps : prefs.soundAlerts;
 }
 
+// M70: haptics ride the same switches as the sounds (a visitor who muted taps
+// does not want a buzz instead), so the only new decision is the shape of the
+// vibration. `navigator.vibrate` is Android-Chromium-only — everyone else
+// silently skips it.
+export function hapticPattern(kind: SoundKind, prefs: Prefs = readPrefs()): number | number[] | null {
+  if (!soundAllowed(kind, prefs)) return null;
+  return kind === 'tap' ? 15 : [12, 40, 12];
+}
+
 // M20: one gate for every effect — the OS setting or the in-app preference.
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;

@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { decryptMessage, encryptMessage } from './obfuscation';
 import { relativeTime } from '@/lib/relative-time';
-import { Check, Flag, LockKeyhole, Link2, Pencil, Pin, Share2, Trash2, X } from 'lucide-react';
+import { Check, Flag, Link2, Pencil, Pin, Share2, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { deleteOwnEntry, editOwnEntry, reactToEntry, reportEntry } from './api';
 import { ownerToken } from './mine';
 import { clientToken } from '@/lib/csrf-client';
 import { useSensory } from '@/hooks/use-sensory';
 import InlineMarkdown from '@/components/content/inline-markdown';
+import EmptyState from '@/components/ui/empty-state';
 import type { GuestbookEntry } from './types';
 
 // M46: five reactions; the server allows one per entry per visitor-day, so the
@@ -101,9 +102,8 @@ export default function EntryList({ entries, decryptedIndexes, onToggle, newSinc
 
   if (entries.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-        <LockKeyhole className="w-5 h-5 text-accent-ink" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground italic">No secrets yet. Be the first!</p>
+      <div className="flex h-full flex-col items-center justify-center">
+        <EmptyState title="No secrets yet." hint="Be the first — the form below is waiting." />
       </div>
     );
   }

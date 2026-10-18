@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { readPrefs, soundAllowed, type SoundKind } from '@/lib/prefs';
+import { hapticPattern, readPrefs, soundAllowed, type SoundKind } from '@/lib/prefs';
 
 // Singleton AudioContext to prevent main thread freezing/flickering
 let globalAudioCtx: AudioContext | null = null;
@@ -67,12 +67,15 @@ function soundEnabled(kind: SoundKind): boolean {
 }
 
 export function useSensory() {
-  const triggerHaptic = useCallback(() => {
+  // M70: kind decides the pattern — a tap is one short pulse, a success is a
+  // little double-tap. Both are pref-gated through hapticPattern().
+  const triggerHaptic = useCallback((kind: SoundKind = 'tap') => {
     if (typeof document !== 'undefined' && document.hidden) return; // hidden tab: no haptics either
+    const pattern = hapticPattern(kind);
+    if (pattern === null) return;
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
       try {
-        // A subtle 15ms vibration
-        window.navigator.vibrate(15);
+        window.navigator.vibrate(pattern);
       } catch {
         // Ignore errors on unsupported devices
       }
@@ -97,17 +100,19 @@ export function useSensory() {
   }, []);
 
   const playSuccess = useCallback(() => {
+    triggerHaptic('alert'); // M70: successes buzz where the platform allows it
     if (!soundEnabled('alert')) return;
     // Two rising notes
     playTone('triangle', 659, null, 0.12, 0.12, 0);
     playTone('triangle', 988, null, 0.14, 0.12, 0.09);
-  }, []);
+  }, [triggerHaptic]);
 
   const playError = useCallback(() => {
+    triggerHaptic('alert');
     if (!soundEnabled('alert')) return;
     // Low descending buzz
     playTone('sawtooth', 220, 130, 0.18, 0.12);
-  }, []);
+  }, [triggerHaptic]);
 
   return { playFeedback, playHoverFeedback, triggerHaptic, triggerSound, playSuccess, playError };
 }

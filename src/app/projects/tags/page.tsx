@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { TagIndex } from '@/components/content/tags';
+import EmptyState from '@/components/ui/empty-state';
 import { collectTags, getProjects } from '@/lib/content';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
@@ -40,7 +41,7 @@ export default function ProjectTagsPage() {
               {tags.length > 0 ? (
                 <TagIndex tags={tags} base="/projects" />
               ) : (
-                <p className="text-sm font-medium text-muted-foreground">No tags yet — projects get tagged as they land.</p>
+                <EmptyState title="No tags yet." hint="Projects get tagged as they land — this page fills itself." />
               )}
             </div>
           </div>

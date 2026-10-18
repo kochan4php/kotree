@@ -2,6 +2,7 @@
 
 import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
+import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
 interface TerminalWindowProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export default function TerminalWindow({
   onSubmit,
   onClose,
 }: TerminalWindowProps) {
+  const swipe = useSwipeDismiss(onClose);
   return createPortal(
     <div className="fixed inset-0 z-100 flex justify-center items-start pt-20">
       <div
@@ -32,6 +34,7 @@ export default function TerminalWindow({
       />
       <div className={`w-[95vw] max-w-lg relative will-change-transform ${isOpen ? 'animate-modal-content' : 'animate-modal-content-out'}`}>
       <Card
+        {...swipe}
         role="dialog"
         aria-modal="true"
         aria-label="AI Terminal"

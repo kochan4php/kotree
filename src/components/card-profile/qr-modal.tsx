@@ -7,6 +7,7 @@ import { Check, Copy, Download, FileImage, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSensory } from '@/hooks/use-sensory';
+import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 import { downloadBlob, downloadQrSvg, qrPngBlob } from '@/lib/qr-download';
 
 interface QRModalProps {
@@ -30,6 +31,8 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
   const [colors, setColors] = useState(COLORS[0]);
   const [copied, setCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
+  // M71: drag the sheet down to close it on touch screens
+  const swipe = useSwipeDismiss(onClose);
 
   // Move focus to the close button once the dialog mounts (also on reopen)
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function QRModal({ isOpen, isRendered, url, closeBtnRef, onClose 
         onClick={onClose}
       />
       <Card
+        {...swipe}
         role="dialog"
         aria-modal="true"
         aria-label="QR Code"

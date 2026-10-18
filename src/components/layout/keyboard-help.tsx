@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
 const SHORTCUTS: [string, string][] = [
   ['Ctrl / ⌘ + K', 'Search links'],
@@ -14,6 +15,7 @@ export default function KeyboardHelp() {
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const lastFocused = useRef<HTMLElement | null>(null);
+  const swipe = useSwipeDismiss(() => setOpen(false));
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -56,6 +58,7 @@ export default function KeyboardHelp() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="keyboard-help-title"
+        {...swipe}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-xl border-[3px] border-foreground bg-card p-5 shadow-[6px_6px_0_0_var(--foreground)] animate-modal-content"
       >

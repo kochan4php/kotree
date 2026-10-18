@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { encryptMessage, decryptMessage } from './obfuscation';
 import EntryList from './entry-list';
 import Skeleton from '@/components/ui/skeleton';
+import EmptyState from '@/components/ui/empty-state';
 import { fetchEntries, postEntry, GuestbookHttpError } from './api';
 import { queueMessage, queuedMessages, flushQueue } from './offline';
 import { forgetMine, ownerToken, readMine, rememberMine } from './mine';
@@ -51,6 +52,8 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   const [cooldown, setCooldown] = useState(0);
   // M22: inline, programmatic error state for the message box
   const [error, setError] = useState('');
+  // M72: the offline banner needs the connection state, not just the toast
+  const [online, setOnline] = useState(true);
   const [nearEnd, setNearEnd] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   // M40: ids this device posted — unlock edit/delete on those entries
@@ -136,6 +139,19 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
   }, [token]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- navigator.onLine is browser-only, read after mount
+    setOnline(navigator.onLine);
+    const up = () => setOnline(true);
+    const down = () => setOnline(false);
+    window.addEventListener('online', up);
+    window.addEventListener('offline', down);
+    return () => {
+      window.removeEventListener('online', up);
+      window.removeEventListener('offline', down);
+    };
+  }, []);
 
   // M45: the first time a filter or search is used, widen to the last 50
   useEffect(() => {
@@ -452,6 +468,13 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           </div>
         )}
 
+        {/* M72: when the connection is gone, say where the message goes */}
+        {!online && (
+          <p className="mb-3 rounded-lg border-[3px] border-foreground bg-secondary px-3 py-2 text-xs font-bold text-foreground">
+            You&apos;re offline — new secrets are saved on this device and send themselves when the connection is back.
+          </p>
+        )}
+
         <div
           ref={listRef}
           className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-40 xl:flex-auto'}`}
@@ -459,7 +482,7 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           {isLoading && entries.length === 0 ? (
             <Skeleton rows={3} className="mb-3" />
           ) : entries.length > 0 && visible.length === 0 ? (
-            <p className="py-4 text-center text-sm italic text-muted-foreground">No secrets match your filters.</p>
+            <EmptyState title="No secrets match your filters." hint="Try another search, or clear the filters." />
           ) : (
             <EntryList
               entries={visible}
@@ -487,6 +510,19 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
         <span role="status" className="sr-only">
           {isLoadingMore ? 'Loading more secrets' : ''}
         </span>
+
+        {/* M68: the obfuscation step is client-side by design (plaintext never
+            reaches the server), so the form genuinely cannot work without
+            JavaScript — say so instead of showing a dead input. */}
+        <noscript>
+          <p className="mb-3 rounded-lg border-[3px] border-foreground bg-secondary px-3 py-2 text-xs font-bold text-foreground">
+            The guestbook needs JavaScript: your message is scrambled on this device before it is sent. Meanwhile,{' '}
+            <a className="underline underline-offset-2" href="/links">
+              say hello through the usual channels
+            </a>
+            .
+          </p>
+        </noscript>
 
         <form onSubmit={handleSubmit} className="flex gap-2" suppressHydrationWarning>
           <input
