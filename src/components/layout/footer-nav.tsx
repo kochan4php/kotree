@@ -27,15 +27,19 @@ export default function FooterNav() {
   return (
     <nav
       aria-label="Site"
-      className="relative z-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-bold text-muted-foreground"
+      className="grid grid-cols-2 gap-x-4 text-[13px] font-bold text-muted-foreground sm:grid-cols-3 sm:gap-x-6 sm:text-sm lg:grid-cols-4 xl:grid-cols-5"
     >
       {LINKS.map(([label, href]) => (
         <Link
           key={href}
           href={href}
           aria-current={pathname === href ? 'page' : undefined}
-          className="inline-flex min-h-6 items-center hover:text-foreground hover:underline underline-offset-2 transition-colors aria-[current=page]:text-foreground aria-[current=page]:underline"
+          className="group flex min-h-9 items-center gap-2 border-b border-dashed border-foreground/15 py-1 transition-colors hover:text-foreground aria-[current=page]:text-foreground sm:min-h-10"
         >
+          <span
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30 transition-colors group-hover:bg-accent-ink"
+            aria-hidden="true"
+          />
           {label}
         </Link>
       ))}

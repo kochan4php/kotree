@@ -24,10 +24,12 @@ function renderInline(text: string): React.ReactNode {
 }
 
 const blockClasses: Record<string, string> = {
-  h1: 'text-3xl font-bold tracking-tight text-foreground',
+  h1: 'text-3xl font-black tracking-tight text-foreground sm:text-4xl',
   h2: 'text-2xl font-bold tracking-tight text-foreground',
   h3: 'inline-flex w-fit items-center rounded-md bg-foreground px-2.5 py-1 text-[11px] font-black uppercase tracking-widest text-background mt-5 mb-2.5 first:mt-0',
-  p: 'text-muted-foreground leading-relaxed mt-4 first:mt-0',
+  // The first paragraph is the release's lede, so it sits darker than the
+  // bullet list under it instead of both sharing one grey.
+  p: 'text-foreground/80 leading-relaxed mt-4 first:mt-0',
 };
 
 function renderBlock(block: ChangelogBlock, key: number): React.ReactNode {
@@ -35,7 +37,7 @@ function renderBlock(block: ChangelogBlock, key: number): React.ReactNode {
     return (
       <ul key={key} className="list-disc marker:text-accent pl-5 space-y-2">
         {block.items.map((item, i) => (
-          <li key={i} className="text-foreground/90 leading-relaxed [&_strong]:text-foreground [&_strong]:font-semibold">
+          <li key={i} className="text-muted-foreground leading-relaxed [&_strong]:text-foreground [&_strong]:font-semibold">
             {renderInline(item)}
           </li>
         ))}
