@@ -17,11 +17,13 @@ async function waitHydrated(page: Page) {
   await page.waitForTimeout(swConfirmed ? 300 : 2500);
 }
 
-// The palette takes a query and follows the first hit on Enter.
+// The palette takes a query and follows the first hit on Enter. The hits come
+// from the search index, which loads on open: pressing Enter before it lands
+// does nothing, so wait for a highlighted result instead of a fixed pause.
 async function palette(page: Page, query: string) {
   await page.getByRole('button', { name: 'Search links' }).click();
   await page.getByRole('textbox', { name: 'Search links' }).fill(query);
-  await page.waitForTimeout(300);
+  await expect(page.locator('#kt-palette-list button[aria-current="true"]').first()).toBeVisible();
   await page.keyboard.press('Enter');
 }
 

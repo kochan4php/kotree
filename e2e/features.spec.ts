@@ -130,7 +130,8 @@ test.describe('guestbook permalinks', () => {
     // position instead of the brief class.
     const box = await entry.boundingBox();
     expect(box).not.toBeNull();
-    expect(box!.y).toBeGreaterThanOrEqual(0);
+    // Fractional layout can land the top a sub-pixel above the viewport.
+    expect(box!.y).toBeGreaterThanOrEqual(-1);
     expect(box!.y).toBeLessThan(720);
   });
 });
