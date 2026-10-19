@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { getPublicStats } from '@/connections/mongodb';
+import BadgeBuilder from '@/components/stats/badge-builder';
 import LocalSecrets from '@/components/stats/local-secrets';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
@@ -56,6 +57,11 @@ export default function StatsPage() {
               <LocalSecrets />
             </p>
           </div>
+        </Card>
+
+        <Card className="fluid-glass mt-3">
+          <div className="liquid-gradient"></div>
+          <BadgeBuilder />
         </Card>
 
         <Suspense fallback={<StatsFallback />}>

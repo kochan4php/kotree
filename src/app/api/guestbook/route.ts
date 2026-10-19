@@ -10,7 +10,7 @@ import {
   isGuestbookIpHashBanned,
 } from '@/connections/mongodb';
 import { guardOrigin, validateToken } from '@/lib/security';
-import { isRateLimited, getClientIp } from '@/lib/rate-limit';
+import { isRateLimited, isGloballyRateLimited, getClientIp } from '@/lib/rate-limit';
 import { jsonWithEtag } from '@/lib/http-cache';
 
 // M40/M41: the device token never reaches the database raw — only this hash
@@ -74,6 +74,11 @@ export async function POST(request: Request) {
       return new NextResponse('Forbidden', { status: 403 });
     }
     if (await isRateLimited(`guestbook:${ip}`)) {
+      return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
+    }
+    // A flood spread across many IPs still lands on one database: cap new
+    // messages per minute site-wide, the way /api/chat caps its quota.
+    if (await isGloballyRateLimited('guestbook', 40)) {
       return new NextResponse('Too Many Requests', { status: 429, headers: { 'Retry-After': '60' } });
     }
 

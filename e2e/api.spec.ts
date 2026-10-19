@@ -76,3 +76,42 @@ test('admin overview splits into stats and moderation sections', async ({ reques
   expect(Array.isArray(moderationBody.audit)).toBe(true);
   expect(moderationBody.links).toBeUndefined();
 });
+
+// K54: violation reports arrive in two shapes — the legacy `csp-report` object
+// that report-uri sends, and the Reporting API array that report-to sends,
+// which is also how the report-only Trusted Types policy speaks. Both must be
+// accepted, anything else rejected, and a report must never 500.
+test('CSP reports are accepted in both reporting generations', async ({ request }) => {
+  const legacy = await request.post('/api/csp-report', {
+    data: {
+      'csp-report': {
+        'violated-directive': 'script-src',
+        'blocked-uri': 'https://example.com/blocked.js',
+        'document-uri': 'http://localhost:3000/',
+      },
+    },
+  });
+  expect(legacy.status()).toBe(204);
+
+  const reportingApi = await request.post('/api/csp-report', {
+    headers: { 'content-type': 'application/reports+json' },
+    data: JSON.stringify([
+      {
+        type: 'csp-violation',
+        body: {
+          effectiveDirective: 'img-src',
+          blockedURL: 'https://example.com/blocked.png',
+          documentURL: 'http://localhost:3000/',
+        },
+      },
+      {
+        type: 'trusted-types-sink-violation',
+        body: { sink: 'Element innerHTML', documentURL: 'http://localhost:3000/' },
+      },
+    ]),
+  });
+  expect(reportingApi.status()).toBe(204);
+
+  const garbage = await request.post('/api/csp-report', { data: { nothing: 'to see here' } });
+  expect(garbage.status()).toBe(400);
+});

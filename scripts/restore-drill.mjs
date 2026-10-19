@@ -4,12 +4,31 @@
 // ephemeral Mongo (the CI service container) — the drill never touches the
 // database the app uses.
 import { MongoClient } from 'mongodb';
+import { createHash } from 'crypto';
 import fs from 'fs';
+import path from 'path';
 
 const file = process.argv[2];
 if (!file) {
   console.error('usage: node scripts/restore-drill.mjs <backup.json>');
   process.exit(2);
+}
+
+// Verify the sidecar checksum when one travels with the backup: a corrupted or
+// truncated artifact must fail the drill loudly, not restore half a database.
+const sidecar = `${file}.sha256`;
+if (fs.existsSync(sidecar)) {
+  const expected = fs.readFileSync(sidecar, 'utf8').trim().split(/\s+/)[0];
+  const actual = createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  if (expected !== actual) {
+    console.error(
+      `Checksum mismatch for ${path.basename(file)}: ${sidecar} says ${expected}, file is ${actual} — refusing to restore`
+    );
+    process.exit(1);
+  }
+  console.log(`ok   checksum matches ${path.basename(sidecar)}`);
+} else {
+  console.log(`note no checksum alongside ${path.basename(file)} — the counts below still have to add up`);
 }
 
 let backup;

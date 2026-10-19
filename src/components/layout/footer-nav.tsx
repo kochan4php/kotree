@@ -12,6 +12,7 @@ const LINKS = [
   ['Links', '/links'],
   ['Projects', '/projects'],
   ['Notes', '/notes'],
+  ['Search', '/search'],
   ['Guestbook', '/guestbook'],
   ['Secrets', '/secrets'],
   ['Stats', '/stats'],

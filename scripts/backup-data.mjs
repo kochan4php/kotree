@@ -22,10 +22,16 @@ try {
   fs.mkdirSync(outDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const out = path.join(outDir, `kotree-backup-${stamp}.json`);
-  fs.writeFileSync(out, JSON.stringify(payload, null, 2));
+  const json = JSON.stringify(payload, null, 2);
+  fs.writeFileSync(out, json);
+  // A sidecar in sha256sum format, so a truncated or bit-rotted artifact is
+  // caught by the restore drill (and by `sha256sum -c`) before it is trusted.
+  const digest = createHash('sha256').update(json).digest('hex');
+  fs.writeFileSync(`${out}.sha256`, `${digest}  ${path.basename(out)}\n`);
   console.log(
     `Backup written: ${out} (${payload.linkCounter.length} counters, ${payload.guestbook.length} guestbook entries)`
   );
+  console.log(`Checksum: ${digest}`);
 } finally {
   await client.close();
 }

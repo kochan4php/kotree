@@ -11,16 +11,63 @@ interface UseDragOptions {
   bringToFront: (id: string) => void;
 }
 
+// Snapping: a window released within a dozen pixels of the desktop edge or of
+// another window's edge clicks flush to it, the way a window manager behaves.
+// Only the released position is snapped — while dragging, the window follows
+// the pointer exactly. Kept outside the hook so nothing in the drag effect
+// depends on a function that is recreated every render.
+const SNAP_PX = 12;
+
+function snapAxis(value: number, targets: number[]) {
+  let best = value;
+  let bestDistance = SNAP_PX;
+  for (const target of targets) {
+    const distance = Math.abs(value - target);
+    if (distance < bestDistance) {
+      best = target;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
+function snapPosition(
+  id: string,
+  x: number,
+  y: number,
+  refs: { [key: string]: HTMLDivElement | null }
+) {
+  const rect = refs[id]?.getBoundingClientRect();
+  if (!rect) return { x, y };
+
+  const others = Object.entries(refs)
+    .filter(([otherId, other]) => otherId !== id && other)
+    .map(([, other]) => other!.getBoundingClientRect());
+
+  const xTargets = [0, window.innerWidth - rect.width];
+  const yTargets = [0];
+  for (const other of others) {
+    xTargets.push(other.left, other.right, other.right - rect.width);
+    yTargets.push(other.top, other.bottom, other.bottom - rect.height);
+  }
+  return { x: snapAxis(x, xTargets), y: snapAxis(y, yTargets) };
+}
+
 export function useDrag({ setWindows, isActive, bringToFront }: UseDragOptions) {
   // Dragging state (refs: no re-render during drag)
   const draggingId = useRef<string | null>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
   const dragPos = useRef({ x: 0, y: 0 });
   const windowRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const refCallbacks = useRef<{ [key: string]: (el: HTMLDivElement | null) => void }>({});
 
-  const setWindowRef = (id: string) => (el: HTMLDivElement | null) => {
-    windowRefs.current[id] = el;
-  };
+  // One stable callback per window. A fresh function each render would make
+  // React detach the ref (call it with null) and re-attach on every render, so
+  // the element could be missing exactly when a drag ends and the snap reads it.
+  const setWindowRef = (id: string) =>
+    (refCallbacks.current[id] ??= (el) => {
+      windowRefs.current[id] = el;
+    });
 
   // Global pointer handlers while active (refs + stable setWindows only)
   useEffect(() => {
@@ -50,8 +97,11 @@ export function useDrag({ setWindows, isActive, bringToFront }: UseDragOptions) 
       const el = windowRefs.current[id];
       if (el) el.style.transition = '';
 
-      // Sync final position back to React state
-      setWindows(prev => prev.map(w => (w.id === id ? { ...w, x: finalX, y: finalY } : w)));
+      // Sync the released position back to React state, snapped flush to the
+      // desktop or to a neighbouring window when it landed close enough. The
+      // transition is back on, so it glides the last few pixels.
+      const snapped = snapPosition(id, finalX, finalY, windowRefs.current);
+      setWindows(prev => prev.map(w => (w.id === id ? { ...w, x: snapped.x, y: snapped.y } : w)));
     };
 
     if (isActive) {

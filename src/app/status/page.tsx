@@ -1,4 +1,4 @@
-import { getVitalsP75, pingDb, type VitalAggregate } from '@/connections/mongodb';
+import { getClientErrors, getVitalsP75, pingDb, type ClientError, type VitalAggregate } from '@/connections/mongodb';
 import StatusClient from '@/components/status/status-client';
 import { Card } from '@/components/ui/card';
 import { Activity, Database, Gauge, GitCommitHorizontal } from 'lucide-react';
@@ -41,6 +41,16 @@ const RATING_LABELS: Record<VitalAggregate['rating'], string> = {
 
 const METRIC_ORDER = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'];
 
+// "4 min ago" beats a timestamp for something you glance at. Server-rendered
+// and force-dynamic, so there is no hydration mismatch to worry about.
+function agoLabel(date: Date): string {
+  const minutes = Math.round((Date.now() - date.getTime()) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  return hours < 24 ? `${hours} h ago` : `${Math.round(hours / 24)} d ago`;
+}
+
 export default async function StatusPage() {
   const { ok: mongo, ms: mongoMs } = await checkMongo();
   const version = process.env.APP_VERSION ?? 'dev';
@@ -49,8 +59,7 @@ export default async function StatusPage() {
   // Real-user timings the browser beacons send to /api/vitals. A p75 cannot be
   // averaged across pages, so each metric shows the page with the most samples
   // — the honest number, labelled with where it came from.
-  const vitals = await getVitalsP75(7).catch(() => [] as VitalAggregate[]);
-  const busiestPerMetric = new Map<string, VitalAggregate>();
+  const vitals = await getVitalsP75(7).catch(() => [] as VitalAggregate[]);  const busiestPerMetric = new Map<string, VitalAggregate>();
   for (const vital of vitals) {
     const current = busiestPerMetric.get(vital.metric);
     if (!current || vital.total > current.total) busiestPerMetric.set(vital.metric, vital);
@@ -58,6 +67,11 @@ export default async function StatusPage() {
   const vitalRows = [...busiestPerMetric.values()].sort(
     (a, b) => METRIC_ORDER.indexOf(a.metric) - METRIC_ORDER.indexOf(b.metric)
   );
+
+  // Unresolved client errors, counted but never quoted: the messages can name
+  // internal routes, and this page is public. The admin shows the details.
+  const clientErrors = await getClientErrors(20).catch(() => [] as ClientError[]);
+  const newestError = clientErrors[0] ? (clientErrors[0].lastSeenAt ?? clientErrors[0].createdAt) : null;
 
   return (
     <main
@@ -110,6 +124,22 @@ export default async function StatusPage() {
                       </span>
                     </Row>
                   )}
+                  <Row label="Client errors">
+                    {clientErrors.length === 0 ? (
+                      <span className="inline-block rounded border-2 border-foreground bg-green-300 px-1.5 text-[11px] font-black uppercase text-[#14110f]">
+                        None open
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-block rounded border-2 border-foreground bg-amber-300 px-1.5 text-[11px] font-black uppercase text-[#14110f]">
+                          {clientErrors.length} open
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {newestError ? `newest ${agoLabel(newestError)}` : ''}
+                        </span>
+                      </span>
+                    )}
+                  </Row>
                 </dl>
               </section>
 

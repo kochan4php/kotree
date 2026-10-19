@@ -21,7 +21,8 @@
     "check:bundle": "node scripts/check-bundle.mjs",
     "changelog:draft": "node scripts/changelog-draft.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "backup": "node scripts/backup-data.mjs"
+    "backup": "node scripts/backup-data.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "clsx": "2.1.1",

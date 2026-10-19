@@ -33,6 +33,9 @@ const PAGES = [
   // M51/M56: the map and the QR code page
   { name: 'explore', path: '/explore' },
   { name: 'qr', path: '/qr' },
+  // The server-rendered search, empty and with results
+  { name: 'search', path: '/search' },
+  { name: 'search-results', path: '/search?q=offline' },
 ];
 
 for (const { name, path } of PAGES) {

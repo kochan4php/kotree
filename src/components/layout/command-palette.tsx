@@ -542,7 +542,11 @@ export default function CommandPalette() {
                   )}
                 </span>
                 {item.hint && (
-                  <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground">
+                  <span
+                    className={`text-[10px] font-mono font-bold uppercase ${
+                      i === clampedIndex ? 'text-accent-foreground/80' : 'text-muted-foreground'
+                    }`}
+                  >
                     {item.hint}
                   </span>
                 )}

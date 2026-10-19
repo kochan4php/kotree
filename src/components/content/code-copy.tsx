@@ -23,7 +23,7 @@ export default function CodeCopy({ code, label }: { code: string; label: string 
       type="button"
       onClick={copy}
       aria-label={`Copy ${label} code`}
-      className="kt-code-copy inline-flex min-h-6 min-w-6 items-center justify-center gap-1.5 rounded border-2 border-foreground bg-secondary px-2 py-0.5 text-[10px] font-mono font-bold text-foreground hover:bg-accent hover:text-accent-ink transition-colors"
+      className="kt-code-copy inline-flex min-h-6 min-w-6 items-center justify-center gap-1.5 rounded border-2 border-foreground bg-secondary px-2 py-0.5 text-[10px] font-mono font-bold text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
     >
       {copied ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
       {copied ? 'Copied' : 'Copy'}

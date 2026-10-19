@@ -110,6 +110,14 @@ export function proxy(request: NextRequest, event: NextFetchEvent) {
   response.headers.set('content-security-policy', csp);
   // M65: the group the policy's `report-to default` points at
   response.headers.set('reporting-endpoints', 'default="/api/csp-report"');
+  // Trusted Types, report-only: this policy only ever sends reports, and with
+  // the nonce plus 'strict-dynamic' above there are no inline strings left to
+  // trust. The point is to see what would break before enforcing anything —
+  // the reports join the same client-error stream as the CSP ones.
+  response.headers.set(
+    'content-security-policy-report-only',
+    "require-trusted-types-for 'script'; report-to default"
+  );
   return response;
 }
 

@@ -22,9 +22,12 @@ const CHECKS = [
   ['/now', 200, ['Now']],
   ['/guestbook', 200, ['Guestbook']],
   ['/secrets', 200, ['Secrets']],
-  ['/rss.xml', 200, ['<rss', '/notes/', '<category>', 'content:encoded']],
-  ['/feed.json', 200, ['jsonfeed.org/version/1.1', '/notes/', '"tags"', '"content_html"']],
-  ['/notes/tags/pwa/feed.xml', 200, ['<rss', 'Offline']],
+  ['/rss.xml', 200, ['<rss', '<channel>', '/notes/', '<category>', 'content:encoded', '<item>', '<guid', '<pubDate', '<atom:link']],
+  ['/feed.json', 200, ['jsonfeed.org/version/1.1', '/notes/', '"tags"', '"content_html"', '"id"', '"date_published"', '"items"']],
+  ['/notes/tags/pwa/feed.xml', 200, ['<rss', 'Offline', '<item>', '<guid']],
+  ['/search', 200, ['Search every note and project']],
+  ['/search?q=offline', 200, ['/notes/2026-10-12-offline-first', 'match']],
+  ['/api/badge/clicks.svg', 200, ['<svg', 'kotree']],
   ['/llms.txt', 200, ['Kotree', 'AI assistants']],
   ['/search-index.json', 200, ['"title"', '/projects/']],
   ['/api/boss-scores', 200, []],
@@ -46,11 +49,46 @@ const CHECKS = [
 ];
 
 let failed = 0;
+
+// Security headers every HTML response must carry: the per-response CSP (K54)
+// plus the ones next.config.mjs sets. Only the stable fragments are matched —
+// the nonce is different every time — and only the home page is asked, since
+// these are set per response rather than per route.
+const EXPECTED_HEADERS = [
+  ['content-security-policy', ["default-src 'self'", "object-src 'none'", 'report-to default']],
+  ['content-security-policy-report-only', ["require-trusted-types-for 'script'"]],
+  ['reporting-endpoints', ['default="/api/csp-report"']],
+  ['x-content-type-options', ['nosniff']],
+  ['referrer-policy', ['strict-origin-when-cross-origin']],
+  ['permissions-policy', ['camera=()', 'geolocation=(self)']],
+];
+
+try {
+  const res = await fetch(`${base}/`);
+  for (const [name, needles] of EXPECTED_HEADERS) {
+    const value = res.headers.get(name) ?? '';
+    const missing = needles.filter((needle) => !value.includes(needle));
+    if (missing.length) {
+      failed++;
+      console.log(`FAIL header ${name}${missing.length ? ` missing: ${missing.join(', ')}` : ''}`);
+    } else {
+      console.log(`PASS header ${name}`);
+    }
+  }
+} catch (err) {
+  failed++;
+  console.log(`FAIL headers — ${err instanceof Error ? err.message : String(err)}`);
+}
+
 for (const [path, wantStatus, needles] of CHECKS) {
   try {
     const res = await fetch(`${base}${path}`, { redirect: 'follow' });
     const contentType = res.headers.get('content-type') ?? '';
-    const text = contentType.startsWith('image/') || contentType.startsWith('font/') ? '' : await res.text();
+    // SVG is text and worth reading; the other image and font types are not
+    const isBinary = contentType.startsWith('image/')
+      ? !contentType.includes('svg')
+      : contentType.startsWith('font/');
+    const text = isBinary ? '' : await res.text();
     const missing = needles.filter((needle) => !text.includes(needle));
     const pass = res.status === wantStatus && missing.length === 0;
     if (!pass) failed++;

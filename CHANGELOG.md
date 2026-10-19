@@ -23,6 +23,11 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - A free accent colour picker that verifies contrast before it applies anything
 - A print button on notes, so a note turns into a clean PDF
 - Real-user timings on /status — the 75th percentile for LCP, INP, CLS, FCP and TTFB, sent anonymously by visitors' own browsers and labelled with the page they came from
+- A thin progress line across the top of a note showing how much of it is left, drawn by the browser from your own scrolling, with no JavaScript involved
+- A search page at /search that works with JavaScript switched off — every note and project, with results you can link to
+- A badge builder on the stats page: pick a badge, copy the URL or the Markdown for your README
+- Save the Wrapped recap as a 1080 × 1620 PNG, drawn in whichever accent colour you have chosen
+- Windows in the Windows 95 desktop snap flush when you drop them near the screen edge or beside another window
 
 ### Changed
 
@@ -46,6 +51,7 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - Buttons in the top dock and the share and QR control no longer spill past their border when hovered or active
 - The Web3 and Geo-Quest cards carry the same border and shadow as every other card, and the guestbook message box finally sits at the bottom of its card
 - The left column no longer leaves a bare patch on wide screens — the theme cards stretch to meet the column beside them
+- The little "note" or "project" label in the search palette was nearly invisible on the highlighted row, and the copy buttons had the same problem under the cursor
 
 ## [3.3.0]
 

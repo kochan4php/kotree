@@ -1,0 +1,5 @@
+#!/bin/sh
+# Pre-commit: refuse a commit that looks like it carries a secret (API keys,
+# tokens, private keys). Wired up by `npm install` through the prepare script,
+# which points git at .githooks; run `npm run scan:secrets` to check by hand.
+node scripts/scan-secrets.mjs

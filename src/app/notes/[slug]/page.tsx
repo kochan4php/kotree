@@ -43,6 +43,8 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
 
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
+      {/* How far through the note you are — pure CSS, tracking your own scroll */}
+      <div className="kt-reading-progress" aria-hidden="true" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd(note.title, `/notes/${note.slug}`)) }}

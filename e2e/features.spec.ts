@@ -255,7 +255,9 @@ test('the public stats page shows real numbers', async ({ page }) => {
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByRole('heading', { name: 'The numbers' })).toBeVisible();
-  await expect(page.getByText('Total clicks')).toBeVisible();
+  // The badge builder below also offers a "Total clicks" button, so target the
+  // stat tile's own label rather than the first text match.
+  await expect(page.locator('div').filter({ hasText: /^Total clicks$/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Most tapped links' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Last 30 days' })).toBeVisible();
 });
@@ -487,4 +489,52 @@ test('copying a changelog link plays a soft tone', async ({ page }) => {
   await waitHydrated(page);
   await page.getByRole('button', { name: /^Copy link to version/ }).first().click();
   await expect.poll(() => page.evaluate(() => (window as unknown as { __ktTones: number }).__ktTones)).toBeGreaterThan(0);
+});
+
+test('a released window snaps flush to the desktop it was dragged near', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  await waitHydrated(page);
+
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95')));
+  const icon = page.getByRole('button', { name: 'Notepad' });
+  await expect(icon).toBeVisible({ timeout: 10000 });
+  await icon.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('textbox', { name: 'Notepad draft' })).toBeVisible();
+
+  const titleBar = page.getByRole('group', { name: /Move Notepad/ });
+  const windowEl = titleBar.locator('..');
+  // The desktop and its windows slide in; measure once they have settled.
+  await page.waitForTimeout(500);
+  const before = await windowEl.boundingBox();
+  expect(before).not.toBeNull();
+
+  // Eight pixels shy of the right edge: inside the snap zone, so releasing
+  // there should commit a position flush with the desktop rather than 8px off
+  // it. The right edge is used because activating the desktop also opens the
+  // profile window at a random x near the left — a target that would make the
+  // assertion ambiguous (the snap would, quite correctly, pick that neighbour).
+  const desktopWidth = await page.evaluate(() => window.innerWidth);
+  const flushLeft = desktopWidth - before!.width;
+  const grab = { x: before!.x + 40, y: before!.y + 8 };
+  await page.mouse.move(grab.x, grab.y);
+  await page.mouse.down();
+  await page.mouse.move(grab.x + (flushLeft - 8 - before!.x), grab.y);
+  await page.mouse.up();
+
+  // The window glides the last few pixels on its own transition
+  await expect
+    .poll(async () => parseFloat(await windowEl.evaluate((el) => (el as HTMLElement).style.left)))
+    .toBeGreaterThanOrEqual(flushLeft - 2);
+});
+
+test('the Wrapped recap is downloadable as an image', async ({ page }) => {
+  await page.goto('/wrapped');
+  await waitHydrated(page);
+
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save as an image' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^kotree-wrapped-20\d\d\.png$/);
+  await expect(page.getByText(/is in your downloads/)).toBeVisible();
 });

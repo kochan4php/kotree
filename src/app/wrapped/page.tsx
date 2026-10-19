@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { getYearStats } from '@/connections/mongodb';
 import LocalSecrets from '@/components/stats/local-secrets';
+import WrappedExport from '@/components/stats/wrapped-export';
 import YearCarousel from '@/components/content/year-carousel';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
@@ -187,6 +188,18 @@ async function WrappedBody({ year }: { year: number }) {
           <p className="mt-3 text-xs font-medium text-muted-foreground">
             <LocalSecrets />
           </p>
+          <WrappedExport
+            year={year}
+            clicks={stats.yearClicks}
+            share={share}
+            topLink={stats.topLink}
+            busiestDay={
+              stats.busiestDay ? `${formatDate(stats.busiestDay.day)} (${stats.busiestDay.count} clicks)` : null
+            }
+            messages={stats.guestbookCount}
+            reaction={stats.topReaction ? `${stats.topReaction.emoji} ×${stats.topReaction.count}` : null}
+            url={site.baseUrl}
+          />
         </div>
       </Card>
     </>
