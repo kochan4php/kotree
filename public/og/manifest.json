@@ -76,6 +76,41 @@
       "kind": "project"
     },
     {
+      "file": "/og/note-2026-03-22-accessibility-as-a-test.png",
+      "label": "Accessibility as a test, not a promise",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-04-19-nonce-csp.png",
+      "label": "Locking down the page with a nonce",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-05-17-byte-budget.png",
+      "label": "A budget for every byte",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-06-14-search-without-javascript.png",
+      "label": "Search that works without JavaScript",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-07-12-database-tidies-up.png",
+      "label": "A database that tidies up after itself",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-08-16-win95-maintained.png",
+      "label": "Windows 95, maintained",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-09-20-test-boring-things.png",
+      "label": "Test the boring things",
+      "kind": "note"
+    },
+    {
       "file": "/og/note-2026-09-30-secrets-everywhere.png",
       "label": "Secrets everywhere",
       "kind": "note"
@@ -83,6 +118,11 @@
     {
       "file": "/og/note-2026-10-12-offline-first.png",
       "label": "Offline, on purpose",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-10-16-offline-guestbook.png",
+      "label": "An offline guestbook",
       "kind": "note"
     },
     {
@@ -116,13 +156,98 @@
       "kind": "tag"
     },
     {
-      "file": "/og/tag-easter-eggs.png",
-      "label": "Tagged “easter-eggs”",
+      "file": "/og/tag-a11y.png",
+      "label": "Tagged “a11y”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-testing.png",
+      "label": "Tagged “testing”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-wcag.png",
+      "label": "Tagged “wcag”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-security.png",
+      "label": "Tagged “security”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-csp.png",
+      "label": "Tagged “csp”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-headers.png",
+      "label": "Tagged “headers”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-performance.png",
+      "label": "Tagged “performance”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-vitals.png",
+      "label": "Tagged “vitals”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-search.png",
+      "label": "Tagged “search”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-ssr.png",
+      "label": "Tagged “ssr”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-accessibility.png",
+      "label": "Tagged “accessibility”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-mongodb.png",
+      "label": "Tagged “mongodb”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-infrastructure.png",
+      "label": "Tagged “infrastructure”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-privacy.png",
+      "label": "Tagged “privacy”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-win95.png",
+      "label": "Tagged “win95”",
       "kind": "tag"
     },
     {
       "file": "/og/tag-ux.png",
       "label": "Tagged “ux”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-easter-eggs.png",
+      "label": "Tagged “easter-eggs”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-ops.png",
+      "label": "Tagged “ops”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-backups.png",
+      "label": "Tagged “backups”",
       "kind": "tag"
     },
     {
@@ -133,6 +258,11 @@
     {
       "file": "/og/tag-service-worker.png",
       "label": "Tagged “service-worker”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-guestbook.png",
+      "label": "Tagged “guestbook”",
       "kind": "tag"
     }
   ]

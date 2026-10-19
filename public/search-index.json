@@ -23,8 +23,85 @@
   },
   {
     "type": "note",
+    "title": "Accessibility as a test, not a promise",
+    "summary": "Every page runs through axe in the suite, and the contrast tokens, reduced-motion rules and keyboard routes are checked like any other feature.",
+    "tags": [
+      "a11y",
+      "testing",
+      "wcag"
+    ],
+    "url": "/notes/2026-03-22-accessibility-as-a-test"
+  },
+  {
+    "type": "note",
+    "title": "Locking down the page with a nonce",
+    "summary": "Every response gets its own script nonce and a strict CSP, and violations land in the same stream as every other client error.",
+    "tags": [
+      "security",
+      "csp",
+      "headers"
+    ],
+    "url": "/notes/2026-04-19-nonce-csp"
+  },
+  {
+    "type": "note",
+    "title": "A budget for every byte",
+    "summary": "Every route has a raw-JavaScript ceiling checked in CI, and real visitors' p75 timings have their own shelf on the status page.",
+    "tags": [
+      "performance",
+      "testing",
+      "vitals"
+    ],
+    "url": "/notes/2026-05-17-byte-budget"
+  },
+  {
+    "type": "note",
+    "title": "Search that works without JavaScript",
+    "summary": "The server-rendered search page gives every result its own URL, and the command palette searches a build-time index of the content.",
+    "tags": [
+      "search",
+      "ssr",
+      "accessibility"
+    ],
+    "url": "/notes/2026-06-14-search-without-javascript"
+  },
+  {
+    "type": "note",
+    "title": "A database that tidies up after itself",
+    "summary": "TTL indexes delete what has expired, rate limits live in the database across instances, and the audit log keeps a hashed record.",
+    "tags": [
+      "mongodb",
+      "infrastructure",
+      "privacy"
+    ],
+    "url": "/notes/2026-07-12-database-tidies-up"
+  },
+  {
+    "type": "note",
+    "title": "Windows 95, maintained",
+    "summary": "Notepad, Paint, Calculator and Minesweeper get the same care as everything else — snapping, keyboard nudging and real tests.",
+    "tags": [
+      "win95",
+      "ux",
+      "easter-eggs"
+    ],
+    "url": "/notes/2026-08-16-win95-maintained"
+  },
+  {
+    "type": "note",
+    "title": "Test the boring things",
+    "summary": "The restore drill, the secret scanner, the visual baselines and the post-deploy smoke test — dull checks that only matter on the bad day.",
+    "tags": [
+      "testing",
+      "ops",
+      "backups"
+    ],
+    "url": "/notes/2026-09-20-test-boring-things"
+  },
+  {
+    "type": "note",
     "title": "Secrets everywhere",
-    "summary": "Eleven easter eggs hide in Kotree, and a small counter now keeps score of how many you have found.",
+    "summary": "Fourteen easter eggs hide in Kotree, and a small counter now keeps score of how many you have found.",
     "tags": [
       "easter-eggs",
       "ux"
@@ -41,5 +118,16 @@
       "service-worker"
     ],
     "url": "/notes/2026-10-12-offline-first"
+  },
+  {
+    "type": "note",
+    "title": "An offline guestbook",
+    "summary": "Offline messages queue on the device, Background Sync delivers them with the tab closed, and no-JavaScript visitors get a straight answer.",
+    "tags": [
+      "pwa",
+      "offline",
+      "guestbook"
+    ],
+    "url": "/notes/2026-10-16-offline-guestbook"
   }
 ]
