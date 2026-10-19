@@ -31,8 +31,28 @@ test('admin rejects a wrong token', async ({ page }) => {
   await expect(page.getByText('Wrong token.')).toBeVisible({ timeout: 10000 });
 });
 
-test('admin loads the overview with the configured token', async ({ page }) => {
+// H8: a failed sign-in is audited, and a run of them is shouted about on the
+// dashboard. The e2e server lowers the threshold to one, so this stays a single
+// attempt and never leans on the sign-in rate limit.
+test('a failed sign-in raises the dashboard alert', async ({ page }) => {
   await page.goto('/admin');
+  await waitHydrated(page);
+
+  await page.getByLabel('Admin token').fill('wrong-once');
+  await page.getByRole('button', { name: 'Connect', exact: true }).click();
+  await expect(page.getByText('Wrong token.')).toBeVisible({ timeout: 10000 });
+
+  await page.getByLabel('Admin token').fill(TOKEN);
+  await page.getByRole('button', { name: 'Connect', exact: true }).click();
+  const codeField = page.getByLabel('2FA code');
+  await codeField.waitFor({ state: 'visible', timeout: 10000 });
+  await codeField.fill(await currentTotpCode());
+  await page.getByRole('button', { name: 'Connect', exact: true }).click();
+
+  await expect(page.getByText(/failed sign-ins in the last 24 hours/)).toBeVisible({ timeout: 15000 });
+});
+
+test('admin loads the overview with the configured token', async ({ page }) => {  await page.goto('/admin');
   await waitHydrated(page);
   await page.getByLabel('Admin token').fill(TOKEN);
   await page.getByRole('button', { name: 'Connect', exact: true }).click();

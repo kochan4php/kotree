@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { WindowState } from './types';
+import { rememberWindowPosition } from './win95-prefs';
 
 interface UseDragOptions {
   windows: WindowState[];
@@ -101,6 +102,8 @@ export function useDrag({ setWindows, isActive, bringToFront }: UseDragOptions) 
       // desktop or to a neighbouring window when it landed close enough. The
       // transition is back on, so it glides the last few pixels.
       const snapped = snapPosition(id, finalX, finalY, windowRefs.current);
+      // G7: where it settled is where it is next time
+      rememberWindowPosition(id, snapped.x, snapped.y);
       setWindows(prev => prev.map(w => (w.id === id ? { ...w, x: snapped.x, y: snapped.y } : w)));
     };
 
@@ -130,15 +133,15 @@ export function useDrag({ setWindows, isActive, bringToFront }: UseDragOptions) 
   const nudge = (id: string, dx: number, dy: number) => {
     const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), Math.max(0, max));
     setWindows((prev) =>
-      prev.map((w) =>
-        w.id === id && !w.isMaximized
-          ? {
-              ...w,
-              x: clamp(w.x + dx, window.innerWidth - 80),
-              y: clamp(w.y + dy, window.innerHeight - 60),
-            }
-          : w
-      )
+      prev.map((w) => {
+        if (w.id !== id || w.isMaximized) return w;
+        const next = {
+          x: clamp(w.x + dx, window.innerWidth - 80),
+          y: clamp(w.y + dy, window.innerHeight - 60),
+        };
+        rememberWindowPosition(id, next.x, next.y);
+        return { ...w, ...next };
+      })
     );
   };
 

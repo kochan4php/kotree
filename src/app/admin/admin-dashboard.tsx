@@ -24,6 +24,8 @@ interface Overview {
     editedAt?: string;
     deleted?: boolean;
     history?: { message: string; at: string }[];
+    // H4: why a post was held for review
+    spam?: { score: number; reasons: string[] };
   }[];
   daily: { day: string; count: number }[];
   errors: { id: string; message: string; source: string; url?: string; count: number; createdAt: string; lastSeenAt?: string }[];
@@ -36,6 +38,9 @@ interface Overview {
   csp?: { message: string; count: number; lastSeenAt: string }[];
   // M44: the active poll, if one is running
   poll?: { id: string; question: string; options: { label: string; count: number }[]; total: number } | null;
+  // H8: the number of failed sign-ins in the last day, when it crossed the
+  // alert threshold; null when things are quiet
+  loginAlert?: number | null;
 }
 
 // M61: one row in the sessions registry (ids arrive truncated)
@@ -631,6 +636,20 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
+        {authed && overview?.loginAlert && (
+          <div
+            role="alert"
+            className="rounded-lg border-[3px] border-foreground bg-amber-300 px-4 py-3 shadow-[4px_4px_0_0_var(--foreground)]"
+          >
+            <p className="text-sm font-black uppercase tracking-wide text-[#14110f]">
+              {overview.loginAlert} failed sign-ins in the last 24 hours
+            </p>
+            <p className="mt-1 text-xs font-medium text-[#14110f]">
+              If that was not you, change ADMIN_TOKEN and the recovery codes, then revoke the sessions below.
+            </p>
+          </div>
+        )}
+
         {authed && overview?.links === undefined && <SectionSkeleton label="Loading click stats" />}
         {authed && overview?.links !== undefined && (
           <>
@@ -1025,7 +1044,7 @@ export default function AdminDashboard() {
                             {entry.userAgent ? ` · ${entry.userAgent.slice(0, 60)}` : ''}
                             {entry.ipHash ? ` · ip ${entry.ipHash.slice(0, 8)}…` : ''}
                           </p>
-                          {(entry.pinned || entry.hidden || entry.deleted || entry.editedAt || (entry.reports ?? 0) > 0 || entry.reply) && (
+                          {(entry.pinned || entry.hidden || entry.deleted || entry.editedAt || entry.spam || (entry.reports ?? 0) > 0 || entry.reply) && (
                             <p className="flex flex-wrap items-center gap-1.5">
                               {entry.pinned && (
                                 <span className="inline-block rounded border-2 border-foreground bg-yellow-200 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
@@ -1035,6 +1054,14 @@ export default function AdminDashboard() {
                               {entry.hidden && (
                                 <span className="inline-block rounded border-2 border-foreground bg-red-300 px-1.5 text-[10px] font-black uppercase text-[#14110f]">
                                   hidden
+                                </span>
+                              )}
+                              {entry.spam && (
+                                <span
+                                  title={entry.spam.reasons.join('; ')}
+                                  className="inline-block rounded border-2 border-foreground bg-orange-300 px-1.5 text-[10px] font-black uppercase text-[#14110f]"
+                                >
+                                  held: spam {entry.spam.score}
                                 </span>
                               )}
                               {entry.deleted && (

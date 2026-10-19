@@ -270,7 +270,35 @@ test('wrapped recaps the year', async ({ page }) => {
   await expect(page.getByRole('heading', { name: `Kotree Wrapped ${year}` })).toBeVisible();
   await expect(page.getByText('Total clicks')).toBeVisible();
   await expect(page.getByText('Messages on the wall')).toBeVisible();
+  await expect(page.getByText('Longest click streak')).toBeVisible();
+  await expect(page.getByText('Busiest hour (UTC)')).toBeVisible();
   await expect(page.locator('circle.kt-ring')).toBeVisible();
+});
+
+test('a wrapped year with notes names its tag and its first note', async ({ page }) => {
+  // G6: 2026 is fixed on purpose — the notes card comes from content, and the
+  // year param is honoured for any year the site has lived through.
+  await page.goto('/wrapped?year=2026');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: 'From the notes' })).toBeVisible();
+  await expect(page.getByText('Most-used tag')).toBeVisible();
+  await expect(page.getByText('First note of the year')).toBeVisible();
+  await expect(page.getByRole('link', { name: /accessibility as a test/i })).toBeVisible();
+});
+
+// H1: a health check leaves a heartbeat, and /status draws the last 30 days of
+// them — padded, so a day nothing pinged still gets its block.
+test('status shows the heartbeat strip after a health check', async ({ page, request }) => {
+  const health = await request.get('/api/health');
+  expect(health.status()).toBe(200);
+
+  await page.goto('/status');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('heading', { name: /Uptime \(last 30 days\)/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /[1-9]\d* of the last 30 days had a heartbeat/ })).toBeVisible();
+  await expect(page.getByText(/nothing pinged that day/)).toBeVisible();
 });
 
 test('boss leaderboard accepts a score and rejects junk', async ({ page }) => {

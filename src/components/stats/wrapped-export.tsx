@@ -1,7 +1,9 @@
 'use client';
 
 import { Check, Download, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import QRCode from 'react-qr-code';
+import { qrPngBlob } from '@/lib/qr-download';
 
 interface WrappedExportProps {
   year: number;
@@ -47,6 +49,9 @@ export default function WrappedExport({
   url,
 }: WrappedExportProps) {
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
+  // The QR that gets painted into the image lives off-screen: /qr is where
+  // anyone can scan or download one by hand.
+  const qrRef = useRef<HTMLDivElement>(null);
 
   const download = async () => {
     setState('busy');
@@ -95,7 +100,7 @@ export default function WrappedExport({
         ['Reigning reaction', reaction ?? '—'],
       ];
 
-      let y = 660;
+      let y = 620;
       for (const [label, value] of rows) {
         ctx.globalAlpha = 0.3;
         ctx.strokeStyle = ink;
@@ -119,12 +124,26 @@ export default function WrappedExport({
           ctx.fillText(line, M, lineY);
           lineY += 54;
         }
-        y += 200;
+        y += 190;
+      }
+
+      // G6: the QR keeps the cream palette whatever the theme — scanners need
+      // contrast more than they need style. Drawn at twice its size so the
+      // modules stay crisp, and a QR that will not draw never costs the image.
+      const qrSvg = qrRef.current?.querySelector('svg');
+      if (qrSvg) {
+        try {
+          const bitmap = await createImageBitmap(await qrPngBlob(qrSvg, '#fff7e9', 352, 16));
+          ctx.drawImage(bitmap, M, 1330, 176, 176);
+          bitmap.close();
+        } catch {
+          // no QR this time
+        }
       }
 
       ctx.fillStyle = accent;
       ctx.font = `700 30px ${body}`;
-      ctx.fillText(url.replace(/^https?:\/\//, ''), M, H - 110);
+      ctx.fillText(url.replace(/^https?:\/\//, ''), M + 208, 1440);
 
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('nothing to save');
@@ -149,6 +168,9 @@ export default function WrappedExport({
 
   return (
     <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div ref={qrRef} className="hidden" aria-hidden="true">
+        <QRCode value={url} size={160} fgColor="#14110f" bgColor="#fff7e9" />
+      </div>
       <button
         type="button"
         onClick={download}

@@ -1,8 +1,11 @@
 name: Production alerts
 
-# M63: every six hours, smoke-test production and watch the CSP violation
-# counter. Failures land in a single rolling issue (commented, not duplicated)
-# instead of piling up notifications.
+# M63 + H2: every six hours, smoke-test production and watch the three numbers
+# /api/health reports — the CSP violation counter, live app errors, and the
+# slowest LCP p75 this week. Failures land in a single rolling issue
+# (commented, not duplicated) instead of piling up notifications.
+# Thresholds are repository variables: CSP_ALERT_THRESHOLD (default 25),
+# ERROR_ALERT_THRESHOLD (default 25) and LCP_ALERT_MS (default 4000).
 on:
   schedule:
     - cron: '0 */6 * * *'
@@ -20,11 +23,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: Smoke + CSP threshold
+      - name: Smoke + health thresholds
         id: check
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           CSP_ALERT_THRESHOLD: ${{ vars.CSP_ALERT_THRESHOLD }}
+          ERROR_ALERT_THRESHOLD: ${{ vars.ERROR_ALERT_THRESHOLD }}
+          LCP_ALERT_MS: ${{ vars.LCP_ALERT_MS }}
         run: |
           if [ -z "$SITE_URL" ]; then
             echo "::notice::Set the SITE_URL repository variable to enable production alerts"
@@ -33,33 +38,58 @@ jobs:
           set +e
           node scripts/smoke.mjs "$SITE_URL" > smoke.log 2>&1
           SMOKE=$?
-          VIOLATIONS=$(curl -fsS --max-time 20 "$SITE_URL/api/health" \
-            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).cspViolations24h ?? 0)}catch{console.log(0)}})')
+          HEALTH=$(curl -fsS --max-time 20 "$SITE_URL/api/health" || echo '{}')
+          read -r VIOLATIONS ERRORS LCP <<< "$(printf '%s' "$HEALTH" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const h=JSON.parse(s);console.log([h.cspViolations24h??0,h.appErrors24h??0,h.worstLcpP75??0].join(" "))}catch{console.log("0 0 0")}})')"
           case "$VIOLATIONS" in ''|*[!0-9]*) VIOLATIONS=0 ;; esac
-          THRESHOLD=${CSP_ALERT_THRESHOLD:-25}
-          echo "smoke=$SMOKE violations=$VIOLATIONS threshold=$THRESHOLD"
+          case "$ERRORS" in ''|*[!0-9]*) ERRORS=0 ;; esac
+          case "$LCP" in ''|*[!0-9]*) LCP=0 ;; esac
+          CSP_THRESHOLD=${CSP_ALERT_THRESHOLD:-25}
+          ERROR_THRESHOLD=${ERROR_ALERT_THRESHOLD:-25}
+          LCP_THRESHOLD=${LCP_ALERT_MS:-4000}
+          echo "smoke=$SMOKE csp=$VIOLATIONS/$CSP_THRESHOLD errors=$ERRORS/$ERROR_THRESHOLD lcp=$LCP/$LCP_THRESHOLD"
           {
             echo "smoke_failed=$([ "$SMOKE" -ne 0 ] && echo 1 || echo 0)"
-            echo "spike=$([ "$VIOLATIONS" -gt "$THRESHOLD" ] && echo 1 || echo 0)"
+            echo "spike=$([ "$VIOLATIONS" -gt "$CSP_THRESHOLD" ] && echo 1 || echo 0)"
             echo "violations=$VIOLATIONS"
+            echo "error_spike=$([ "$ERRORS" -gt "$ERROR_THRESHOLD" ] && echo 1 || echo 0)"
+            echo "errors=$ERRORS"
+            echo "lcp_spike=$([ "$LCP" -gt "$LCP_THRESHOLD" ] && echo 1 || echo 0)"
+            echo "lcp=$LCP"
           } >> "$GITHUB_OUTPUT"
           tail -n 20 smoke.log || true
 
       - name: Open or update the alert issue
-        if: steps.check.outputs.smoke_failed == '1' || steps.check.outputs.spike == '1'
+        if: steps.check.outputs.smoke_failed == '1' || steps.check.outputs.spike == '1' || steps.check.outputs.error_spike == '1' || steps.check.outputs.lcp_spike == '1'
         env:
           GH_TOKEN: ${{ github.token }}
           SMOKE_FAILED: ${{ steps.check.outputs.smoke_failed }}
+          SPIKE: ${{ steps.check.outputs.spike }}
           VIOLATIONS: ${{ steps.check.outputs.violations }}
+          ERROR_SPIKE: ${{ steps.check.outputs.error_spike }}
+          ERRORS: ${{ steps.check.outputs.errors }}
+          LCP_SPIKE: ${{ steps.check.outputs.lcp_spike }}
+          LCP: ${{ steps.check.outputs.lcp }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          TITLE="Production alert: smoke test or CSP spike"
+          # The short title is also the search phrase, so an issue opened under
+          # the older, longer title is still found and commented on.
+          TITLE="Production alert"
+          BODY_FILE=$(mktemp)
           if [ "$SMOKE_FAILED" = "1" ]; then
-            REASON="The smoke test against production failed."
-          else
-            REASON="CSP violations in the last 24h: ${VIOLATIONS} — over the threshold."
+            printf 'The smoke test against production failed.\n' >> "$BODY_FILE"
           fi
-          BODY="$(printf '%s\n\nRun: %s\n' "$REASON" "$RUN_URL")"
+          if [ "$SPIKE" = "1" ]; then
+            printf 'CSP violations in the last 24h: %s (over the threshold).\n' "$VIOLATIONS" >> "$BODY_FILE"
+          fi
+          if [ "$ERROR_SPIKE" = "1" ]; then
+            printf 'Live app errors in the last 24h: %s (over the threshold).\n' "$ERRORS" >> "$BODY_FILE"
+          fi
+          if [ "$LCP_SPIKE" = "1" ]; then
+            printf 'Slowest LCP p75 this week: %s ms (over the threshold).\n' "$LCP" >> "$BODY_FILE"
+          fi
+          printf '\nRun: %s\n' "$RUN_URL" >> "$BODY_FILE"
+          BODY=$(cat "$BODY_FILE")
           EXISTING=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" --body "$BODY"

@@ -3,6 +3,7 @@ import TagChips from '@/components/content/tag-chips';
 import PrintButton from '@/components/content/print-button';
 import ShelfActions from '@/components/content/shelf-actions';
 import HighlightsLayer from '@/components/content/highlights-layer';
+import Reactions from '@/components/content/reactions';
 import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getNote, getNotes, relatedTo } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
@@ -110,6 +111,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
               <div className="e-content">{renderMarkdown(blocks)}</div>
             </article>
             <HighlightsLayer path={`/notes/${note.slug}`} title={note.title} />
+            <Reactions path={`/notes/${note.slug}`} />
             <RelatedList items={related} base="/notes" />
             <PrevNext items={notes} currentSlug={note.slug} base="/notes" />
           </div>

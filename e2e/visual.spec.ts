@@ -62,6 +62,9 @@ async function freeze(
     if (route.request().method() === 'GET') return route.fulfill({ json: [] });
     return route.continue();
   });
+  // G1: reaction counts come from a live counter — pin them so the baseline
+  // never depends on how many people pressed the buttons in the dev database
+  await page.route('**/api/reactions?*', (route) => route.fulfill({ json: {} }));
   await page.clock.setFixedTime(new Date('2026-06-15T10:30:00Z'));
   await page.goto(path, { waitUntil: 'networkidle' });
   // cv-auto blocks are skipped in full-page captures otherwise

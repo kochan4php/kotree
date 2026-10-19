@@ -3,6 +3,7 @@ import TagChips from '@/components/content/tag-chips';
 import PrintButton from '@/components/content/print-button';
 import ShelfActions from '@/components/content/shelf-actions';
 import HighlightsLayer from '@/components/content/highlights-layer';
+import Reactions from '@/components/content/reactions';
 import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getProject, getProjects, relatedTo } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
@@ -113,6 +114,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <div className="e-content">{renderMarkdown(blocks)}</div>
             </article>
             <HighlightsLayer path={`/projects/${project.slug}`} title={project.title} />
+            <Reactions path={`/projects/${project.slug}`} />
 
             {project.links.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-3 border-t-[3px] border-foreground pt-5">

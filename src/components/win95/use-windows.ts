@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { profileWindowContent, randomWindowPos } from './content';
 import type { WindowState } from './types';
+import { usablePosition } from './win95-prefs';
 
 export function useWindows() {
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -23,8 +24,10 @@ export function useWindows() {
     }
     const newZ = topZ + 1;
     setTopZ(newZ);
+    // G7: a window comes back where it was left, clamped to the screen
+    const placed = usablePosition(id, x, y);
     setWindows([...windows, {
-      id, title, content, x, y, width, height,
+      id, title, content, x: placed.x, y: placed.y, width, height,
       zIndex: newZ, isMinimized: false, isMaximized: false,
       prevX: 0, prevY: 0, prevWidth: width, prevHeight: height,
     }]);
@@ -75,7 +78,8 @@ export function useWindows() {
     setTopZ(z => z + 1);
     setWindows(prev => {
       if (prev.some(w => w.id === 'profile')) return prev;
-      const pos = randomWindowPos();
+      const random = randomWindowPos();
+      const pos = usablePosition('profile', random.x, random.y);
       return [...prev, {
         id: 'profile',
         title: 'Profile.exe',

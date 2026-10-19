@@ -26,8 +26,31 @@ were confirmed with live probes against the deployed site.
 | Upstream timeouts (AbortSignal) | hung webhook / Gemini / ipapi | 5s webhook, 10s Gemini, 8s geo fallback |
 | PII hygiene | visitor data exposure | GET guestbook returns only `createdAt` + `message`; stored IP is sha-256 hashed |
 
-## Threat actors
+### The Origin guard, route by route
 
+Every route that can write checks the request's origin first (`guardOrigin` in
+`src/lib/security.ts`): the `Origin` header must be one the site allows **and**
+`Sec-Fetch-Site` must be `same-origin`. The check runs before tokens, honeypots
+and rate limits, so a cross-site request is refused with 403 before it can
+consume anything. Browsers set both headers and pages cannot forge them, which
+is what makes this the real CSRF protection — the derivable token beside it is
+cosmetic (see limitation 2 below).
+
+Two deliberate exceptions:
+
+- `POST /api/csp-report` — browsers send violation reports without same-origin
+  fetch metadata, so it validates the report shape instead and stores no user
+  data.
+- `GET` routes have nothing to protect; the guard sits on mutations only.
+
+Admin routes add a layer on top: `guardAdmin(request, { csrf: true })` verifies
+the HMAC-signed session cookie *and* the same-origin check, so a stolen cookie
+alone is not enough to change anything.
+
+`e2e/api.spec.ts` posts to every mutating route without an origin header and
+expects 403, so the guard cannot quietly disappear from a new route.
+
+## Threat actors
 | Actor | Target | Vector | Outcome |
 | ----- | ------ | ------ | ------- |
 | Random bot | any POST | cross-site form/fetch | blocked by guardOrigin (403) |
@@ -52,6 +75,10 @@ were confirmed with live probes against the deployed site.
    prompt contains no secrets).
 5. Browser APIs (mic, Bluetooth, battery, screen-share) are permission-gated
    by the browser and guarded with fallbacks.
+6. Trusted Types is report-only (`require-trusted-types-for`, never enforced).
+   The site's own JSON-LD blocks are written through React's `innerHTML` sink,
+   so enforcement would need a `default` policy that returns whatever it is
+   handed — paperwork, not protection. See `docs/decisions/0004`.
 
 ## Not implemented (YAGNI)
 

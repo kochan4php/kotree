@@ -5,13 +5,13 @@ import WrappedExport from '@/components/stats/wrapped-export';
 import YearCarousel from '@/components/content/year-carousel';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
-import { formatDate } from '@/lib/content';
+import { collectTags, formatDate, getNotes } from '@/lib/content';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
 import { ArrowLeft, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 // K29: the year in one page — clicks, favourite link, busiest day, wall
 // activity and your own secret tally. Live reads, fail-soft to zeros.
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   ...pageOg('wrapped', `Kotree Wrapped ${currentYear}`),
 };
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b-2 border-dashed border-foreground/20 py-2 last:border-0">
       <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</dt>
@@ -34,6 +34,8 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+const pad = (hour: number) => String(hour).padStart(2, '0');
 
 // M50: ?year=2025 opens that year's recap (clamped to the site's own lifetime)
 export default async function WrappedPage({
@@ -107,6 +109,12 @@ async function WrappedBody({ year }: { year: number }) {
   const stats = await getYearStats(year);
   const share =
     stats.topLink && stats.yearClicks > 0 ? Math.round((stats.topLink.count / stats.yearClicks) * 100) : 0;
+
+  // G6: what the notes themselves did this year — the tag they leaned on most
+  // and the one that opened the year.
+  const yearNotes = getNotes().filter((note) => note.date.startsWith(`${year}-`));
+  const tagOfTheYear = collectTags(yearNotes)[0] ?? null;
+  const firstNote = [...yearNotes].sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
 
   // Ring geometry: dasharray is the full circumference, dashoffset hides all
   // but the share. The draw-in animation lives in globals.css, motion-gated.
@@ -184,6 +192,22 @@ async function WrappedBody({ year }: { year: number }) {
               label="Reigning reaction"
               value={stats.topReaction ? `${stats.topReaction.emoji} ×${stats.topReaction.count}` : '—'}
             />
+            <Row
+              label="Longest click streak"
+              value={
+                stats.longestStreak > 0
+                  ? `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'} in a row`
+                  : '—'
+              }
+            />
+            <Row
+              label="Busiest hour (UTC)"
+              value={
+                stats.busiestHour === null
+                  ? '—'
+                  : `${pad(stats.busiestHour)}:00–${pad((stats.busiestHour + 1) % 24)}:00`
+              }
+            />
           </dl>
           <p className="mt-3 text-xs font-medium text-muted-foreground">
             <LocalSecrets />
@@ -202,6 +226,45 @@ async function WrappedBody({ year }: { year: number }) {
           />
         </div>
       </Card>
+
+      {yearNotes.length > 0 && (
+        <Card className="fluid-glass mt-3">
+          <div className="liquid-gradient"></div>
+          <div className="relative z-10">
+            <h2 className="text-lg font-bold text-foreground">From the notes</h2>
+            <dl className="mt-3">
+              <Row
+                label="Most-used tag"
+                value={
+                  tagOfTheYear
+                    ? `#${tagOfTheYear.tag} · ${tagOfTheYear.count} ${
+                        tagOfTheYear.count === 1 ? 'note' : 'notes'
+                      }`
+                    : '—'
+                }
+              />
+              <Row
+                label="First note of the year"
+                value={
+                  firstNote ? (
+                    <Link
+                      href={`/notes/${firstNote.slug}`}
+                      className="text-accent-ink underline underline-offset-2"
+                    >
+                      {firstNote.title}
+                    </Link>
+                  ) : (
+                    '—'
+                  )
+                }
+              />
+            </dl>
+            <p className="mt-3 text-xs font-medium text-muted-foreground">
+              {yearNotes.length} {yearNotes.length === 1 ? 'note carries' : 'notes carry'} a {year} date.
+            </p>
+          </div>
+        </Card>
+      )}
     </>
   );
 }

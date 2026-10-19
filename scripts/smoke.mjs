@@ -40,6 +40,7 @@ const CHECKS = [
   ['/uses', 200, ['Uses']],
   ['/links', 200, ['Links']],
   ['/shelf', 200, ['Shelf']],
+  ['/api/stats.json', 200, ['generatedAt']],
   ['/og', 200, ['Share cards']],
   ['/humans.txt', 200, ['Deo Subarno']],
   ['/robots.txt', 200, ['Sitemap:', 'GPTBot']],

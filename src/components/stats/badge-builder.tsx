@@ -92,6 +92,13 @@ export default function BadgeBuilder() {
         Rebuilt at most once an hour, and it never leaves a broken image: if the database is asleep, the
         badge says so.
       </p>
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        For everything else, the same numbers are public at{' '}
+        <code className="rounded border-2 border-foreground/20 bg-background/60 px-1 py-0.5 font-mono text-[11px]">
+          /api/stats.json
+        </code>
+        .</p>
     </div>
   );
 }

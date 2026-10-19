@@ -61,6 +61,9 @@ export default defineConfig({
       // M60: the e2e server enforces the second factor, and the tests compute
       // matching codes from this shared base32 secret (RFC 6238 test vector).
       ADMIN_TOTP_SECRET: 'JBSWY3DPEHPK3PXP',
+      // H8: the failed-sign-in alert fires after one wrong token in tests,
+      // instead of five, so a single deliberate failure can prove it works.
+      LOGIN_ALERT_THRESHOLD: '1',
     },
   },
 });

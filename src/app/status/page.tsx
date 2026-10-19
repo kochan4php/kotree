@@ -1,7 +1,15 @@
-import { getClientErrors, getVitalsP75, pingDb, type ClientError, type VitalAggregate } from '@/connections/mongodb';
+import {
+  getClientErrors,
+  getUptimeDays,
+  getVitalsP75,
+  pingDb,
+  type ClientError,
+  type VitalAggregate,
+} from '@/connections/mongodb';
 import StatusClient from '@/components/status/status-client';
 import { Card } from '@/components/ui/card';
-import { Activity, Database, Gauge, GitCommitHorizontal } from 'lucide-react';
+import { uptimeBars, uptimeSummary } from '@/lib/uptime';
+import { Activity, Database, Gauge, GitCommitHorizontal, History } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -73,6 +81,10 @@ export default async function StatusPage() {
   const clientErrors = await getClientErrors(20).catch(() => [] as ClientError[]);
   const newestError = clientErrors[0] ? (clientErrors[0].lastSeenAt ?? clientErrors[0].createdAt) : null;
 
+  // H1: the heartbeat strip — one slot per day, padded so it keeps its width
+  const bars = uptimeBars(await getUptimeDays(30), new Date(), 30);
+  const uptime = uptimeSummary(bars);
+
   return (
     <main
       id="main"
@@ -143,8 +155,40 @@ export default async function StatusPage() {
                 </dl>
               </section>
 
-              {vitalRows.length > 0 && (
-                <section aria-labelledby="status-vitals">
+              {/* H1: the monitor's own heartbeats, one block per day */}
+              <section aria-labelledby="status-uptime">
+                <h2
+                  id="status-uptime"
+                  className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-foreground"
+                >
+                  <History className="h-4 w-4 text-accent-ink" aria-hidden="true" />
+                  Uptime (last 30 days)
+                </h2>
+                <div className="rounded-lg border-[3px] border-foreground bg-background/80 px-4 py-3 shadow-[4px_4px_0_0_var(--foreground)]">
+                  <div
+                    role="img"
+                    aria-label={`${uptime.covered} of the last ${uptime.total} days had a heartbeat from a health check`}
+                    className="flex h-8 items-stretch gap-[3px]"
+                  >
+                    {bars.map((bar) => (
+                      <span
+                        key={bar.day}
+                        aria-hidden="true"
+                        title={`${bar.day}: ${bar.beats} ${bar.beats === 1 ? 'beat' : 'beats'}`}
+                        className={`flex-1 rounded-sm border-2 border-foreground ${
+                          bar.beats > 0 ? 'bg-green-300' : 'bg-secondary'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[11px] font-medium text-muted-foreground">
+                    Each block is one day. A green block is a day the health check answered; an empty
+                    one means nothing pinged that day, not that the site was down.
+                  </p>
+                </div>
+              </section>
+
+              {vitalRows.length > 0 && (                <section aria-labelledby="status-vitals">
                   <h2
                     id="status-vitals"
                     className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-foreground"

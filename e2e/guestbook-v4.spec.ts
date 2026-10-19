@@ -45,8 +45,7 @@ async function postSecret(request: APIRequestContext, message: string, owner: st
   });
 }
 
-async function adminLogin(request: APIRequestContext): Promise<Record<string, string>> {
-  const login = await request.post('/api/admin/session', {
+async function adminLogin(request: APIRequestContext): Promise<Record<string, string>> {  const login = await request.post('/api/admin/session', {
     headers: { ...ORIGIN, 'x-forwarded-for': RUN_XFF },
     data: { token: TOKEN, code: await currentTotpCode() },
   });
@@ -370,4 +369,27 @@ test('moderation previews formatting and hides in bulk (M47)', async ({ page, re
   await expect(row.getByText('hidden', { exact: true })).toBeVisible({ timeout: 10000 });
   await row.getByRole('button', { name: 'Unhide entry' }).click();
   await expect(row.getByText('hidden', { exact: true })).toHaveCount(0, { timeout: 10000 });
+});
+
+// H4: a post that reads like an advert is held for review rather than refused:
+// the wall never shows it, the moderation queue does, with the reasons.
+test('an advert-shaped post is held for review', async ({ request }) => {
+  const message = `BUY FOLLOWERS NOW https://spam.${uid()}.xyz FREE MONEY`;
+  const posted = await postSecret(request, message, `held-${uid()}`, '10.0.1.11');
+  expect(posted.ok()).toBe(true);
+  expect(((await posted.json()) as { held?: boolean }).held).toBe(true);
+
+  const wall = await request.get('/api/guestbook?limit=50');
+  const entries = (await wall.json()) as { message: string }[];
+  expect(entries.some((entry) => entry.message === message)).toBe(false);
+
+  const adminHeaders = await adminLogin(request);
+  const queue = await request.get('/api/admin/overview?section=moderation', { headers: adminHeaders });
+  const payload = (await queue.json()) as {
+    guestbook?: { message: string; hidden?: boolean; spam?: { score: number; reasons: string[] } }[];
+  };
+  const held = payload.guestbook?.find((row) => row.message === message);
+  expect(held?.hidden).toBe(true);
+  expect(held?.spam?.score ?? 0).toBeGreaterThanOrEqual(4);
+  expect(held?.spam?.reasons.join(' ')).toContain('advert phrases');
 });

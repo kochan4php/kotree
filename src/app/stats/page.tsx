@@ -4,6 +4,7 @@ import BadgeBuilder from '@/components/stats/badge-builder';
 import LocalSecrets from '@/components/stats/local-secrets';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
+import { weekChange } from '@/lib/stats-delta';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
 import { ArrowLeft, BarChart3, HeartHandshake } from 'lucide-react';
@@ -98,6 +99,7 @@ async function StatsBody() {
   const stats = await getPublicStats();
   const maxLink = Math.max(1, ...stats.topLinks.map((link) => link.count));
   const maxDay = Math.max(1, ...stats.last30Days.map((day) => day.count));
+  const week = weekChange(stats.last30Days);
 
   return (
     <>
@@ -176,6 +178,15 @@ async function StatsBody() {
                 <span>{shortDay(stats.last30Days[0].day)}</span>
                 <span>{shortDay(stats.last30Days[stats.last30Days.length - 1].day)}</span>
               </div>
+              {/* G4: the same series, read as a week-on-week comparison */}
+              <p className="mt-2 text-xs font-medium text-muted-foreground">
+                This week: <strong className="text-foreground tabular-nums">{week.last7}</strong> clicks
+                {week.percent === null
+                  ? ' — nothing recorded the week before to compare with.'
+                  : week.percent === 0
+                    ? ' — level with the week before.'
+                    : ` — ${week.percent > 0 ? 'up' : 'down'} ${Math.abs(week.percent)}% on the week before.`}
+              </p>
             </>
           )}
         </div>

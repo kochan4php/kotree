@@ -98,6 +98,8 @@ suite (including the axe audit) on Node 22 and 24, for every push.
 | `ADMIN_TOTP_RECOVERY` | no | – | Comma-separated SHA-256 hashes of one-time recovery codes |
 | `ADMIN_BIND_UA` | no | – | Set to `1` to bind admin sessions to the browser user agent |
 | `CSP_ALERT_THRESHOLD` | no | `25` | CSP violations per 24h that trigger the alert workflow |
+| `ERROR_ALERT_THRESHOLD` | no | `25` | Live app errors per 24h that trigger the alert workflow |
+| `LCP_ALERT_MS` | no | `4000` | Slowest LCP p75 (ms) that triggers the alert workflow |
 
 Set `NEXT_PUBLIC_BASE_URL` to your real domain before deploying. Without it,
 SEO links (canonical, sitemap, Open Graph) point to localhost.

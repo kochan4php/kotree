@@ -173,3 +173,32 @@ html[data-motion='off'] ::after {
 .kt-spooky {
   animation: kt-spooky-float 4s ease-in-out infinite;
 }
+
+/* G7: the Win95 screensaver's slow drift. The global motion gates above
+   flatten both animations to a still logo, and the shell does not show the
+   screensaver at all when motion is reduced. */
+@keyframes kt-saver-x {
+  from {
+    transform: translateX(4vw);
+  }
+  to {
+    transform: translateX(78vw);
+  }
+}
+
+@keyframes kt-saver-y {
+  from {
+    transform: translateY(10vh);
+  }
+  to {
+    transform: translateY(72vh);
+  }
+}
+
+.kt-saver-x {
+  animation: kt-saver-x 9s ease-in-out infinite alternate;
+}
+
+.kt-saver-y {
+  animation: kt-saver-y 6s ease-in-out infinite alternate;
+}

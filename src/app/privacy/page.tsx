@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card';
+import PrivacyData from '@/components/privacy/privacy-data';
 import { pageOg } from '@/lib/seo';
 import { site } from '@/lib/site';
 import { ShieldCheck } from 'lucide-react';
@@ -111,9 +112,11 @@ export default function PrivacyPage() {
           <div className="relative z-10">
             <h2 className="text-lg font-black tracking-tight text-foreground">Questions or removal</h2>
             <p className="mt-3 text-sm text-muted-foreground font-medium leading-relaxed">
-              Want a guestbook message removed, or curious about any of this? Reach out through any of the links
-              on the homepage — {site.handle} on GitHub works best.
+              Want a guestbook message removed, or curious about any of this? You can do both yourself below —
+              or reach out through any of the links on the homepage, {site.handle} on GitHub works best.
             </p>
+            {/* H5: the self-service half — nothing a visitor wrote here needs an email */}
+            <PrivacyData />
           </div>
         </Card>
       </div>

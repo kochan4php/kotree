@@ -26,6 +26,8 @@ ones the CI runs.
 | `ADMIN_TOTP_RECOVERY` | no | comma-separated sha256 hashes of one-time recovery codes |
 | `ADMIN_BIND_UA` | no | `1` binds admin sessions to the browser user agent |
 | `CSP_ALERT_THRESHOLD` | no | CSP violations/24h that open the alert issue (default 25) |
+| `ERROR_ALERT_THRESHOLD` | no | live app errors/24h that open the alert issue (default 25) |
+| `LCP_ALERT_MS` | no | slowest LCP p75 that opens the alert issue (default 4000 ms) |
 
 Never commit real values. Locally `.env.local` holds `ADMIN_TOKEN` only.
 
@@ -44,8 +46,9 @@ the `SITE_URL` repository variable is set, and every one can be run by hand
 from the Actions tab:
 
 - *Weekly backup* (Mondays) — exports production data as a workflow artifact.
-- *Production alerts* (every 6 hours) — smoke test plus the CSP counter;
-  failures collect in one rolling issue instead of piling up notifications.
+- *Production alerts* (every 6 hours) — smoke test plus three health numbers:
+  CSP violations, live app errors and the slowest LCP p75. Failures collect in
+  one rolling issue instead of piling up notifications.
 - *Backup restore drill* (1st of the month) — restores the newest artifact
   into an ephemeral database and verifies the counts (see below).
 
@@ -149,6 +152,12 @@ rolling issue once the count passes `CSP_ALERT_THRESHOLD` (default 25);
 triage there rather than in the raw feed. Then fix the offending code or
 extend the policy in `src/proxy.ts`; never add `'unsafe-inline'` back to
 `script-src`. `wasm-unsafe-eval` is deliberate (ADR 0001).
+
+**App errors or a slow week** — the same workflow reads `appErrors24h` and
+`worstLcpP75` from `/api/health` and raises the same issue above
+`ERROR_ALERT_THRESHOLD` (default 25 unresolved client errors) or `LCP_ALERT_MS`
+(default 4000 ms). Both read zero/null when Mongo is unreachable, so silence
+means "nothing reported", never "definitely fine".
 
 **Site looks unstyled after a deploy** — usually a stale service worker.
 Bump the cache name in `public/sw.js` and deploy; users get the update toast.

@@ -37,11 +37,13 @@ export async function reportEntry(id: string, token?: string): Promise<{ reporte
 // 'queued' means the network was unreachable and the message was stored
 // locally; HTTP rejections still throw so the caller can revert the
 // optimistic entry (or start a cooldown on 429).
+// H4: a held post is stored hidden for review, so the caller must not keep it
+// on the wall it just posted to.
 export async function postEntry(
   message: string,
   token?: string,
   owner?: string,
-): Promise<{ status: 'sent' | 'queued'; id?: string }> {
+): Promise<{ status: 'sent' | 'queued'; id?: string; held?: boolean }> {
   let res: Response;
   try {
     res = await fetch('/api/guestbook', {
@@ -55,7 +57,11 @@ export async function postEntry(
   }
   if (!res.ok) throw new GuestbookHttpError(res.status);
   const data = await res.json().catch(() => null);
-  return { status: 'sent', id: typeof data?.id === 'string' ? data.id : undefined };
+  return {
+    status: 'sent',
+    id: typeof data?.id === 'string' ? data.id : undefined,
+    held: data?.held === true,
+  };
 }
 
 // M46: counted=false means today's vote for this entry was already in the

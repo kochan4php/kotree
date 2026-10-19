@@ -2,6 +2,7 @@ import { MongoClient, ObjectId, type WithId } from 'mongodb';
 import { createHash } from 'crypto';
 import type { LinkCounter } from '@/interfaces';
 import { rateVital, type VitalRating } from '@/lib/vitals';
+import { longestStreak } from '@/lib/stats-delta';
 
 const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017';
 let client: MongoClient;
@@ -68,6 +69,8 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       db.collection('link_counter').createIndex({ name: 1 }),
       // M25: leaderboard sort is (score desc, createdAt asc) — cover both
       db.collection('boss_scores').createIndex({ score: -1, createdAt: 1 }),
+      // G1: one reactions row per page, counted per kind
+      db.collection('reactions').createIndex({ path: 1 }, { unique: true }),
     ]);
   })();
   return indexesPromise;
@@ -158,6 +161,7 @@ export interface GuestbookEntry {
   editedAt?: Date; // M41: set on every author edit inside the 5-minute window
   history?: { message: string; at: Date }[]; // M41: previous versions (capped)
   reply?: { message: string; at: Date }; // M43: one admin reply per entry
+  spam?: { score: number; reasons: string[] }; // H4: why a post was held
 }
 
 // Public shape: id is exposed so entries can be permalinked and reacted to.
@@ -292,12 +296,21 @@ export async function addGuestbookEntry(
   ip?: string,
   userAgent?: string,
   ownerHash?: string,
+  flags?: { hidden?: boolean; spam?: { score: number; reasons: string[] } },
 ): Promise<string> {
   const collection = await guestbookCollection();
   // Store a hash, not the raw IP: same visitor correlates for moderation, no PII kept
   const hashedIp = ip ? hashIp(ip) : undefined;
   const { insertedId } = await collection.insertOne(
-    { message, ip: hashedIp, userAgent, ownerHash, createdAt: new Date() },
+    {
+      message,
+      ip: hashedIp,
+      userAgent,
+      ownerHash,
+      createdAt: new Date(),
+      // H4: a held post carries the score that held it; a clean one stays lean
+      ...(flags?.hidden ? { hidden: true, spam: flags.spam } : {}),
+    },
     { maxTimeMS: 3_000 },
   );
   return insertedId.toString();
@@ -316,6 +329,7 @@ export interface GuestbookAdminEntry {
   editedAt?: Date;
   deleted?: boolean;
   history?: { message: string; at: Date }[];
+  spam?: { score: number; reasons: string[] }; // H4: the queue shows why
 }
 
 // Admin-only view: includes the internal id (for moderation deletes),
@@ -336,6 +350,7 @@ export async function getGuestbookAdminEntries(limit = 100): Promise<GuestbookAd
     editedAt: d.editedAt,
     deleted: d.deleted,
     history: d.history,
+    spam: d.spam,
   }));
 }
 
@@ -348,6 +363,43 @@ export async function deleteGuestbookEntry(id: string): Promise<boolean> {
 // M40/M41: author-side ownership — a soft delete and a five-minute edit
 // window, both keyed on the hashed device token sent with the original POST.
 export const EDIT_WINDOW_MS = 5 * 60 * 1000;
+
+// H5: everything the server holds that belongs to one device token — read
+// straight from the wall's own rows, deleted flag included so the visitor can
+// see what they have already removed.
+export interface OwnGuestbookEntry {
+  id: string;
+  message: string;
+  createdAt: Date;
+  hidden?: boolean;
+  deleted?: boolean;
+  reactions?: Record<string, number>;
+}
+
+export async function getGuestbookOwnEntries(ownerHash: string): Promise<OwnGuestbookEntry[]> {
+  const collection = await guestbookCollection();
+  const docs = await collection.find({ ownerHash }, { maxTimeMS: 3_000 }).sort({ createdAt: 1 }).toArray();
+  return docs.map((d) => ({
+    id: d._id.toString(),
+    message: d.message,
+    createdAt: d.createdAt,
+    hidden: d.hidden,
+    deleted: d.deleted,
+    reactions: d.reactions,
+  }));
+}
+
+// H5: the same soft delete as the single-entry one, applied to every live
+// entry the token owns. Returns how many it removed.
+export async function deleteGuestbookOwnEntries(ownerHash: string): Promise<number> {
+  const collection = await guestbookCollection();
+  const { modifiedCount } = await collection.updateMany(
+    { ownerHash, deleted: { $ne: true } },
+    { $set: { deleted: true, deletedAt: new Date(), deletedBy: 'author' } },
+    { maxTimeMS: 3_000 },
+  );
+  return modifiedCount;
+}
 
 export async function deleteGuestbookOwnEntry(id: string, ownerHash: string): Promise<boolean> {
   if (!ObjectId.isValid(id)) return false;
@@ -648,6 +700,47 @@ export async function getPageViews(days = 7): Promise<{ path: string; count: num
   return rows.map((row) => ({ path: row._id, count: row.count }));
 }
 
+// ---------- Uptime heartbeats (H1) ----------
+
+export interface UptimeDay {
+  day: string;
+  beats: number;
+  lastMs: number;
+  lastAt: Date;
+}
+
+const uptimeCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<UptimeDay>('uptime_beats'));
+
+// H1: every healthy /api/health answer is one beat, rolled up per day. A beat
+// can only be written when Mongo answered, so the absence of one means "nobody
+// pinged", never "the site was down" — the status page says so in as many words.
+export async function recordHealthBeat(ms: number): Promise<void> {
+  const collection = await uptimeCollection();
+  const now = new Date();
+  await collection.updateOne(
+    { day: now.toISOString().slice(0, 10) },
+    { $inc: { beats: 1 }, $set: { lastMs: ms, lastAt: now } },
+    { upsert: true, maxTimeMS: 3_000 },
+  );
+}
+
+export async function getUptimeDays(days = 30): Promise<UptimeDay[]> {
+  try {
+    const collection = await uptimeCollection();
+    const since = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+    const docs = await collection.find({ day: { $gte: since } }, { maxTimeMS: 3_000 }).sort({ day: 1 }).toArray();
+    return docs.map((doc) => ({
+      day: doc.day,
+      beats: doc.beats,
+      lastMs: doc.lastMs,
+      lastAt: doc.lastAt,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // ---------- Admin audit log (K4) ----------
 
 export interface AuditEntry {
@@ -685,6 +778,32 @@ export async function getAuditEvents(): Promise<string[]> {
   const collection = await auditCollection();
   const events = await collection.distinct('event', {}, { maxTimeMS: 3_000 });
   return events.filter((event): event is string => typeof event === 'string').sort();
+}
+
+// H8: failed sign-ins are audited already; this is the alerting half — count
+// them so the dashboard can shout when a run of them looks like brute force
+// rather than a typo.
+export async function countAuditSince(event: string, since: Date): Promise<number> {
+  try {
+    const collection = await auditCollection();
+    return await collection.countDocuments({ event, at: { $gte: since } }, { maxTimeMS: 3_000 });
+  } catch {
+    return 0;
+  }
+}
+
+// H8: the same count, judged: null unless it crosses LOGIN_ALERT_THRESHOLD
+// (five by default) within a day. Both the plain failure and the TOTP failure
+// count, because a brute-force run hits them in that order.
+export async function loginAlertCount(withinMs = 24 * 60 * 60 * 1000): Promise<number | null> {
+  const since = new Date(Date.now() - withinMs);
+  const [failed, totpFailed] = await Promise.all([
+    countAuditSince('login_failed', since),
+    countAuditSince('login_totp_failed', since),
+  ]);
+  const total = failed + totpFailed;
+  const threshold = Number(process.env.LOGIN_ALERT_THRESHOLD ?? 5) || 5;
+  return total >= threshold ? total : null;
 }
 
 // ---------- Admin sessions (M61) ----------
@@ -819,6 +938,40 @@ export async function getCspViolationCount24h(): Promise<number> {
     return rows[0]?.total ?? 0;
   } catch {
     return 0;
+  }
+}
+
+// H2: how many distinct app errors are still live — the CSP stream has its own
+// counter, so this one deliberately ignores it. One broken build shows up here
+// as a handful of rows; a quiet day reads as zero.
+export async function getAppErrorCount24h(): Promise<number> {
+  try {
+    const collection = await clientErrorsCollection();
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return await collection.countDocuments(
+      {
+        source: { $ne: 'csp' },
+        resolved: false,
+        $or: [{ lastSeenAt: { $gte: since } }, { createdAt: { $gte: since } }],
+      },
+      { maxTimeMS: 3_000 },
+    );
+  } catch {
+    return 0;
+  }
+}
+
+// H2: the slowest LCP p75 across pages this week, or null when there is not
+// enough data to accuse anyone. Five samples is the floor — one slow phone on
+// a train is not a regression.
+export async function getWorstLcpP75(days = 7): Promise<number | null> {
+  try {
+    const rows = await getVitalsP75(days);
+    const lcp = rows.filter((row) => row.metric === 'LCP' && row.total >= 5);
+    if (lcp.length === 0) return null;
+    return Math.max(...lcp.map((row) => row.p75));
+  } catch {
+    return null;
   }
 }
 
@@ -1026,13 +1179,18 @@ export interface YearStats {
   busiestDay: { day: string; count: number } | null;
   guestbookCount: number;
   topReaction: { emoji: string; count: number } | null;
+  // G6: the longest run of days with a click, and the UTC hour the wall is
+  // busiest in — the two readings the recap was missing.
+  longestStreak: number;
+  busiestHour: number | null;
 }
 
 export async function getYearStats(year: number): Promise<YearStats> {
   try {
     const collection = await dailyClicksCollection();
     const inYear = { $gte: `${year}-01-01`, $lte: `${year}-12-31` };
-    const [totalRows, topLinkRows, busiestRows, guestbookCount, reactions] = await Promise.all([
+    const [totalRows, topLinkRows, busiestRows, guestbookCount, reactions, activeDays, busiestHourRows] =
+      await Promise.all([
       collection
         .aggregate<{ count: number }>([{ $match: { day: inYear } }, { $group: { _id: null, count: { $sum: '$count' } } }], { maxTimeMS: 3_000 })
         .toArray(),
@@ -1058,6 +1216,28 @@ export async function getYearStats(year: number): Promise<YearStats> {
         }, { maxTimeMS: 3_000 })
       ),
       getTopReactions(1),
+      // G6: which days had a click (for the streak), and when the wall talks
+      collection.distinct('day', { day: inYear, count: { $gt: 0 } }, { maxTimeMS: 3_000 }),
+      guestbookCollection().then((entries) =>
+        entries
+          .aggregate<{ _id: number; count: number }>(
+            [
+              {
+                $match: {
+                  createdAt: {
+                    $gte: new Date(`${year}-01-01T00:00:00Z`),
+                    $lte: new Date(`${year}-12-31T23:59:59Z`),
+                  },
+                },
+              },
+              { $group: { _id: { $hour: '$createdAt' }, count: { $sum: 1 } } },
+              { $sort: { count: -1, _id: 1 } },
+              { $limit: 1 },
+            ],
+            { maxTimeMS: 3_000 }
+          )
+          .toArray()
+      ),
     ]);
     return {
       year,
@@ -1066,9 +1246,20 @@ export async function getYearStats(year: number): Promise<YearStats> {
       busiestDay: busiestRows[0] ? { day: busiestRows[0]._id, count: busiestRows[0].count } : null,
       guestbookCount,
       topReaction: reactions[0] ?? null,
+      longestStreak: longestStreak(activeDays),
+      busiestHour: busiestHourRows[0]?._id ?? null,
     };
   } catch {
-    return { year, yearClicks: 0, topLink: null, busiestDay: null, guestbookCount: 0, topReaction: null };
+    return {
+      year,
+      yearClicks: 0,
+      topLink: null,
+      busiestDay: null,
+      guestbookCount: 0,
+      topReaction: null,
+      longestStreak: 0,
+      busiestHour: null,
+    };
   }
 }
 
@@ -1096,4 +1287,30 @@ export async function submitBossScore(name: string, score: number): Promise<{ na
   const collection = await bossScoreCollection();
   await collection.insertOne({ name, score, createdAt: new Date() }, { maxTimeMS: 3_000 });
   return getBossLeaderboard();
+}
+
+// ---------- Note and project reactions (G1) ----------
+
+export interface ReactionDoc {
+  path: string;
+  counts: Record<string, number>;
+}
+
+const reactionCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<ReactionDoc>('reactions'));
+
+export async function getReactionCounts(path: string): Promise<Record<string, number>> {
+  const collection = await reactionCollection();
+  const doc = await collection.findOne({ path }, { maxTimeMS: 3_000 });
+  return doc?.counts ?? {};
+}
+
+export async function addReaction(path: string, kind: string): Promise<Record<string, number>> {
+  const collection = await reactionCollection();
+  const doc = await collection.findOneAndUpdate(
+    { path },
+    { $inc: { [`counts.${kind}`]: 1 } },
+    { upsert: true, returnDocument: 'after', maxTimeMS: 3_000 },
+  );
+  return doc?.counts ?? {};
 }

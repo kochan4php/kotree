@@ -8,6 +8,7 @@ import {
   getPageViews,
   getAuditLog,
   getAuditEvents,
+  loginAlertCount,
   getTopCspViolations,
   getActivePoll,
 } from '@/connections/mongodb';
@@ -31,7 +32,8 @@ export async function GET(request: Request) {
   const wantModeration = section !== 'stats';
 
   try {
-    const [links, guestbook, daily, errors, vitals, pageviews, audit, auditEvents, csp, poll] = await Promise.all([
+    const [links, guestbook, daily, errors, vitals, pageviews, audit, auditEvents, csp, poll, loginAlert] =
+      await Promise.all([
       wantStats ? getLinkCounts() : null,
       wantModeration ? getGuestbookAdminEntries() : null,
       // Trend + side panels are nice-to-have: an empty chart beats a 500
@@ -46,6 +48,8 @@ export async function GET(request: Request) {
       wantStats ? getTopCspViolations(5).catch(() => []) : null,
       // M44: the active poll (if any) rides in the moderation payload
       wantModeration ? getActivePoll().catch(() => null) : null,
+      // H8: a burst of failed sign-ins, or null when it is quiet
+      wantModeration ? loginAlertCount().catch(() => null) : null,
     ]);
 
     const payload: Record<string, unknown> = {};
@@ -64,6 +68,7 @@ export async function GET(request: Request) {
       payload.audit = audit;
       payload.auditEvents = auditEvents;
       payload.poll = poll;
+      payload.loginAlert = loginAlert;
     }
 
     // M26: admin data is per-request and behind a cookie — never cacheable

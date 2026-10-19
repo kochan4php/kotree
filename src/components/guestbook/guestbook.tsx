@@ -334,13 +334,20 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
       const result = await postEntry(encryptedMessage, token, ownerToken());
       clearDraft();
       if (result.status === 'sent') {
-        celebrateFirstSend();
-        if (result.id) {
-          // M40: adopt the server id so edit/delete appear on this entry
-          const id = result.id;
-          rememberMine(id, tempCreatedAt);
-          setMine((prev) => new Set(prev).add(id));
-          setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, id } : e)));
+        if (result.held) {
+          // H4: the wall will not show this one — say so rather than leave a
+          // ghost entry behind that vanishes on the next load
+          setEntries((prev) => prev.filter((e) => e.createdAt !== tempCreatedAt));
+          toast.info('Held for review — it will appear once the wall owner has looked at it.');
+        } else {
+          celebrateFirstSend();
+          if (result.id) {
+            // M40: adopt the server id so edit/delete appear on this entry
+            const id = result.id;
+            rememberMine(id, tempCreatedAt);
+            setMine((prev) => new Set(prev).add(id));
+            setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, id } : e)));
+          }
         }
       } else {
         setEntries((prev) => prev.map((e) => (e.createdAt === tempCreatedAt ? { ...e, pending: true } : e)));

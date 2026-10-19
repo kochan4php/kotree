@@ -12,6 +12,7 @@ import {
 import { guardOrigin, validateToken } from '@/lib/security';
 import { isRateLimited, isGloballyRateLimited, getClientIp } from '@/lib/rate-limit';
 import { jsonWithEtag } from '@/lib/http-cache';
+import { isSpam, spamScore } from '@/lib/spam';
 
 // M40/M41: the device token never reaches the database raw — only this hash
 // does, and edit/delete requests must present the token again.
@@ -90,9 +91,17 @@ export async function POST(request: Request) {
     // Get IP and User-Agent
     const userAgent = request.headers.get('user-agent') || 'Unknown';
 
+    // H4: a post that reads like an advert is held for a human rather than
+    // refused — the wall never shows it, the queue does, with the reasons.
+    const reading = spamScore(clean);
+    const held = isSpam(reading);
+
     // M40: the id goes back so the sender can edit or delete the entry later
-    const id = await addGuestbookEntry(clean, ip, userAgent, ownerHashOf(body.owner));
-    return NextResponse.json({ success: true, id });
+    const id = await addGuestbookEntry(clean, ip, userAgent, ownerHashOf(body.owner), {
+      hidden: held,
+      spam: held ? reading : undefined,
+    });
+    return NextResponse.json({ success: true, id, held });
   } catch {
     return NextResponse.json({ error: 'Failed to add entry' }, { status: 500 });
   }
