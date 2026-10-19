@@ -6,8 +6,11 @@ import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
 const SHORTCUTS: [string, string][] = [
   ['Ctrl / ⌘ + K', 'Search links'],
+  ['`', 'Open the terminal'],
   ['?', 'Show this help'],
   ['Esc', 'Close any window'],
+  ['Arrows', 'Move a Windows 95 window (Shift jumps)'],
+  ['F', 'Flag a square in Minesweeper'],
   ['↑ ↑ ↓ ↓ ← → ← → B A', '???'],
 ];
 

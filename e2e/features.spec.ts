@@ -383,6 +383,11 @@ test('terminal completes commands, keeps history and navigates', async ({ page }
   await input.press('ArrowUp');
   await expect(input).toHaveValue('whoami');
 
+  // neofetch prints a summary card with this session in it
+  await input.fill('neofetch');
+  await input.press('Enter');
+  await expect(page.getByText('kochan@kotree')).toBeVisible();
+
   // Tab completes 'wra' → 'wrapped', and the command opens the page
   await input.fill('wra');
   await input.press('Tab');

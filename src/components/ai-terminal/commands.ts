@@ -1,6 +1,6 @@
 import type { SocialLink } from '@/interfaces';
-import { writePrefs, type Accent, type Theme } from '@/lib/prefs';
-import { discoverSecret } from '@/lib/secrets';
+import { readPrefs, writePrefs, type Accent, type Theme } from '@/lib/prefs';
+import { SECRETS, discoverSecret, discoveredSecrets } from '@/lib/secrets';
 import { pickLucky } from '@/lib/lucky';
 import { ACCENT_IDS, COMMAND_NAMES, THEME_VALUES } from './complete';
 
@@ -16,6 +16,7 @@ export const RESPONSES: Record<string, string> = {
   skills: 'TypeScript, C#, HTML/CSS, Deno, React, Unity. (Frontend, Backend, Game Dev & Tools)',
   contact: 'Reach out to me on LinkedIn or GitHub (links are on the profile above!).',
   sudo: 'Nice try. This incident will be reported.',
+  neofetch: '',
   ls: "To see all links, type 'ls'. To open one, type 'open <name>'.",
   clear: '',
   help: `Available commands: ${COMMAND_NAMES.join(', ')} · theme <light|dark|auto> · man <command>`,
@@ -41,6 +42,7 @@ export const MAN: Record<string, string> = {
   clear: 'clear — wipe the terminal scrollback',
   help: 'help — list the available commands',
   whoami: 'whoami — who runs this place',
+  neofetch: 'neofetch — a summary card: this site, your session and your secrets',
   skills: 'skills — the toolbox',
   contact: 'contact — how to reach me',
   sudo: 'sudo — obviously not',
@@ -62,6 +64,20 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
   const arg = spaceAt === -1 ? '' : cmd.slice(spaceAt + 1).trim();
 
   switch (name) {
+    case 'neofetch': {
+      const { theme, accent } = readPrefs();
+      return {
+        reply: [
+          'kochan@kotree',
+          '-------------',
+          'OS: Kotree — a link-in-bio (Next.js)',
+          `Host: ${location.host}`,
+          `Screen: ${screen.width}x${screen.height}`,
+          `Theme: ${theme} · accent ${accent}`,
+          `Secrets found: ${discoveredSecrets().length}/${SECRETS.length}`,
+        ].join('\n'),
+      };
+    }
     case 'win95':
       discoverSecret('win95');
       window.dispatchEvent(new CustomEvent('ACTIVATE_WIN95'));

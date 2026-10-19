@@ -148,3 +148,12 @@
   border-top: 3px solid color-mix(in srgb, var(--color-foreground) 20%, transparent);
   padding-top: 1rem;
 }
+
+/* G2: a saved highlight. Token colours only, so the contrast of highlighted
+   text never depends on the accent the visitor picked. */
+.kt-highlight {
+  background: var(--color-secondary);
+  color: var(--color-foreground);
+  border-bottom: 2px solid var(--color-accent-ink);
+  padding: 0 0.06em;
+}

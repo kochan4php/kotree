@@ -65,6 +65,29 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
   const sentinelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // G10: one delivery path — used when the connection comes back by itself
+  // and when the visitor asks for it by hand.
+  const deliverQueued = useCallback(async () => {
+    const before = await queuedMessages();
+    if (before === 0) {
+      setPendingCount(0);
+      return;
+    }
+    const remaining = await flushQueue(token);
+    setPendingCount(remaining);
+    if (remaining < before) {
+      const delivered = before - remaining;
+      toast.success(`${delivered} secret${delivered > 1 ? 's' : ''} delivered`);
+      setEntries((prev) => prev.map((e) => (e.pending ? { ...e, pending: false } : e)));
+      // M40: flushed entries came back with ids worth remembering
+      setMine(new Set(readMine().map((record) => record.id)));
+      celebrateFirstSend();
+    }
+  }, [token]);
+  const onOnline = useCallback(() => {
+    void deliverQueued();
+  }, [deliverQueued]);
+
   useEffect(() => {
     // M45: a shared link can open the wall pre-filtered
     const params = new URLSearchParams(location.search);
@@ -121,23 +144,9 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
     })();
 
     // Deliver anything queued while offline as soon as we're back
-    const onOnline = async () => {
-      const before = await queuedMessages();
-      if (before === 0) return;
-      const remaining = await flushQueue(token);
-      setPendingCount(remaining);
-      if (remaining < before) {
-        const delivered = before - remaining;
-        toast.success(`${delivered} secret${delivered > 1 ? 's' : ''} delivered`);
-        setEntries((prev) => prev.map((e) => (e.pending ? { ...e, pending: false } : e)));
-        // M40: flushed entries came back with ids worth remembering
-        setMine(new Set(readMine().map((record) => record.id)));
-        celebrateFirstSend();
-      }
-    };
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
-  }, [token]);
+  }, [onOnline]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- navigator.onLine is browser-only, read after mount
@@ -452,9 +461,19 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
               </p>
             )}
             {pendingCount > 0 && (
-              <p role="status" className="text-[10px] font-mono font-bold text-accent-ink">
-                ⏳ {pendingCount} waiting to send — we&apos;ll deliver automatically
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p role="status" className="text-[10px] font-mono font-bold text-accent-ink">
+                  ⏳ {pendingCount} waiting to send — we&apos;ll deliver automatically
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void deliverQueued()}
+                  disabled={!online}
+                  className="inline-flex min-h-6 items-center rounded border-2 border-foreground bg-card px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-foreground cursor-pointer hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+                >
+                  Send now
+                </button>
+              </div>
             )}
           </div>
         )}

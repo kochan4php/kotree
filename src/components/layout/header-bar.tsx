@@ -22,9 +22,17 @@ export default function HeaderBar() {
   }, []);
 
   return (
-    <div className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 z-60 flex items-center justify-between pointer-events-none">
+    // The bar is a banner landmark so the logo and the dock stop being
+    // "content outside any landmark" (G12); the dock itself is a nav.
+    <header
+      aria-label="Site header"
+      className="fixed top-[max(1rem,env(safe-area-inset-top))] left-4 right-4 z-60 flex items-center justify-between pointer-events-none"
+    >
       <HeaderLeft />
-      <div className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass rounded-full!">
+      <nav
+        aria-label="Site tools"
+        className="ml-auto pointer-events-auto flex items-center gap-1.5 h-12 px-1.5 fluid-glass rounded-full!"
+      >
         <AITerminal />
         <VoiceCommand />
         <WebBluetooth />
@@ -39,8 +47,8 @@ export default function HeaderBar() {
           <Search className="w-5 h-5 text-accent-ink" />
         </button>
         <PrefsPanel />
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 }
 

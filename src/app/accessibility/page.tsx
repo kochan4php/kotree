@@ -53,6 +53,17 @@ export default function AccessibilityPage() {
                 without a mouse, and focus is always visible.
               </li>
               <li>
+                <strong className="text-foreground">Dragging is never the only way</strong> — a Windows 95 window
+                moves with the arrow keys once its title bar has focus (hold Shift for bigger steps), and every
+                dialog closes with a visible button as well as{' '}
+                <kbd className="rounded border border-foreground bg-secondary px-1 font-mono">Esc</kbd>.
+              </li>
+              <li>
+                <strong className="text-foreground">Shortcuts you can find</strong> — pressing{' '}
+                <kbd className="rounded border border-foreground bg-secondary px-1 font-mono">?</kbd> opens the full
+                list, and each one has a visible control or gesture that does the same job.
+              </li>
+              <li>
                 <strong className="text-foreground">Zoom and reflow</strong> — pages survive 400% zoom (a 320&nbsp;px
                 viewport) without sideways scrolling, and text still reads correctly with doubled letter and line
                 spacing.

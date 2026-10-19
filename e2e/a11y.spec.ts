@@ -36,6 +36,8 @@ const PAGES = [
   // The server-rendered search, empty and with results
   { name: 'search', path: '/search' },
   { name: 'search-results', path: '/search?q=offline' },
+  // G2: the personal shelf, shown empty (as a first visit would find it)
+  { name: 'shelf', path: '/shelf' },
 ];
 
 for (const { name, path } of PAGES) {

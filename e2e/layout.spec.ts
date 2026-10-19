@@ -95,3 +95,14 @@ for (const width of WIDTHS) {
     if (m.listHeight > 0) expect(m.listHeight, 'guestbook list height').toBeGreaterThanOrEqual(240);
   });
 }
+
+// G12: the top bar is a banner landmark and the dock inside it a nav, so the
+// logo and the dock icons are no longer content floating outside any landmark.
+test('the top bar and the dock are landmarks', async ({ page }) => {
+  await page.goto('/');
+  await settle(page);
+  await expect(page.locator('header[aria-label="Site header"]')).toHaveCount(1);
+  const dock = page.getByRole('navigation', { name: 'Site tools' });
+  await expect(dock).toBeVisible();
+  await expect(dock.getByRole('button', { name: 'Search links' })).toBeVisible();
+});

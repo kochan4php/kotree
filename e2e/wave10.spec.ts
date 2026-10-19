@@ -233,22 +233,27 @@ test('M82: no horizontal overflow at 2560 or landscape phone', async ({ page }) 
   }
 });
 
-// M86: notes print cleanly — the button is on screen, gone on paper, and the
-// fixed chrome steps out of the way while the note itself stays.
-test('M86: a note has a print button and print media drops the chrome', async ({ page }) => {
-  await page.goto('/notes/2026-10-12-offline-first');
-  await waitHydrated(page);
-  const printButton = page.getByRole('button', { name: 'Print' });
-  await expect(printButton).toBeVisible();
+// M86/G15: notes and projects print cleanly — the button is on screen, gone on
+// paper, and the fixed chrome steps out of the way while the content stays.
+for (const [what, path] of [
+  ['a note', '/notes/2026-10-12-offline-first'],
+  ['a project', '/projects/kotree'],
+] as const) {
+  test(`M86: ${what} has a print button and print media drops the chrome`, async ({ page }) => {
+    await page.goto(path);
+    await waitHydrated(page);
+    const printButton = page.getByRole('button', { name: 'Print' });
+    await expect(printButton).toBeVisible();
 
-  await page.emulateMedia({ media: 'print' });
-  await expect(printButton).toBeHidden();
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  const hiddenChrome = await page.evaluate(
-    () =>
-      Array.from(document.querySelectorAll('.fixed, [class*="sticky"]')).filter(
-        (element) => getComputedStyle(element).display === 'none'
-      ).length
-  );
-  expect(hiddenChrome).toBeGreaterThan(0);
-});
+    await page.emulateMedia({ media: 'print' });
+    await expect(printButton).toBeHidden();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    const hiddenChrome = await page.evaluate(
+      () =>
+        Array.from(document.querySelectorAll('.fixed, [class*="sticky"]')).filter(
+          (element) => getComputedStyle(element).display === 'none'
+        ).length
+    );
+    expect(hiddenChrome).toBeGreaterThan(0);
+  });
+}

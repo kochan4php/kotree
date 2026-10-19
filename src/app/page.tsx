@@ -3,6 +3,7 @@ import Footer from '@/components/layout/footer';
 import SocialLinkList from '@/components/social-links';
 import StatsCard from '@/components/stats-card';
 import Guestbook from '@/components/guestbook';
+import ContinueReading from '@/components/content/continue-reading';
 import GeoLockedQuest from '@/components/geo-locked-quest';
 import { generateToken } from '@/lib/security';
 import dynamic from 'next/dynamic';
@@ -27,6 +28,7 @@ export default function LinktreePage() {
           <aside className="flex min-w-0 flex-col space-y-3 md:col-start-1 md:row-start-1">
             <CardProfile />
             <StatsCard />
+            <ContinueReading />
             <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-1">
               <CryptoTipJar />
               <GeoLockedQuest />

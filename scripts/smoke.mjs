@@ -39,6 +39,7 @@ const CHECKS = [
   ['/sitemap-tags.xml', 200, ['/notes/tags/', '/projects/tags/']],
   ['/uses', 200, ['Uses']],
   ['/links', 200, ['Links']],
+  ['/shelf', 200, ['Shelf']],
   ['/og', 200, ['Share cards']],
   ['/humans.txt', 200, ['Deo Subarno']],
   ['/robots.txt', 200, ['Sitemap:', 'GPTBot']],

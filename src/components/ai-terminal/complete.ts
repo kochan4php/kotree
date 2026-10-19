@@ -5,6 +5,7 @@ export const COMMAND_NAMES = [
   'whoami',
   'skills',
   'contact',
+  'neofetch',
   'clear',
   'sudo',
   'win95',

@@ -1,6 +1,8 @@
 import { Card } from '@/components/ui/card';
 import TagChips from '@/components/content/tag-chips';
 import PrintButton from '@/components/content/print-button';
+import ShelfActions from '@/components/content/shelf-actions';
+import HighlightsLayer from '@/components/content/highlights-layer';
 import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getNote, getNotes, relatedTo } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
@@ -90,6 +92,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
                   </span>
                 </>
               )}
+              <ShelfActions path={`/notes/${note.slug}`} title={note.title} />
               <PrintButton />
             </div>
             <h1 className="p-name mt-2 text-3xl font-black tracking-tight text-foreground">{note.title}</h1>
@@ -106,6 +109,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
             <article className="mt-1">
               <div className="e-content">{renderMarkdown(blocks)}</div>
             </article>
+            <HighlightsLayer path={`/notes/${note.slug}`} title={note.title} />
             <RelatedList items={related} base="/notes" />
             <PrevNext items={notes} currentSlug={note.slug} base="/notes" />
           </div>
