@@ -33,8 +33,9 @@ Never commit real values. Locally `.env.local` holds `ADMIN_TOKEN` only.
 
 ## Deploy and rollback
 
-1. Push to `main` — GitHub Actions runs lint, typecheck, unit tests, build,
-   bundle budget and the full Playwright suite (Node 22 and 24).
+1. Push to `main` — GitHub Actions runs lint, typecheck, unit tests, build, the
+   index audit, a light load check, the bundle budget and the full Playwright
+   suite (Node 22 and 24).
 2. Netlify builds the same commit. When it is live:
    `node scripts/smoke.mjs https://<site>` (or just trigger the
    *Production smoke* workflow).
@@ -162,11 +163,38 @@ means "nothing reported", never "definitely fine".
 **Site looks unstyled after a deploy** — usually a stale service worker.
 Bump the cache name in `public/sw.js` and deploy; users get the update toast.
 
+**Index audit red in CI** — `scripts/audit-indexes.mjs` found a query shape that
+collapses to a COLLSCAN with no TTL bound to justify it. Add the index in
+`ensureIndexes()` (`src/connections/mongodb.ts`) instead of widening the query
+timeout, and say which query in the commit message.
+
+**Load check red in CI** — `scripts/load-check.mjs` pings five hot paths in
+parallel and fails past `LOAD_P95_MS` (default 2500 ms). Reproduce with
+`pnpm load:check -- <url> 40` against a built server; a value that only turns red
+in CI usually means the Mongo service was still starting, so re-run before
+digging.
+
+**A visitor wants their data gone** — point them at `/privacy`: their browser
+holds the token that reads and deletes their own guestbook rows (ADR 0007). The
+token is per-device, so only that device's copy goes. Without the token there is
+no identifier to look them up by; ask for the message text and clear it from
+Admin → Guestbook.
+
+**Spam reported as missing from the wall** — it is probably held, not lost.
+Admin → Guestbook shows `held: spam N` with the reasons (`ADR 0006`). Publish it
+if the score was wrong. The threshold lives in `src/lib/spam.ts`.
+
+**Uptime strips look patchy on `/stats`** — a quiet day, not an outage: a beat is
+only written when Mongo answered, so a gap means nothing polled `/api/health`
+(ADR 0005). The scheduled smoke workflow is what actually establishes uptime.
+
 ## Local gates (same order as CI)
 
 ```bash
 pnpm lint && pnpm typecheck && pnpm test:unit
 pnpm build && pnpm check:bundle
+node scripts/audit-indexes.mjs   # needs a local Mongo
+pnpm start & pnpm load:check -- http://127.0.0.1:3000 40
 npx playwright test            # visual tests need win32 baselines
 ```
 

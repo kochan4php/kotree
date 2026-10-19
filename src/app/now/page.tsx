@@ -31,7 +31,14 @@ export default function NowPage() {
               A snapshot of what I&apos;m focused on at the moment — not a feed, just the current state of things.
             </p>
             <ul className="mt-5 space-y-3 text-sm text-foreground/90 leading-relaxed font-medium list-disc marker:text-accent pl-5">
-              <li>Sharpening Kotree: performance, offline support and the little secrets tucked around the site.</li>
+              <li>
+                Sharpening Kotree — a reading shelf that remembers where you stopped, reactions on every page, offline
+                messages that deliver themselves, and a Windows 95 desktop that remembers where you left the windows.
+              </li>
+              <li>
+                Writing down the unglamorous half as well: index audits, a load check, restore drills and alert
+                thresholds, because those are what keep a small site standing.
+              </li>
               <li>Sketching small game prototypes in the evenings.</li>
               <li>Exploring new corners of TypeScript and web platform APIs.</li>
               <li>Open to interesting web and game projects — the contact links on the home page all work.</li>

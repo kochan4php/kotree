@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import TagChips from '@/components/content/tag-chips';
 import PrintButton from '@/components/content/print-button';
+import RepoCard from '@/components/content/repo-card';
 import ShelfActions from '@/components/content/shelf-actions';
 import HighlightsLayer from '@/components/content/highlights-layer';
 import Reactions from '@/components/content/reactions';
@@ -115,6 +116,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </article>
             <HighlightsLayer path={`/projects/${project.slug}`} title={project.title} />
             <Reactions path={`/projects/${project.slug}`} />
+            {project.repo && <RepoCard repo={project.repo} />}
 
             {project.links.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-3 border-t-[3px] border-foreground pt-5">

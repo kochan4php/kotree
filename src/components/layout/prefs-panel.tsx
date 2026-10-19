@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CalendarHeart, Check, Moon, MoonStar, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
+import { CalendarHeart, Bell, Check, Moon, MoonStar, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
 import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
+import { setDeliveryNotifications } from '@/lib/offline-sync';
 import { deriveAccent } from '@/lib/colour';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 
@@ -204,6 +205,28 @@ export default function PrefsPanel() {
               checked={prefs.reduceMotion}
               onChange={(v) => patch({ reduceMotion: v })}
             />
+            {/* G9: only where notifications can be asked for at all. The switch
+                is mirrored into IndexedDB so the service worker obeys it. */}
+            {typeof Notification !== 'undefined' && 'serviceWorker' in navigator && (
+              <Toggle
+                label="Delivery notifications"
+                icon={Bell}
+                checked={prefs.notify}
+                onChange={(value) => {
+                  if (!value) {
+                    void setDeliveryNotifications(false);
+                    return patch({ notify: false });
+                  }
+                  void Notification.requestPermission()
+                    .then((permission) => {
+                      const granted = permission === 'granted';
+                      void setDeliveryNotifications(granted);
+                      patch({ notify: granted });
+                    })
+                    .catch(() => patch({ notify: false }));
+                }}
+              />
+            )}
           </div>
 
           <p className="mt-3 text-[10px] text-muted-foreground font-medium">

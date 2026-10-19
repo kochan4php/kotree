@@ -12,6 +12,17 @@ export async function stashToken(token?: string): Promise<void> {
   }
 }
 
+// G9: the "Delivery notifications" switch in the dock. A service worker cannot
+// read localStorage, so the choice is mirrored into the store the worker
+// already opens for the CSRF token; the worker stays quiet when it is missing.
+export async function setDeliveryNotifications(on: boolean): Promise<void> {
+  try {
+    await set('notify-on', on);
+  } catch {
+    // idb blocked (private mode) — deliveries then arrive without a notification
+  }
+}
+
 // Ask for a background sync where the browser supports it (progressive).
 // getRegistration() rather than .ready: .ready never settles when no worker
 // ever activates (service workers blocked/unsupported), which would hang

@@ -30,6 +30,8 @@ export interface Prefs {
   /** M59: sound preferences per action kind — taps vs alerts. */
   soundTaps: boolean;
   soundAlerts: boolean;
+  /** G9: tell me when a message queued offline reaches the wall. */
+  notify: boolean;
 }
 
 export const PREFS_KEY = 'kotree-prefs';
@@ -45,6 +47,7 @@ export const DEFAULT_PREFS: Prefs = {
   volume: 0.7,
   soundTaps: true,
   soundAlerts: true,
+  notify: false,
 };
 
 export type SoundKind = 'tap' | 'alert';
@@ -99,6 +102,7 @@ export function readPrefs(): Prefs {
     merged.soundTaps = merged.soundTaps !== false;
     merged.soundAlerts = merged.soundAlerts !== false;
     merged.seasons = merged.seasons !== false;
+    merged.notify = merged.notify === true;
     const custom = merged.customAccent;
     merged.customAccent =
       custom &&

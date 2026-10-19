@@ -50,7 +50,9 @@ content/          markdown notes and projects
 | --- | --- | --- |
 | `link_counter` | per-link click totals | no identifiers |
 | `page_views` | `day`, `path`, `count` | aggregates only, no IP |
-| `guestbook` | message, hashed IP, user-agent, reactions, `pinned` | hashed IP is truncated SHA-256 |
+| `guestbook` | message, hashed IP, user-agent, reactions, `pinned` | hashed IP is truncated SHA-256; a post that scores as spam is stored `hidden` with its reading (ADR 0006) |
+| `reactions` | per-path, per-kind totals | one row per page, no identifiers (G1) |
+| `uptime_beats` | `day`, `beats`, `lastMs` | written only when Mongo answered, so a gap is a quiet day, not an outage (ADR 0005) |
 | `client_errors` | message, source, url, stack | fed by `/api/log`, CSP reports and the window error handler |
 | `audit` | event, detail, hashed IP | admin actions |
 | `boss_scores`, `rate_limits`, `vitals` … | gameplay and telemetry | `rate_limits` rows self-expire |
@@ -70,6 +72,12 @@ and rendered by `src/lib/markdown.tsx`. The parser is split from the renderer so
 `node --test` covers it without JSX. Headings get stable ids, a copy-link button
 and a named view-timeline; the table of contents follows the reading position
 with `animation-timeline: view()` — no scroll listeners, gated on `@supports`.
+Links pass through `safeHref`: only `http`, `https`, `mailto` and site-relative
+URLs become anchors and anything else is rendered as plain text, so a hostile
+scheme in content can never become a clickable hole.
+
+New notes are scaffolded with `pnpm new:note <slug>` (I7), which writes the dated
+filename and the frontmatter the build expects.
 
 Feeds are built once at build time (`force-static`): `/rss.xml` (full content in
 `<content:encoded>`), `/feed.json` (JSON Feed 1.1 with `content_html` and
@@ -123,6 +131,13 @@ context on unmount.
    session and its token.
 5. **Input** (guestbook): honeypot, CSRF token, rate limit, control-character
    strip, NFC normalise, 100-char cap, server-side.
+6. **Spam scoring** (`src/lib/spam.ts`): links, punctuation and advert phrases
+   score a post; at 4 it is stored hidden with its reasons for a human, never
+   refused (ADR 0006).
+7. **Privacy** (`/api/privacy`): the device token the wall already uses reads and
+   deletes a visitor's own guestbook rows. `DELETE` sits behind `guardOrigin`,
+   `GET` behind the rate limit only — a same-origin page load sends no `Origin`
+   header, and a cross-site reader cannot see the response (ADR 0007).
 
 ## Service worker
 
@@ -140,9 +155,12 @@ tabs are not swapped underneath the reader.
 | Perf | `pnpm test:perf` | LCP/CLS/TTFB budgets, 4× CPU throttle, runs isolated (`playwright.perf.config.ts`) |
 | Index audit | `node scripts/audit-indexes.mjs` | explain() on every hot query against a scratch database |
 | Visual | same | baselines are Windows-only (`*-win32.png`); regenerate with `--update-snapshots` on Windows |
+| Cross-browser | `npx playwright test -g @crossbrowser` | Firefox and WebKit: the Win95 desktop, keyboard help, motion gates |
 | Bundle | `pnpm check:bundle` | ranked per-chunk budgets + diff against `scripts/bundle-baseline.json` |
 | Smoke | `node scripts/smoke.mjs <url>` | post-deploy status/content check |
+| Load | `pnpm load:check -- <url> 40` | light parallel check across five hot paths; p95 budget 2500 ms |
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit, build, bundle and
-the full browser suite on Node 22 and 24. Scheduled workflows: daily smoke
-against production, weekly data backup (both activate once `SITE_URL` is set).
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit, build, the index
+audit, the light load check, the bundle budget and the full browser suite on
+Node 22 and 24. Scheduled workflows: daily smoke against production, weekly data
+backup (both activate once `SITE_URL` is set).

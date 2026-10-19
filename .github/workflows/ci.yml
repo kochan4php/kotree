@@ -41,6 +41,20 @@ jobs:
       - run: pnpm test:unit
       - run: pnpm build
       - run: pnpm check:bundle
+      # I5: every hot query must use an index, and the built server must stay
+      # quick under a light parallel load — both against the same Mongo service.
+      - name: Index audit
+        run: node scripts/audit-indexes.mjs
+      - name: Light load check
+        run: |
+          pnpm start > /tmp/kotree-server.log 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:3000/api/health > /dev/null && break
+            sleep 1
+          done
+          node scripts/load-check.mjs http://127.0.0.1:3000 40
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx playwright test
       # M1: the perf budget runs alone, after the main suite, so nothing else

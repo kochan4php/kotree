@@ -13,7 +13,12 @@ import { gzipSync } from 'node:zlib';
 
 const STATIC_DIR = join(process.cwd(), '.next', 'static');
 const BASELINE_FILE = join(process.cwd(), 'scripts', 'bundle-baseline.json');
-const TOTAL_BUDGET = 2_000_000; // ≈1.9 MB for all client JS chunks combined
+// ≈2 MB for every client chunk combined — lazy ones included, because
+// Turbopack emits no per-route manifest to tell them apart. The lazy 3D/Doom
+// chunk is 525 kB of that and only the curious ever fetch it, so this ceiling
+// moves up in writing, with a reason, about once per feature wave. The gzip
+// transfer total printed by every run is the number a visitor actually pays.
+const TOTAL_BUDGET = 2_100_000;
 // Chunks largest-first; #1 is the lazy 3D/Doom chunk
 const RANK_BUDGETS = [600_000, 450_000, 300_000, 220_000, 180_000];
 

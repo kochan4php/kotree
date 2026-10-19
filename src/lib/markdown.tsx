@@ -3,7 +3,7 @@ import HeadingAnchor from '@/components/content/heading-anchor';
 import { styleOf } from '@/lib/css-vars';
 import { Info, Lightbulb, OctagonAlert, ShieldAlert, TriangleAlert, type LucideIcon } from 'lucide-react';
 import React from 'react';
-import { slugifyHeading, type CalloutKind, type MarkdownBlock } from './markdown-parse';
+import { slugifyHeading, safeHref, type CalloutKind, type MarkdownBlock } from './markdown-parse';
 
 // The parser moved to markdown-parse.ts (unit-testable without JSX, M38).
 // Everything here re-exports the old surface so imports stay untouched.
@@ -90,17 +90,21 @@ function renderInline(text: string): React.ReactNode {
       if (end !== -1) {
         flush();
         const label = text.slice(i + 1, mid);
-        const href = text.slice(mid + 2, end);
-        const external = /^https?:/i.test(href);
+        const href = safeHref(text.slice(mid + 2, end));
         parts.push(
-          <a
-            key={key++}
-            href={href}
-            {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            className="font-bold text-accent-ink underline underline-offset-2 decoration-2 hover:decoration-[3px]"
-          >
-            {label}
-          </a>
+          href ? (
+            <a
+              key={key++}
+              href={href}
+              {...(/^https?:/i.test(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              className="font-bold text-accent-ink underline underline-offset-2 decoration-2 hover:decoration-[3px]"
+            >
+              {label}
+            </a>
+          ) : (
+            // I4: an unsupported scheme keeps its words and loses only the link
+            <span key={key++}>{label}</span>
+          )
         );
         i = end;
         continue;

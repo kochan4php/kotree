@@ -13,6 +13,8 @@ export interface Project {
   updated?: string;
   tags: string[];
   links: { label: string; url: string }[];
+  // G3: `owner/name` in frontmatter; the page then shows live GitHub numbers.
+  repo?: string;
   // M31: marks the project as an application, so JSON-LD can say
   // WebApplication instead of the generic CreativeWork.
   kind?: 'app';
@@ -73,6 +75,7 @@ export function getProjects(): Project[] {
       updated: data.updated || undefined,
       tags: (data.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
       kind: data.kind === 'app' ? ('app' as const) : undefined,
+      repo: data.repo || undefined,
       links: (data.links ?? '')
         .split(',')
         .map((pair) => {

@@ -1,6 +1,6 @@
 {
   "name": "kotree",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "private": true,
   "packageManager": "pnpm@11.18.0",
   "engines": {
@@ -21,6 +21,8 @@
     "check:bundle": "node scripts/check-bundle.mjs",
     "changelog:draft": "node scripts/changelog-draft.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "load:check": "node scripts/load-check.mjs",
+    "new:note": "node scripts/new-note.mjs",
     "backup": "node scripts/backup-data.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
   },

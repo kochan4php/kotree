@@ -144,6 +144,15 @@ test('the public stats JSON carries the numbers and a cache header', async ({ re
   expect(Array.isArray(body.last30Days)).toBe(true);
 });
 
+// G3: the repository card's route guards its input before it ever reaches
+// GitHub, so a hostile slug can never be reflected into the upstream URL.
+test('the repository route only accepts an owner/name slug', async ({ request }) => {
+  for (const bad of ['', 'kotree', 'https://github.com/kochan4php/kotree', '../../etc/passwd', 'a b/c']) {
+    const response = await request.get(`/api/repo-stats?repo=${encodeURIComponent(bad)}`);
+    expect(response.status(), bad || '(empty)').toBe(400);
+  }
+});
+
 // H6: the Origin guard covers every route that can write, not just the three
 // the threat model names. A request with no origin header is refused with 403
 // before tokens, honeypots or rate limits get a say.

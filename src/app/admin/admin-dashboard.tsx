@@ -859,12 +859,12 @@ export default function AdminDashboard() {
                         className="flex flex-wrap items-center gap-2 rounded-lg border-2 border-foreground bg-secondary px-3 py-1.5 shadow-[2px_2px_0_0_var(--foreground)]"
                       >
                         <span
-                          className={`inline-block rounded border-2 border-foreground px-1.5 text-[10px] font-black uppercase text-[#14110f] ${
+                          className={`inline-block rounded border-2 border-foreground px-1.5 text-[10px] font-black uppercase ${
                             entry.event === 'login_failed' || entry.event === 'login_totp_failed'
-                              ? 'bg-red-300'
+                              ? 'bg-red-300 text-[#14110f]'
                               : entry.event === 'login_ok'
-                                ? 'bg-green-300'
-                                : 'bg-card'
+                                ? 'bg-green-300 text-[#14110f]'
+                                : 'bg-secondary text-foreground'
                           }`}
                         >
                           {entry.event.replace(/_/g, ' ')}
@@ -1070,7 +1070,7 @@ export default function AdminDashboard() {
                                 </span>
                               )}
                               {entry.editedAt && (
-                                <span className="inline-block rounded border-2 border-foreground bg-card px-1.5 text-[10px] font-black uppercase text-[#14110f]">
+                                <span className="inline-block rounded border-2 border-foreground bg-secondary px-1.5 text-[10px] font-black uppercase text-foreground">
                                   edited{entry.history?.length ? ` ×${entry.history.length}` : ''}
                                 </span>
                               )}

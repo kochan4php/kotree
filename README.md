@@ -77,11 +77,26 @@ Open https://localhost:3000 (the dev server runs with HTTPS).
 | `pnpm scan:secrets`   | Fail if a secret pattern sneaks into the repo       |
 | `pnpm gen:splash`     | Regenerate the iOS splash screens                   |
 | `pnpm changelog:draft`| Draft a changelog skeleton from the commit log      |
+| `pnpm new:note`       | Scaffold a dated note: `pnpm new:note <slug>`       |
+| `pnpm load:check`     | Light load check: `pnpm load:check -- <url> <n>`    |
 | `pnpm backup`         | Export MongoDB data to `backups/`                   |
 
 `pnpm test:e2e` builds and starts the app itself; a local MongoDB is required.
 CI runs lint, typecheck, unit tests, build, bundle budget and the full e2e
 suite (including the axe audit) on Node 22 and 24, for every push.
+
+## Writing
+
+Notes live in `content/notes` as plain Markdown, named `YYYY-MM-DD-slug.md`.
+Scaffold one so the frontmatter is never half-written:
+
+```bash
+pnpm new:note offline-first
+```
+
+Fill in `summary` and `tags`, write the body, then run `pnpm changelog:draft`
+before committing. It groups the commits since the last tag; a human still
+turns those bullets into a plain-English entry for `/changelog`.
 
 ## Environment variables
 
@@ -115,6 +130,9 @@ SEO links (canonical, sitemap, Open Graph) point to localhost.
 - `POST /api/pageview`, `POST /api/log`, `POST /api/csp-report` — beacons: page views, client errors, CSP violations.
 - `POST /api/chat` — AI terminal endpoint (guarded by origin + rate limit).
 - `POST /api/boss-scores` / `GET /api/boss-scores` — leaderboard.
+- `GET /api/reactions?path=/notes/…` / `POST /api/reactions` — per-page reactions (👍 ❤️ 🔥), counted per path.
+- `GET /api/stats.json` — last 30 days, top links, busiest hours and the week-on-week change, cached for 60 s.
+- `GET /api/privacy?owner=…` / `DELETE /api/privacy?owner=…` — a device token reads and deletes its own guestbook entries (see [ADR 0007](docs/decisions/0007-privacy-without-accounts.md)).
 - `GET /api/badge/<clicks|wrapped>.svg` — embeddable README badges, fail-soft to “offline”.
 - `GET /api/health` — uptime check (`200` when Mongo is reachable, `503` otherwise), including 24h CSP-violation count.
 - Admin (Bearer `ADMIN_TOKEN` or session cookie): `GET /api/admin/overview`, `DELETE /api/admin/guestbook?id=…`, `GET /api/admin/export`, `GET /api/admin/audit`, `GET/DELETE /api/admin/sessions`, `POST /api/admin/session`.
@@ -153,7 +171,10 @@ scripts/        build-time and ops scripts (OG art, splash, backup, drill)
 
 - [Architecture](docs/architecture.md) — how the pieces fit, rendering model
 - [Runbook](docs/runbook.md) — deploy, rollback, incidents, gates
-- [Decisions](docs/decisions/) — ADRs: nonce CSP, rate limits, no new packages
+- [Contributing](CONTRIBUTING.md) — setup, gates, content workflow
+- [Decisions](docs/decisions/) — ADRs: CSP nonce, rate limits, platform-first
+  builds, report-only Trusted Types, heartbeat gaps, spam holds, privacy without
+  accounts
 - `/changelog` — every release in plain language
 
 ## Deployment

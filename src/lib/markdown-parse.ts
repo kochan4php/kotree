@@ -26,6 +26,21 @@ function headingLevel(line: string): 'h1' | 'h2' | 'h3' | null {
 
 // Stable heading anchors (K19): same slug algorithm the TOC links against,
 // with a counter so repeated headings never collide.
+// I4: links in content are authored in the repo, but a bad paste must not
+// become a javascript: URL in the rendered page. Whitespace and control
+// characters are stripped first (browsers ignore them inside a scheme, so
+// "java\nscript:" would otherwise slip past), then only the schemes the site
+// actually links with — and scheme-less relative URLs — survive.
+const SAFE_SCHEMES = new Set(['http', 'https', 'mailto']);
+
+export function safeHref(href: string): string | null {
+  const clean = href.replace(/[\u0000-\u0020\u007F]/g, '');
+  if (!clean) return null;
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(clean);
+  if (scheme && !SAFE_SCHEMES.has(scheme[1].toLowerCase())) return null;
+  return clean;
+}
+
 export function slugifyHeading(text: string, seen: Map<string, number>): string {
   const base =
     text

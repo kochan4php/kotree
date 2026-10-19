@@ -7,6 +7,13 @@ import { resolve } from 'node:path';
 //   2. a newly deployed worker waits for the user instead of hijacking the tab.
 test.describe.configure({ mode: 'serial' });
 
+// G9: the parts of the worker the notification test reaches into.
+type SwScope = {
+  announceDelivery: (delivered: number) => Promise<void>;
+  registration: ServiceWorkerRegistration;
+  announced: string[];
+};
+
 async function waitForActiveWorker(page: Page) {
   await page.waitForFunction(
     async () => {
@@ -82,4 +89,47 @@ test('a new build parks in the waiting worker and the toast offers Refresh', asy
   } finally {
     writeFileSync(workerFile, original);
   }
+});
+
+// G9: a message the worker delivers while the tab is closed may raise one
+// notification — but only when the dock's switch is on, which the worker reads
+// from the same store it opens for the CSRF token.
+test('a background delivery announces itself only while the switch is on', async ({ page, context }) => {
+  await context.grantPermissions(['notifications']);
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await waitForActiveWorker(page);
+
+  const worker = context.serviceWorkers()[0];
+  expect(worker).toBeTruthy();
+
+  // Headless Chromium reports Notification.permission as denied even for a
+  // context that was granted it, so the browser's own call is recorded rather
+  // than displayed. What this test owns is the gate and the wording.
+  await worker.evaluate(() => {
+    const scope = self as unknown as SwScope;
+    scope.announced = [];
+    scope.registration.showNotification = async (title: string) => {
+      scope.announced.push(String(title));
+    };
+  });
+
+  const announce = (count: number) =>
+    worker.evaluate(async (delivered) => {
+      const scope = self as unknown as SwScope;
+      scope.announced.length = 0;
+      await scope.announceDelivery(delivered);
+      return scope.announced;
+    }, count);
+
+  // The switch starts off: nothing is announced
+  expect(await announce(2)).toEqual([]);
+
+  await page.getByRole('button', { name: 'Preferences' }).click();
+  const toggle = page.getByRole('switch', { name: 'Delivery notifications' });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+
+  expect(await announce(1)).toEqual(['Your secret made it']);
+  expect(await announce(2)).toEqual(['2 secrets made it']);
 });

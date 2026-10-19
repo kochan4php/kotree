@@ -2,6 +2,39 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
+## [3.5.0]
+
+The update about remembering things: where you stopped reading, where you left the windows, and what you wrote while the train was in a tunnel.
+
+### Added
+
+- A reading shelf at /shelf: save a note or a project, see how far through it you are, and pick up where you stopped
+- Highlights you can keep on a page, each with a link that jumps straight back to the sentence
+- Three reactions on every note and project, counted on the server and remembered on your device
+- A week-on-week line on the stats page, and /api/stats.json for anyone who wants the numbers in a script
+- The longest streak and the busiest hour of the year, drawn into the yearly recap
+- The Windows 95 toy remembers where you left your windows and what colour your desktop was, and it grew a Start menu (with Display Properties, Exit and Shut Down) and a screensaver that kicks in when you leave it alone
+- Uptime strips on the status page, drawn from daily heartbeats and honest about what a quiet day means: nobody checked, not that the site was down
+- A privacy page at /privacy where this browser can see the messages it left on the wall and remove them — no account, no email, nothing to sign up for
+- A switch in the dock for delivery notifications: if a message you wrote offline reaches the wall while the tab is closed, one notification says so, and clicking it opens the wall
+- Live repository numbers on the Kotree project page, read from a cached copy so GitHub never holds the page up
+- Project pages print as cleanly as notes do, and the terminal gained a `neofetch`
+
+### Changed
+
+- The guestbook no longer throws away a message that reads like an advert. It holds it for review, tells the author it is queued, and shows the moderator exactly why it was held — a score and its reasons, never a verdict
+- Failed admin sign-ins, a run of app errors and a slow week now open the same rolling alert issue that CSP violations already did
+- The guestbook can send its queued messages by hand instead of waiting for the connection to notice
+- The top bar and the dock are proper landmarks now, so a screen reader can jump straight to the navigation, and the shortcuts list covers the terminal and the Windows 95 keys
+- The accessibility statement names its dragging alternatives, and the Windows 95 machine was re-checked in Firefox and Safari rather than only Chrome
+- Links in notes and projects are checked against a strict allowlist of schemes before anything becomes clickable
+- The share image for Wrapped has the QR code painted into it rather than sitting beside it
+- The unglamorous half got its turn: the database indexes are audited and a light load check runs on every push, the whole journey from home to guestbook is covered by one golden-path test, and there is now a note scaffold (`pnpm new:note`), a contributing guide and a set of ADRs for the decisions that are not obvious
+
+### Fixed
+
+- Two chips in the admin dashboard were unreadable in dark mode, sitting as dark text on a dark card
+
 ## [3.4.0]
 
 A big, quiet release: more to find, more to play with, and a lot of work you will only notice when something stops being annoying.

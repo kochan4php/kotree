@@ -153,6 +153,37 @@ test.describe('structured data', () => {
     expect(nodes.some((node) => node['@type'] === 'WebApplication')).toBe(true);
   });
 
+  // G3: the repository card reads our cached route, so the test stubs the
+  // browser's half and never asks GitHub for anything.
+  test('the project repository card shows the numbers it was given', async ({ page }) => {
+    await page.route('**/api/repo-stats?*', (route) =>
+      route.fulfill({
+        json: {
+          fullName: 'kochan4php/kotree',
+          description: null,
+          stars: 42,
+          forks: 7,
+          openIssues: 3,
+          language: 'TypeScript',
+          pushedAt: new Date().toISOString(),
+        },
+      })
+    );
+    await page.goto('/projects/kotree');
+    await expect(page.getByText('kochan4php/kotree')).toBeVisible();
+    await expect(page.getByText('42 stars')).toBeVisible();
+    await expect(page.getByText('7 forks')).toBeVisible();
+    await expect(page.getByText('3 open')).toBeVisible();
+  });
+
+  // A GitHub hole must leave the page alone, not a gap or an error
+  test('the repository card stays quiet when the route fails', async ({ page }) => {
+    await page.route('**/api/repo-stats?*', (route) => route.fulfill({ status: 502, json: { error: 'nope' } }));
+    await page.goto('/projects/kotree');
+    await expect(page.getByRole('heading', { level: 1, name: 'Kotree' })).toBeVisible();
+    await expect(page.getByText('42 stars')).toHaveCount(0);
+  });
+
   test('tag pages carry CollectionPage JSON-LD', async ({ page }) => {
     const { tag } = firstTaggedNote();
     await page.goto(`/notes/tags/${slugifyTag(tag)}`);

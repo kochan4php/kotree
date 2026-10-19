@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { createHmac } from 'node:crypto';
 import { currentTotpCode } from './helpers/totp';
@@ -319,3 +320,24 @@ test('admin writes are rate limited per IP with a Retry-After hint', async ({ pa
   expect(result?.attempts).toBe(31);
   expect(result?.retryAfter).toBe('60');
 });
+
+// I1: the public a11y sweep only ever sees the token form. The signed-in
+// dashboard is the densest screen on the site — tables, filters, bulk actions —
+// so it gets its own audit, in both themes.
+for (const theme of ['light', 'dark'] as const) {
+  test(`the signed-in dashboard passes axe (${theme})`, async ({ page }) => {
+    await page.addInitScript((selected) => {
+      localStorage.setItem(
+        'kotree-prefs',
+        JSON.stringify({ theme: selected, accent: 'orange', fx: false, sound: false })
+      );
+    }, theme);
+
+    await openAdmin(page);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const blocking = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+    expect(blocking.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length }))).toEqual([]);
+  });
+}

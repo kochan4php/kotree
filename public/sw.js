@@ -210,10 +210,11 @@ function idbSet(key, value) {
 
 async function flushQueue(key, url, makeBody, token) {
   const queue = await idbGet(key);
-  if (!Array.isArray(queue) || queue.length === 0) return;
+  if (!Array.isArray(queue) || queue.length === 0) return 0;
   // Claim the queue before posting — the page's online handler may race us
   await idbSet(key, []);
   const remaining = [];
+  let delivered = 0;
   for (const item of queue) {
     try {
       const res = await fetch(url, {
@@ -221,13 +222,45 @@ async function flushQueue(key, url, makeBody, token) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(makeBody(item, token)),
       });
-      if (!res.ok) remaining.push(item);
+      if (res.ok) delivered++;
+      else remaining.push(item);
     } catch {
       remaining.push(item);
     }
   }
   if (remaining.length > 0) await idbSet(key, remaining);
+  return delivered;
 }
+
+// G9: a message that reached the wall while the tab was closed is worth one
+// notification. The visitor's choice is the mirrored switch (a worker cannot
+// read localStorage); showNotification itself refuses when permission is gone,
+// so a denial lands in the catch rather than in the visitor's face.
+async function announceDelivery(count) {
+  if (count <= 0 || (await idbGet('notify-on')) !== true) return;
+  try {
+    await self.registration.showNotification(count === 1 ? 'Your secret made it' : `${count} secrets made it`, {
+      body: 'What you left while offline is on the wall now.',
+      icon: '/icons/icon-192x192.png',
+      badge: '/favicon-32x32.png',
+      tag: 'kotree-delivery',
+      data: { url: '/guestbook' },
+    });
+  } catch {
+    // permission revoked — the delivery itself already succeeded
+  }
+}
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = event.notification.data?.url || '/guestbook';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const open = clients.find((client) => new URL(client.url).pathname === target);
+      return open ? open.focus() : self.clients.openWindow(target);
+    })
+  );
+});
 
 self.addEventListener('sync', (event) => {
   if (event.tag !== 'kotree-sync-queues') return;
@@ -244,10 +277,11 @@ self.addEventListener('sync', (event) => {
         count: 1,
         _token: t,
       }), token);
-      await flushQueue('offline-guestbook', '/api/guestbook', (message, t) => ({
+      const delivered = await flushQueue('offline-guestbook', '/api/guestbook', (message, t) => ({
         message,
         _token: t,
       }), token);
+      await announceDelivery(delivered);
     })()
   );
 });

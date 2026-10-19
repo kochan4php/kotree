@@ -26,7 +26,7 @@ const PAGES = [
 async function freeze(
   page: Page,
   path: string,
-  theme: 'light' | 'dark' = 'light',
+  theme: 'light' | 'dark' | 'oled' = 'light',
   extraPrefs: Record<string, unknown> = {}
 ) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -82,11 +82,19 @@ for (const { name, path } of PAGES) {
   }
 }
 
-// K38/K48: dark scheme at two widths, plus the guestbook and a note detail
+// K38/K48: dark scheme at two widths, plus the guestbook and a note detail.
+// I2: OLED joins the set — it is a third resolved theme (pure black), not a
+// variant of dark, so it needs its own pixels. /stats and /wrapped are not
+// here on purpose: both are rendered from live counters, so a baseline would
+// encode one afternoon of numbers. The a11y and smoke suites cover them.
 const EXTRA_PAGES = [
   { name: 'home-dark', path: '/', theme: 'dark' as const, widths: [1100, 1440] },
+  { name: 'home-oled', path: '/', theme: 'oled' as const, widths: [1440] },
   { name: 'guestbook', path: '/guestbook', theme: 'light' as const, widths: [1440] },
+  { name: 'guestbook-dark', path: '/guestbook', theme: 'dark' as const, widths: [1440] },
   { name: 'note-detail', path: '/notes/2026-10-12-offline-first', theme: 'light' as const, widths: [1440] },
+  { name: 'note-detail-dark', path: '/notes/2026-10-12-offline-first', theme: 'dark' as const, widths: [1440] },
+  { name: 'note-detail-oled', path: '/notes/2026-10-12-offline-first', theme: 'oled' as const, widths: [1440] },
 ];
 
 for (const { name, path, theme, widths } of EXTRA_PAGES) {
