@@ -12,10 +12,11 @@ declare global {
 const MULT = process.env.CI ? 2 : 1;
 
 // M1b: per-route weight — the raw JS the route pulls in before its load event.
-// Measured on 2026-10-19: home 696 kB, the other four 629-662 kB. These byte
-// counts come from the build, not the machine, so this budget deliberately has
-// no CI multiplier. Raise it only when a route genuinely needs to carry more.
-const JS_BUDGET = 800 * 1024;
+// Measured on 2026-10-20 after dropping ethers and sonner: home 670 kB, the
+// other five 599-634 kB. These byte counts come from the build, not the
+// machine, so this budget deliberately has no CI multiplier. Raise it only
+// when a route genuinely needs to carry more.
+const JS_BUDGET = 700 * 1024;
 
 const PAGES = [
   { path: '/', name: 'home' },
