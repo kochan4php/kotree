@@ -16,3 +16,7 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver
+auditConfig:
+  # braces <=3.0.3 is dev-only and 3.0.4 is not published yet.
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm

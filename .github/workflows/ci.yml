@@ -36,10 +36,10 @@ jobs:
       - name: Audit production dependencies
         run: pnpm audit --prod --audit-level high
       # braces <=3.0.3 is a dev-only transitive of eslint-config-next. 3.0.4,
-      # the first patched release, is not published yet; keeping the whole-tree
-      # audit means every other advisory still fails the build.
+      # the first patched release, is not published yet. The single exception
+      # lives in pnpm-workspace.yaml; every other advisory still fails.
       - name: Audit all dependencies
-        run: pnpm audit --audit-level high --ignore GHSA-vfj7-8cjw-p6xm
+        run: pnpm audit --audit-level high
       # M66: no secrets in the tree — the scanner runs before anything else
       - run: pnpm scan:secrets
       - run: pnpm lint
