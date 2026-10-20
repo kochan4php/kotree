@@ -1,15 +1,14 @@
-# M78: dependabot v2 — minor and patch updates arrive grouped in one weekly PR;
-# majors get their own monthly PR so they are reviewed, not rubber-stamped.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: '04:00'
+      timezone: Asia/Jakarta
+    versioning-strategy: increase
     open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - minor-and-patch
     groups:
       minor-and-patch:
         patterns:
@@ -18,38 +17,24 @@ updates:
           - minor
           - patch
     ignore:
-      # Majors are handled by the monthly entry below
-      - dependency-name: '*'
+      # Major upgrades are their own decision, never a grouped surprise.
+      - dependency-name: next
         update-types:
           - version-update:semver-major
-
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 3
-    labels:
-      - dependencies
-      - major
-    groups:
-      major:
-        patterns:
-          - '*'
+      - dependency-name: react
         update-types:
-          - major
-    ignore:
-      - dependency-name: '*'
+          - version-update:semver-major
+      - dependency-name: react-dom
         update-types:
-          - version-update:semver-minor
-          - version-update:semver-patch
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
-    labels:
-      - dependencies
-      - ci
+      interval: weekly
+      day: monday
+      time: '04:00'
+      timezone: Asia/Jakarta
     groups:
       actions:
         patterns:

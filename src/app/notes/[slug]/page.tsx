@@ -5,7 +5,7 @@ import ShelfActions from '@/components/content/shelf-actions';
 import HighlightsLayer from '@/components/content/highlights-layer';
 import Reactions from '@/components/content/reactions';
 import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
-import { formatDate, getNote, getNotes, relatedTo } from '@/lib/content';
+import { formatDate, getNote, getNotes, getSeriesNotes, relatedTo, slugifyTag } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
 import { site } from '@/lib/site';
 import { blogPostingLd, breadcrumbLd } from '@/lib/seo';
@@ -43,6 +43,8 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   const headings = extractHeadings(blocks);
   const notes = getNotes();
   const related = relatedTo(note, notes);
+  const series = note.series ? getSeriesNotes(notes, slugifyTag(note.series)) : [];
+  const seriesIndex = series.findIndex((item) => item.slug === note.slug);
 
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
@@ -93,6 +95,16 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
                   </span>
                 </>
               )}
+              {note.reviewed && (
+                <>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                    Reviewed {formatDate(note.reviewed)}
+                  </span>
+                </>
+              )}
               <ShelfActions path={`/notes/${note.slug}`} title={note.title} />
               <PrintButton />
             </div>
@@ -105,6 +117,14 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
               <div className="mt-3">
                 <TagChips tags={note.tags} base="/notes" />
               </div>
+            )}
+            {note.series && series.length > 1 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Part {seriesIndex + 1} of {series.length} in{' '}
+                <Link className="font-bold underline decoration-2 underline-offset-2" href={`/notes/series/${slugifyTag(note.series)}`}>
+                  {note.series}
+                </Link>
+              </p>
             )}
             <TableOfContents headings={headings} />
             <article className="mt-1">

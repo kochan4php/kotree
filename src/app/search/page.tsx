@@ -18,7 +18,9 @@ interface Result {
   type: 'note' | 'project';
   title: string;
   summary: string;
+  body: string;
   tags: string[];
+  date: string;
   url: string;
 }
 
@@ -28,42 +30,108 @@ function searchable(): Result[] {
       type: 'project' as const,
       title: project.title,
       summary: project.summary,
+      body: project.body,
       tags: project.tags,
+      date: project.date,
       url: `/projects/${project.slug}`,
     })),
     ...getNotes().map((note) => ({
       type: 'note' as const,
       title: note.title,
       summary: note.summary,
+      body: note.body,
       tags: note.tags,
+      date: note.date,
       url: `/notes/${note.slug}`,
     })),
   ];
 }
 
+function plain(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/[#>*_`[\]]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function snippet(result: Result, query: string): string {
+  const body = plain(result.body);
+  const term = query.toLowerCase().split(/\s+/).find((word) => word.length > 2);
+  const at = term ? body.toLowerCase().indexOf(term) : -1;
+  const start = at > 60 ? at - 60 : 0;
+  const text = body.slice(start, start + 190);
+  return `${start > 0 ? '…' : ''}${text}${start + 190 < body.length ? '…' : ''}`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  const terms = [...new Set(query.toLowerCase().split(/\s+/).filter((term) => term.length > 1))];
+  if (terms.length === 0) return <>{text}</>;
+  const pattern = new RegExp(`(${terms.map(escapeRegExp).join('|')})`, 'gi');
+  return (
+    <>
+      {text.split(pattern).map((part, index) =>
+        terms.includes(part.toLowerCase()) ? (
+          <mark key={index} className="bg-accent px-0.5 text-accent-foreground">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; tag?: string; year?: string; sort?: string }>;
 }) {
-  const { q } = await searchParams;
-  const query = (q ?? '').trim().slice(0, 80);
+  const params = await searchParams;
+  const query = (params.q ?? '').trim().slice(0, 80);
+  const type = params.type === 'note' || params.type === 'project' ? params.type : '';
+  const tag = (params.tag ?? '').trim().slice(0, 40);
+  const year = /^\d{4}$/.test(params.year ?? '') ? params.year! : '';
+  const sort = params.sort === 'newest' ? 'newest' : 'relevance';
 
-  // Title and tags outrank the summary: a query that names a note should find
-  // that note first, however late the word appears in its prose.
-  const results = query
-    ? searchable()
-        .map((entry) => {
-          const inName = fuzzy(query, `${entry.title} ${entry.tags.join(' ')}`);
-          const inSummary = fuzzy(query, entry.summary);
-          if (!inName && !inSummary) return null;
-          return { entry, score: Math.max(inName?.score ?? -99, (inSummary?.score ?? -99) - 8) };
-        })
-        .filter((hit): hit is { entry: Result; score: number } => hit !== null)
-        .sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title))
-        .slice(0, 30)
-        .map((hit) => hit.entry)
-    : [];
+  const all = searchable();
+  const tags = [...new Set(all.flatMap((entry) => entry.tags))].sort((a, b) => a.localeCompare(b));
+  const years = [...new Set(all.map((entry) => entry.date.slice(0, 4)).filter(Boolean))].sort().reverse();
+  const filtered = all.filter(
+    (entry) =>
+      (!type || entry.type === type) &&
+      (!tag || entry.tags.some((entryTag) => entryTag.toLowerCase() === tag.toLowerCase())) &&
+      (!year || entry.date.startsWith(year))
+  );
+
+  const activeFilters = Boolean(type || tag || year || sort === 'newest');
+  const results = (query || activeFilters ? filtered : [])
+    .map((entry) => {
+      if (!query) return { entry, score: 0 };
+      const inName = fuzzy(query, `${entry.title} ${entry.tags.join(' ')}`);
+      const inSummary = fuzzy(query, entry.summary);
+      const inBody = fuzzy(query, plain(entry.body).slice(0, 4000));
+      if (!inName && !inSummary && !inBody) return null;
+      return {
+        entry,
+        score: Math.max(inName?.score ?? -99, (inSummary?.score ?? -99) - 8, (inBody?.score ?? -99) - 20),
+      };
+    })
+    .filter((hit): hit is { entry: Result; score: number } => hit !== null)
+    .sort((a, b) =>
+      sort === 'newest'
+        ? b.entry.date.localeCompare(a.entry.date) || a.entry.title.localeCompare(b.entry.title)
+        : !query
+          ? b.entry.date.localeCompare(a.entry.date) || a.entry.title.localeCompare(b.entry.title)
+          : b.score - a.score || a.entry.title.localeCompare(b.entry.title)
+    )
+    .slice(0, 30)
+    .map((hit) => hit.entry);
 
   return (
     <main
@@ -90,33 +158,75 @@ export default async function SearchPage({
               Every note and project, matched on the server — the results have their own URL.
             </p>
 
-            <form action="/search" method="get" className="mt-4 flex items-stretch gap-2">
-              <label htmlFor="search-q" className="sr-only">
-                Search notes and projects
-              </label>
-              <input
-                id="search-q"
-                type="search"
-                name="q"
-                defaultValue={query}
-                placeholder="matcher, offline, palette…"
-                autoComplete="off"
-                className="w-full rounded-lg border-[3px] border-foreground bg-background px-3 py-2 text-sm font-bold text-foreground shadow-[4px_4px_0_0_var(--foreground)] placeholder:font-medium placeholder:text-muted-foreground focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="neo-press inline-flex shrink-0 items-center gap-1.5 rounded-lg border-[3px] border-foreground bg-accent px-4 py-2 text-sm font-black uppercase text-accent-foreground shadow-[4px_4px_0_0_var(--foreground)]"
-              >
-                <Search className="h-4 w-4" aria-hidden="true" />
-                Search
-              </button>
+            <form action="/search" method="get" className="mt-4">
+              <div className="flex items-stretch gap-2">
+                <label htmlFor="search-q" className="sr-only">
+                  Search notes and projects
+                </label>
+                <input
+                  id="search-q"
+                  type="search"
+                  name="q"
+                  defaultValue={query}
+                  placeholder="matcher, offline, palette…"
+                  autoComplete="off"
+                  className="w-full rounded-lg border-[3px] border-foreground bg-background px-3 py-2 text-sm font-bold text-foreground shadow-[4px_4px_0_0_var(--foreground)] placeholder:font-medium placeholder:text-muted-foreground focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="neo-press inline-flex shrink-0 items-center gap-1.5 rounded-lg border-[3px] border-foreground bg-accent px-4 py-2 text-sm font-black uppercase text-accent-foreground shadow-[4px_4px_0_0_var(--foreground)]"
+                >
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                  Search
+                </button>
+              </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Type
+                  <select name="type" defaultValue={type} className="mt-1 w-full rounded-lg border-2 border-foreground bg-background px-2 py-2 text-xs font-bold text-foreground">
+                    <option value="">Everything</option>
+                    <option value="note">Notes</option>
+                    <option value="project">Projects</option>
+                  </select>
+                </label>
+                <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Tag
+                  <select name="tag" defaultValue={tag} className="mt-1 w-full rounded-lg border-2 border-foreground bg-background px-2 py-2 text-xs font-bold text-foreground">
+                    <option value="">Any tag</option>
+                    {tags.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Year
+                  <select name="year" defaultValue={year} className="mt-1 w-full rounded-lg border-2 border-foreground bg-background px-2 py-2 text-xs font-bold text-foreground">
+                    <option value="">Any year</option>
+                    {years.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                  Sort
+                  <select name="sort" defaultValue={sort} className="mt-1 w-full rounded-lg border-2 border-foreground bg-background px-2 py-2 text-xs font-bold text-foreground">
+                    <option value="relevance">Relevance</option>
+                    <option value="newest">Newest</option>
+                  </select>
+                </label>
+              </div>
             </form>
 
-            {query && (
-              <p className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {(query || activeFilters) && (
+              <p className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground" aria-live="polite">
                 {results.length === 0
-                  ? `Nothing matched “${query}”`
-                  : `${results.length} ${results.length === 1 ? 'match' : 'matches'} for “${query}”`}
+                  ? `Nothing matched ${query ? `“${query}”` : 'those filters'}`
+                  : `${results.length} ${results.length === 1 ? 'match' : 'matches'}${query ? ` for “${query}”` : ''}`}
               </p>
             )}
 
@@ -129,14 +239,21 @@ export default async function SearchPage({
                       className="neo-press block rounded-lg border-[3px] border-foreground bg-background/80 p-3 shadow-[4px_4px_0_0_var(--foreground)] transition-colors hover:bg-accent/10"
                     >
                       <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
-                        {entry.type}
+                        {entry.type} · {entry.date}
                       </span>
                       <span className="mt-0.5 block font-display text-lg font-black text-foreground">
-                        {entry.title}
+                        <Highlight text={entry.title} query={query} />
                       </span>
-                      {entry.summary && (
-                        <span className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                          {entry.summary}
+                      <span className="mt-1 block text-sm text-muted-foreground">
+                        <Highlight text={snippet(entry, query)} query={query} />
+                      </span>
+                      {entry.tags.length > 0 && (
+                        <span className="mt-2 flex flex-wrap gap-1.5">
+                          {entry.tags.slice(0, 4).map((entryTag) => (
+                            <span key={entryTag} className="rounded border border-foreground/30 bg-secondary px-1.5 py-0.5 text-[10px] font-mono font-bold text-foreground">
+                              {entryTag}
+                            </span>
+                          ))}
                         </span>
                       )}
                     </Link>
@@ -145,11 +262,25 @@ export default async function SearchPage({
               </ul>
             )}
 
+            {!query && !activeFilters && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Search by title, tag or a phrase in the body. Try one of these:
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {['offline', 'performance', 'accessibility', 'next.js', 'case-study'].map((item) => (
+                    <Link key={item} href={`/search?q=${encodeURIComponent(item)}`} className="rounded-lg border-2 border-foreground bg-card px-2.5 py-1 text-xs font-bold text-foreground hover:bg-accent hover:text-accent-foreground">
+                      {item}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {query && results.length === 0 && (
               <p className="mt-4 text-sm text-muted-foreground">
                 Try a single word — the search matches letters in order, so “plte” finds “palette”.
-                The command palette (the search button in the top dock, or <kbd>/</kbd>) searches
-                the rest of the site.
+                Clear a filter if you set one. The command palette (the search button in the top dock, or <kbd>/</kbd>) searches the rest of the site.
               </p>
             )}
           </div>

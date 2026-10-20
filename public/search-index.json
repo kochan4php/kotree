@@ -23,6 +23,72 @@
   },
   {
     "type": "note",
+    "title": "Offline first without a framework",
+    "summary": "A service worker, a versioned cache and an IndexedDB queue cover most of what offline needs; the rest is deciding which failure to admit to.",
+    "tags": [
+      "offline",
+      "service-worker",
+      "web-platform"
+    ],
+    "url": "/notes/2025-11-15-offline-first-without-a-framework"
+  },
+  {
+    "type": "note",
+    "title": "View transitions in practice",
+    "summary": "The native view transition API takes an afternoon to learn; the work is naming a few elements, respecting motion preferences and knowing where WebKit still differs.",
+    "tags": [
+      "css",
+      "view-transitions",
+      "performance"
+    ],
+    "url": "/notes/2025-12-13-view-transitions-in-practice"
+  },
+  {
+    "type": "note",
+    "title": "React 19 and the external store",
+    "summary": "Preferences and toasts live outside React, and useSyncExternalStore is the supported way to read them without tearing or hydration surprises.",
+    "tags": [
+      "react",
+      "state",
+      "typescript"
+    ],
+    "url": "/notes/2026-01-10-react-19-external-store"
+  },
+  {
+    "type": "note",
+    "title": "MongoDB indexes that earn their keep",
+    "summary": "The equality-sort-range rule explains most compound indexes; an audit script that runs the real query shapes explains the rest.",
+    "tags": [
+      "mongodb",
+      "performance",
+      "testing"
+    ],
+    "url": "/notes/2026-02-07-mongodb-indexes-that-earn-their-keep"
+  },
+  {
+    "type": "note",
+    "title": "Case study: making Kotree fast",
+    "summary": "A bundle diet, smaller hydration boundaries and a CI budget hold the home route at 663 kB of JavaScript and a 948 ms largest paint.",
+    "tags": [
+      "case-study",
+      "performance",
+      "next.js"
+    ],
+    "url": "/notes/2026-02-21-case-study-kotree-performance"
+  },
+  {
+    "type": "note",
+    "title": "A CI that stays green",
+    "summary": "A green build is a budget and a contract: fewer matrix jobs, honest retries, captured evidence and audit exceptions that expire.",
+    "tags": [
+      "ci",
+      "testing",
+      "github-actions"
+    ],
+    "url": "/notes/2026-03-07-ci-that-stays-green"
+  },
+  {
+    "type": "note",
     "title": "Accessibility as a test, not a promise",
     "summary": "Every page runs through axe in the suite, and the contrast tokens, reduced-motion rules and keyboard routes are checked like any other feature.",
     "tags": [
@@ -31,6 +97,28 @@
       "wcag"
     ],
     "url": "/notes/2026-03-22-accessibility-as-a-test"
+  },
+  {
+    "type": "note",
+    "title": "Target size is a design constraint",
+    "summary": "WCAG 2.2 sets a 24-pixel floor for pointer targets, and the spacing exception is narrower than most teams assume.",
+    "tags": [
+      "accessibility",
+      "wcag",
+      "design"
+    ],
+    "url": "/notes/2026-04-04-target-size-is-a-design-constraint"
+  },
+  {
+    "type": "note",
+    "title": "Case study: a guestbook that survives the internet",
+    "summary": "An obfuscated wall, a spam score instead of a spam filter, database-backed limits and an offline queue that does not duplicate messages.",
+    "tags": [
+      "case-study",
+      "mongodb",
+      "security"
+    ],
+    "url": "/notes/2026-04-18-case-study-guestbook"
   },
   {
     "type": "note",
@@ -45,6 +133,17 @@
   },
   {
     "type": "note",
+    "title": "Fonts and the largest paint",
+    "summary": "A font can delay the largest paint or shift the page after it; one preloaded subset and a matched fallback solve most of it.",
+    "tags": [
+      "performance",
+      "fonts",
+      "core-web-vitals"
+    ],
+    "url": "/notes/2026-05-02-fonts-and-the-largest-paint"
+  },
+  {
+    "type": "note",
     "title": "A budget for every byte",
     "summary": "Every route has a raw-JavaScript ceiling checked in CI, and real visitors' p75 timings have their own shelf on the status page.",
     "tags": [
@@ -53,6 +152,28 @@
       "vitals"
     ],
     "url": "/notes/2026-05-17-byte-budget"
+  },
+  {
+    "type": "note",
+    "title": "A service worker update people trust",
+    "summary": "A waiting worker plus a visible refresh prompt is slower than skipWaiting and much less likely to lose someone's work.",
+    "tags": [
+      "pwa",
+      "service-worker",
+      "ux"
+    ],
+    "url": "/notes/2026-05-30-a-service-worker-update-people-trust"
+  },
+  {
+    "type": "note",
+    "title": "Case study: a tip jar without a wallet library",
+    "summary": "A handful of EIP-1193 calls, a hand-written wei parser and a deliberate list of things the tip jar does not do.",
+    "tags": [
+      "case-study",
+      "ethereum",
+      "security"
+    ],
+    "url": "/notes/2026-06-06-case-study-tip-jar"
   },
   {
     "type": "note",
@@ -67,6 +188,17 @@
   },
   {
     "type": "note",
+    "title": "Building Win95 in React",
+    "summary": "A fake desktop is a window manager with a dress code; the hard parts are focus, keyboard movement and keeping the drag off the React render path.",
+    "tags": [
+      "react",
+      "win95",
+      "accessibility"
+    ],
+    "url": "/notes/2026-06-27-building-win95-in-react"
+  },
+  {
+    "type": "note",
     "title": "A database that tidies up after itself",
     "summary": "TTL indexes delete what has expired, rate limits live in the database across instances, and the audit log keeps a hashed record.",
     "tags": [
@@ -78,6 +210,28 @@
   },
   {
     "type": "note",
+    "title": "An AI terminal without a backend",
+    "summary": "The terminal resolves commands locally, streams from a provider with the visitor's own key, and treats every answer as untrusted text.",
+    "tags": [
+      "ai",
+      "react",
+      "privacy"
+    ],
+    "url": "/notes/2026-07-25-an-ai-terminal-without-a-backend"
+  },
+  {
+    "type": "note",
+    "title": "Case study: shipping a Win95 desktop",
+    "summary": "Four apps, one window manager and a scope list that kept the joke from becoming a second product.",
+    "tags": [
+      "case-study",
+      "accessibility",
+      "react"
+    ],
+    "url": "/notes/2026-08-08-case-study-win95"
+  },
+  {
+    "type": "note",
     "title": "Windows 95, maintained",
     "summary": "Notepad, Paint, Calculator and Minesweeper get the same care as everything else — snapping, keyboard nudging and real tests.",
     "tags": [
@@ -86,6 +240,28 @@
       "easter-eggs"
     ],
     "url": "/notes/2026-08-16-win95-maintained"
+  },
+  {
+    "type": "note",
+    "title": "Webmentions for one person",
+    "summary": "Receiving webmentions is a small endpoint and a large moderation job; for a personal site, RSS may already cover the same ground.",
+    "tags": [
+      "indieweb",
+      "webmentions",
+      "privacy"
+    ],
+    "url": "/notes/2026-08-22-webmentions-for-one-person"
+  },
+  {
+    "type": "note",
+    "title": "The real cost of a personal site",
+    "summary": "The bill is small and the maintenance is not; the useful skill is deciding which features deserve a pager.",
+    "tags": [
+      "operations",
+      "privacy",
+      "writing"
+    ],
+    "url": "/notes/2026-09-12-the-real-cost-of-a-personal-site"
   },
   {
     "type": "note",

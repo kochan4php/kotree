@@ -117,7 +117,7 @@ export default function SocialLinkItem({ link, clickCount, token, index = 0 }: S
         className="fluid-glass neo-press group p-0 kt-rise"
       >
         <div className="liquid-gradient group-hover:opacity-80 transition-opacity duration-300 opacity-60"></div>
-        <Link href={link.url} onClick={handleClick} target="_blank" rel="noopener noreferrer">
+        <Link href={link.url} onClick={handleClick} target="_blank" rel="me noopener noreferrer">
           <div className="relative z-10 flex items-center gap-4 p-4">
             <span
               className="w-12 h-12 shrink-0 rounded-lg border-[3px] border-foreground flex items-center justify-center shadow-[2px_2px_0_0_var(--foreground)]"

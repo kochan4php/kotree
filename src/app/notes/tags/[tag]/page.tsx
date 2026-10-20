@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { TaggedList } from '@/components/content/tags';
 import { collectTags, getNotes, slugifyTag } from '@/lib/content';
+import { TAG_INTROS } from '@/lib/tag-descriptions';
 import { site } from '@/lib/site';
 import { breadcrumbLd, collectionPageLd, pageOg } from '@/lib/seo';
 import { ArrowLeft } from 'lucide-react';
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   if (!match) return { title: 'Not found' };
   return {
     title: `Notes tagged ${match.tag}`,
-    description: `Kotree notes tagged "${match.tag}".`,
+    description: TAG_INTROS[match.tag.toLowerCase()] ?? `Kotree notes tagged "${match.tag}".`,
     alternates: { canonical: `${site.baseUrl}/notes/tags/${tag}` },
     ...pageOg(`tag-${tag}`, `Notes tagged ${match.tag}`),
   };
@@ -68,8 +69,25 @@ export default async function NoteTagPage({ params }: { params: Promise<{ tag: s
           <div className="relative z-10">
             <h1 className="text-3xl font-black tracking-tight text-foreground">{match.tag}</h1>
             <p className="mt-2 text-sm text-muted-foreground font-medium">
-              {items.length} {items.length === 1 ? 'note' : 'notes'} tagged &quot;{match.tag}&quot;
+              {TAG_INTROS[match.tag.toLowerCase()] ?? `Notes tagged “${match.tag}”.`}
             </p>
+            <p className="mt-2 text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
+              {items.length} {items.length === 1 ? 'note' : 'notes'}
+            </p>
+            {(() => {
+              const related = collectTags(items)
+                .filter((entry) => entry.slug !== tag)
+                .slice(0, 6);
+              return related.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {related.map((entry) => (
+                    <Link key={entry.slug} href={`/notes/tags/${entry.slug}`} className="min-h-6 inline-flex items-center rounded border-2 border-foreground bg-card px-2 py-0.5 text-[11px] font-bold text-foreground hover:bg-accent hover:text-accent-foreground">
+                      {entry.tag}
+                    </Link>
+                  ))}
+                </div>
+              ) : null;
+            })()}
             <div className="mt-5">
               <TaggedList items={items} base="/notes" />
             </div>

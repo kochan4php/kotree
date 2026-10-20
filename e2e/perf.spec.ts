@@ -6,6 +6,7 @@ import { test, expect } from '@playwright/test';
 declare global {
   interface Window {
     __perf?: { lcp: number; cls: number };
+    __eventDurations?: number[];
   }
 }
 
@@ -20,10 +21,31 @@ const JS_BUDGET = 700 * 1024;
 
 const PAGES = [
   { path: '/', name: 'home' },
-  { path: '/notes', name: 'notes' },
-  { path: '/projects', name: 'projects' },
+  { path: '/about', name: 'about' },
+  { path: '/accessibility', name: 'accessibility' },
+  { path: '/changelog', name: 'changelog' },
+  { path: '/explore', name: 'explore' },
   { path: '/guestbook', name: 'guestbook' },
+  { path: '/links', name: 'links' },
+  { path: '/notes', name: 'notes' },
+  { path: '/notes/2026-10-12-offline-first', name: 'note' },
+  { path: '/notes/tags', name: 'note tags' },
+  { path: '/notes/tags/pwa', name: 'note tag' },
+  { path: '/now', name: 'now' },
+  { path: '/offline', name: 'offline' },
+  { path: '/privacy', name: 'privacy' },
+  { path: '/projects', name: 'projects' },
+  { path: '/projects/kotree', name: 'project' },
+  { path: '/projects/tags', name: 'project tags' },
+  { path: '/projects/tags/next.js', name: 'project tag' },
+  { path: '/qr', name: 'qr' },
+  { path: '/search', name: 'search' },
+  { path: '/secrets', name: 'secrets' },
+  { path: '/shelf', name: 'shelf' },
   { path: '/stats', name: 'stats' },
+  { path: '/status', name: 'status' },
+  { path: '/uses', name: 'uses' },
+  { path: '/wrapped', name: 'wrapped' },
 ];
 
 for (const { path, name } of PAGES) {
@@ -71,3 +93,34 @@ for (const { path, name } of PAGES) {
     expect(jsBytes, `route JS ${(jsBytes / 1024).toFixed(0)} kB`).toBeLessThan(JS_BUDGET);
   });
 }
+
+// INP proxy: real interaction latency after hydration, measured at 4x CPU.
+// Event Timing only reports events over 16ms, which is exactly the noise floor
+// this budget cares about.
+test('interaction budget: theme and palette', async ({ page, context }) => {
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await page.addInitScript(() => {
+    const durations: number[] = [];
+    window.__eventDurations = durations;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        durations.push(entry.duration);
+      }
+    }).observe({ type: 'event', buffered: true, durationThreshold: 16 } as PerformanceObserverInit & {
+      durationThreshold: number;
+    });
+  });
+  await page.goto('/', { waitUntil: 'networkidle' });
+
+  await page.getByRole('button', { name: 'Preferences' }).click();
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page.keyboard.press('Control+k');
+  await page.keyboard.type('offline');
+  await page.keyboard.press('Escape');
+
+  const max = await page.evaluate(() =>
+    Math.max(0, ...(window.__eventDurations ?? []))
+  );
+  expect(max, `slowest interaction ${max.toFixed(0)}ms`).toBeLessThan(200 * MULT);
+});

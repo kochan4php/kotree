@@ -5,21 +5,23 @@ on:
     branches: [main]
   pull_request:
 
+# One run per branch: a new push supersedes an in-flight run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         node-version: [22, 24]
-    services:
-      # The admin overview reads from Mongo; the e2e suite needs one to talk to
-      mongo:
-        image: mongo:7
-        ports:
-          - 27017:27017
     env:
-      ADMIN_TOKEN: e2e-admin-token
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v4
@@ -44,9 +46,37 @@ jobs:
       - run: pnpm scan:secrets
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm test:unit
+      # Coverage gates the shared logic; e2e coverage would only slow the suite.
+      - run: pnpm test:coverage
       - run: pnpm build
       - run: pnpm check:bundle
+
+  e2e:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      # The admin overview and the e2e suite need a real Mongo.
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      ADMIN_TOKEN: e2e-admin-token
+      ADMIN_TOTP_SECRET: JBSWY3DPEHPK3PXP
+      LOGIN_ALERT_THRESHOLD: '1'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       # I5: every hot query must use an index, and the built server must stay
       # quick under a light parallel load — both against the same Mongo service.
       - name: Index audit
@@ -81,6 +111,13 @@ jobs:
             pkill -f 'next-server' 2>/dev/null || true
           fi
           sleep 1
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx playwright test
       - name: Free port 3000 before the perf run
@@ -98,7 +135,48 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report-node${{ matrix.node-version }}
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  # Pixel baselines are win32-only. Running this on Linux would compare
+  # different font rasterisation, so the platform gets its own job.
+  visual:
+    needs: verify
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      ADMIN_TOKEN: e2e-admin-token
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: npx playwright install chromium
+      - name: Free port 3000 before Playwright
+        if: always()
+        shell: bash
+        run: |
+          if command -v fuser >/dev/null 2>&1; then
+            fuser -k 3000/tcp 2>/dev/null || true
+          else
+            pkill -f 'next-server' 2>/dev/null || true
+          fi
+          sleep 1
+      - run: npx playwright test e2e/visual.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-report
           path: |
             playwright-report
             test-results

@@ -1,13 +1,17 @@
 import Guestbook from '@/components/guestbook';
 import PollCard from '@/components/guestbook/poll-card';
 import { Card } from '@/components/ui/card';
+import { getGuestbookEntries } from '@/connections/mongodb';
+import type { GuestbookEntry } from '@/components/guestbook/types';
 import { generateToken } from '@/lib/security';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
 import { MessageSquare } from 'lucide-react';
 import type { Metadata } from 'next';
 
-export const revalidate = 30;
+// The wall is fresh data: render page one on the server so it exists before
+// hydration, but never at build time (CI and a cold database both build).
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Guestbook',
@@ -16,9 +20,19 @@ export const metadata: Metadata = {
   ...pageOg('guestbook', 'Kotree guestbook — the full confession wall'),
 };
 
-export default function GuestbookPage() {
+export default async function GuestbookPage() {
   // Same anti-bot token as the home page card
   const token = generateToken();
+  let initialEntries: GuestbookEntry[] = [];
+  try {
+    initialEntries = (await getGuestbookEntries(10)).map((entry) => ({
+      ...entry,
+      createdAt: entry.createdAt.toISOString(),
+      reply: entry.reply ? { message: entry.reply.message, at: entry.reply.at.toISOString() } : undefined,
+    }));
+  } catch {
+    // A cold database must not turn the page into a 500; the client retries.
+  }
 
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
@@ -47,7 +61,7 @@ export default function GuestbookPage() {
         </div>
 
         <div className="mt-3">
-          <Guestbook token={token} full />
+          <Guestbook token={token} full initialEntries={initialEntries} />
         </div>
       </div>
     </main>

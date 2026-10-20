@@ -59,14 +59,23 @@ function EntrySkeletons() {
   );
 }
 
-export default function Guestbook({ token, full = false }: { token?: string; full?: boolean }) {
-  const [entries, setEntries] = useState<GuestbookEntry[]>([]);
+export default function Guestbook({
+  token,
+  full = false,
+  initialEntries,
+}: {
+  token?: string;
+  full?: boolean;
+  /** Server-rendered page one, so the wall exists before hydration. */
+  initialEntries?: GuestbookEntry[];
+}) {
+  const [entries, setEntries] = useState<GuestbookEntry[]>(initialEntries ?? []);
   // K39: skeleton until the first page of secrets arrives
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialEntries?.length);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialEntries ? initialEntries.length === PAGE_SIZE : false);
   const [decryptedIndexes, setDecryptedIndexes] = useState<Set<number>>(new Set());
   const [pendingCount, setPendingCount] = useState(0);
   const [newSince, setNewSince] = useState<Set<string>>(new Set());

@@ -157,3 +157,18 @@
   border-bottom: 2px solid var(--color-accent-ink);
   padding: 0 0.06em;
 }
+
+/* P9: reading comfort is separate from the site theme. The values are set on
+   <html> before paint; these selectors only touch note bodies. */
+.e-content p,
+.e-content li,
+.e-content blockquote {
+  font-size: calc(1rem * var(--reading-scale, 1));
+  line-height: var(--reading-leading, 1.7);
+}
+
+html[data-readable-font='on'] .e-content {
+  font-family: Verdana, Tahoma, 'Trebuchet MS', sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.08em;
+}

@@ -32,6 +32,12 @@ export interface Prefs {
   soundAlerts: boolean;
   /** G9: tell me when a message queued offline reaches the wall. */
   notify: boolean;
+  /** P9: reading comfort, independent of the theme. 0.9–1.4. */
+  textScale: number;
+  /** P9: note body leading; numbers keep the CSS simple. */
+  lineHeight: number;
+  /** P9: wider letter/word spacing and a plainer face for note bodies. */
+  readableFont: boolean;
 }
 
 export const PREFS_KEY = 'kotree-prefs';
@@ -48,6 +54,9 @@ export const DEFAULT_PREFS: Prefs = {
   soundTaps: true,
   soundAlerts: true,
   notify: false,
+  textScale: 1,
+  lineHeight: 1.7,
+  readableFont: false,
 };
 
 export type SoundKind = 'tap' | 'alert';
@@ -103,6 +112,15 @@ export function readPrefs(): Prefs {
     merged.soundAlerts = merged.soundAlerts !== false;
     merged.seasons = merged.seasons !== false;
     merged.notify = merged.notify === true;
+    merged.textScale =
+      typeof merged.textScale === 'number' && Number.isFinite(merged.textScale)
+        ? Math.min(1.4, Math.max(0.9, merged.textScale))
+        : DEFAULT_PREFS.textScale;
+    merged.lineHeight =
+      typeof merged.lineHeight === 'number' && Number.isFinite(merged.lineHeight)
+        ? Math.min(2, Math.max(1.4, merged.lineHeight))
+        : DEFAULT_PREFS.lineHeight;
+    merged.readableFont = merged.readableFont === true;
     const custom = merged.customAccent;
     merged.customAccent =
       custom &&
@@ -139,13 +157,16 @@ function themeColor(prefs: Prefs): string {
 export function applyPrefs(prefs: Prefs): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
+  const style = root.style;
   const resolved = resolveTheme(prefs.theme);
   root.dataset.theme = prefs.theme === 'oled' ? 'oled' : resolved;
   root.dataset.accent = prefs.customAccent ? 'custom' : prefs.accent;
   root.dataset.fx = prefs.fx ? 'on' : 'off';
   root.dataset.motion = prefs.reduceMotion ? 'off' : 'on';
+  root.dataset.readableFont = prefs.readableFont ? 'on' : 'off';
+  style.setProperty('--reading-scale', String(prefs.textScale));
+  style.setProperty('--reading-leading', String(prefs.lineHeight));
   // M84: inline vars beat any preset block; cleared again when a preset is chosen
-  const style = root.style;
   if (prefs.customAccent) {
     style.setProperty('--accent', prefs.customAccent.hex);
     style.setProperty('--accent-ink', resolved === 'dark' ? prefs.customAccent.inkDark : prefs.customAccent.inkLight);

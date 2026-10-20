@@ -1,0 +1,60 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      ADMIN_TOKEN: e2e-admin-token
+      ADMIN_TOTP_SECRET: JBSWY3DPEHPK3PXP
+      LOGIN_ALERT_THRESHOLD: '1'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
+      - name: External links
+        run: pnpm check:links
+      - run: pnpm build
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Full e2e
+        run: npx playwright test
+      - name: Free port 3000 before the perf run
+        if: always()
+        run: |
+          if command -v fuser >/dev/null 2>&1; then
+            fuser -k 3000/tcp 2>/dev/null || true
+          else
+            pkill -f 'next-server' 2>/dev/null || true
+          fi
+          sleep 1
+      - run: pnpm test:perf
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: nightly-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7

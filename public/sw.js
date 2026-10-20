@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kotree-offline-cache-v6';
+const CACHE_NAME = 'kotree-offline-cache-v7';
 const OFFLINE_URL = '/offline';
 // Kept across SW updates: the warm-cache that periodicsync refreshes (K13)
 const DATA_CACHE = 'kotree-data-cache';
@@ -32,6 +32,23 @@ async function precachePage(url) {
 
 const PRECACHE_PAGES = ['/', OFFLINE_URL, '/projects', '/notes'];
 
+// Reading offline is the point of the notes, not a bonus: warm the newest
+// notes too. The search index is the only build-time list the worker has, and
+// capping it keeps install fast on a phone.
+async function precacheNotes() {
+  try {
+    const response = await fetch('/search-index.json');
+    if (!response.ok) return;
+    const index = await response.json();
+    const notes = (Array.isArray(index) ? index : [])
+      .filter((item) => item?.type === 'note' && typeof item.url === 'string')
+      .slice(0, 30);
+    await Promise.allSettled(notes.map((note) => precachePage(note.url)));
+  } catch {
+    // install still succeeds; visited notes are cached network-first anyway
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
@@ -40,6 +57,7 @@ self.addEventListener('install', (event) => {
       // gets cached and the rest arrives on first online visit.
       await cache.addAll(ASSETS_TO_CACHE).catch(() => {});
       await Promise.allSettled(PRECACHE_PAGES.map(precachePage));
+      await precacheNotes();
     })()
   );
   // No skipWaiting on purpose: a waiting worker is what powers the

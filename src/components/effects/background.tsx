@@ -51,7 +51,8 @@ export default function Background() {
     if (!ctx) return;
 
     const animated = mode === 'animate';
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const lowEnd = ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4;
+    const dpr = Math.min(window.devicePixelRatio || 1, lowEnd ? 1.5 : 2);
 
     type Star = { x: number; y: number; r: number; phase: number; speed: number; alpha: number; color: string };
     let stars: Star[] = [];
@@ -64,7 +65,8 @@ export default function Background() {
     const PALETTE = ['#ff7c47', '#ff90e8', '#4cc9f0', '#a8e94d', '#b39dfb', '#ffd93d', '#14110f'];
 
     const spawn = () => {
-      stars = Array.from({ length: 160 }, (_, i) => ({
+      const count = lowEnd ? 90 : 160;
+      stars = Array.from({ length: count }, (_, i) => ({
         x: Math.random(),
         y: Math.random(),
         r: (i % 5 === 0 ? 1.6 : 0.9) + Math.random() * 0.8,

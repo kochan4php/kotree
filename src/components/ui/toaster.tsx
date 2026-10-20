@@ -16,6 +16,7 @@ export default function Toaster() {
 
   return (
     <div
+      role="region"
       aria-live="polite"
       aria-label="Notifications"
       className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[9500] flex flex-col items-center gap-2 px-4"

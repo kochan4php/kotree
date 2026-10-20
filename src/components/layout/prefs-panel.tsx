@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CalendarHeart, Bell, Check, Moon, MoonStar, MonitorSmartphone, Settings2, Sparkles, Sun, Volume2, VolumeX, Waves } from 'lucide-react';
+import { CalendarHeart, Bell, Check, Moon, MoonStar, MonitorSmartphone, Settings2, Sparkles, Sun, Type, Volume2, VolumeX, Waves } from 'lucide-react';
 import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
 import { setDeliveryNotifications } from '@/lib/offline-sync';
 import { deriveAccent } from '@/lib/colour';
@@ -146,6 +146,54 @@ export default function PrefsPanel() {
                   Reset
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* P9: reading comfort — only note bodies change, not the whole UI */}
+          <div className="mb-3">
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Reading</div>
+            <div className="flex items-center gap-1.5">
+              <Type className="w-4 h-4 text-accent-ink" aria-hidden="true" />
+              <button
+                onClick={() => patch({ textScale: Math.max(0.9, Number((prefs.textScale - 0.1).toFixed(2))) })}
+                aria-label="Decrease text size"
+                className="min-h-9 min-w-9 rounded-lg border-2 border-foreground bg-card font-bold cursor-pointer hover:bg-secondary"
+              >
+                A−
+              </button>
+              <span className="min-w-10 text-center font-mono text-[10px] font-bold" aria-live="polite">
+                {Math.round(prefs.textScale * 100)}%
+              </span>
+              <button
+                onClick={() => patch({ textScale: Math.min(1.4, Number((prefs.textScale + 0.1).toFixed(2))) })}
+                aria-label="Increase text size"
+                className="min-h-9 min-w-9 rounded-lg border-2 border-foreground bg-card font-bold cursor-pointer hover:bg-secondary"
+              >
+                A+
+              </button>
+              <button
+                onClick={() => patch({ readableFont: !prefs.readableFont })}
+                aria-pressed={prefs.readableFont}
+                className={`ml-auto min-h-9 rounded-lg border-2 border-foreground px-2 text-[10px] font-black uppercase tracking-wide cursor-pointer ${prefs.readableFont ? 'bg-accent text-accent-foreground' : 'bg-card hover:bg-secondary'}`}
+              >
+                Readable font
+              </button>
+            </div>
+            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+              {[
+                { value: 1.4, label: 'Tight' },
+                { value: 1.7, label: 'Normal' },
+                { value: 2, label: 'Loose' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => patch({ lineHeight: option.value })}
+                  aria-pressed={prefs.lineHeight === option.value}
+                  className={`min-h-9 rounded-lg border-2 border-foreground text-[10px] font-bold cursor-pointer ${prefs.lineHeight === option.value ? 'bg-accent text-accent-foreground' : 'bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { TaggedList } from '@/components/content/tags';
 import { collectTags, getProjects, slugifyTag } from '@/lib/content';
+import { TAG_INTROS } from '@/lib/tag-descriptions';
 import { site } from '@/lib/site';
 import { breadcrumbLd, collectionPageLd, pageOg } from '@/lib/seo';
 import { ArrowLeft } from 'lucide-react';
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   if (!match) return { title: 'Not found' };
   return {
     title: `Projects tagged ${match.tag}`,
-    description: `Kotree projects tagged "${match.tag}".`,
+    description: TAG_INTROS[match.tag.toLowerCase()] ?? `Kotree projects tagged "${match.tag}".`,
     alternates: { canonical: `${site.baseUrl}/projects/tags/${tag}` },
     ...pageOg(`tag-${tag}`, `Projects tagged ${match.tag}`),
   };
@@ -68,7 +69,10 @@ export default async function ProjectTagPage({ params }: { params: Promise<{ tag
           <div className="relative z-10">
             <h1 className="text-3xl font-black tracking-tight text-foreground">{match.tag}</h1>
             <p className="mt-2 text-sm text-muted-foreground font-medium">
-              {items.length} {items.length === 1 ? 'project' : 'projects'} tagged &quot;{match.tag}&quot;
+              {TAG_INTROS[match.tag.toLowerCase()] ?? `Projects tagged “${match.tag}”.`}
+            </p>
+            <p className="mt-2 text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
+              {items.length} {items.length === 1 ? 'project' : 'projects'}
             </p>
             <div className="mt-5">
               <TaggedList items={items} base="/projects" />

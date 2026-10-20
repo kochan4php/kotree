@@ -1,0 +1,28 @@
+name: Preview smoke
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: >
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment != 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Smoke
+        env:
+          SMOKE_URL: ${{ github.event.deployment_status.environment_url }}
+        run: node scripts/smoke.mjs "$SMOKE_URL"
+      - name: Security headers
+        env:
+          SMOKE_URL: ${{ github.event.deployment_status.environment_url }}
+        run: node scripts/check-headers.mjs "$SMOKE_URL"

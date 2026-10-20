@@ -76,8 +76,48 @@
       "kind": "project"
     },
     {
+      "file": "/og/note-2025-11-15-offline-first-without-a-framework.png",
+      "label": "Offline first without a framework",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2025-12-13-view-transitions-in-practice.png",
+      "label": "View transitions in practice",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-01-10-react-19-external-store.png",
+      "label": "React 19 and the external store",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-02-07-mongodb-indexes-that-earn-their-keep.png",
+      "label": "MongoDB indexes that earn their keep",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-02-21-case-study-kotree-performance.png",
+      "label": "Case study: making Kotree fast",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-03-07-ci-that-stays-green.png",
+      "label": "A CI that stays green",
+      "kind": "note"
+    },
+    {
       "file": "/og/note-2026-03-22-accessibility-as-a-test.png",
       "label": "Accessibility as a test, not a promise",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-04-04-target-size-is-a-design-constraint.png",
+      "label": "Target size is a design constraint",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-04-18-case-study-guestbook.png",
+      "label": "Case study: a guestbook that survives the internet",
       "kind": "note"
     },
     {
@@ -86,8 +126,23 @@
       "kind": "note"
     },
     {
+      "file": "/og/note-2026-05-02-fonts-and-the-largest-paint.png",
+      "label": "Fonts and the largest paint",
+      "kind": "note"
+    },
+    {
       "file": "/og/note-2026-05-17-byte-budget.png",
       "label": "A budget for every byte",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-05-30-a-service-worker-update-people-trust.png",
+      "label": "A service worker update people trust",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-06-06-case-study-tip-jar.png",
+      "label": "Case study: a tip jar without a wallet library",
       "kind": "note"
     },
     {
@@ -96,13 +151,38 @@
       "kind": "note"
     },
     {
+      "file": "/og/note-2026-06-27-building-win95-in-react.png",
+      "label": "Building Win95 in React",
+      "kind": "note"
+    },
+    {
       "file": "/og/note-2026-07-12-database-tidies-up.png",
       "label": "A database that tidies up after itself",
       "kind": "note"
     },
     {
+      "file": "/og/note-2026-07-25-an-ai-terminal-without-a-backend.png",
+      "label": "An AI terminal without a backend",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-08-08-case-study-win95.png",
+      "label": "Case study: shipping a Win95 desktop",
+      "kind": "note"
+    },
+    {
       "file": "/og/note-2026-08-16-win95-maintained.png",
       "label": "Windows 95, maintained",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-08-22-webmentions-for-one-person.png",
+      "label": "Webmentions for one person",
+      "kind": "note"
+    },
+    {
+      "file": "/og/note-2026-09-12-the-real-cost-of-a-personal-site.png",
+      "label": "The real cost of a personal site",
       "kind": "note"
     },
     {
@@ -156,8 +236,48 @@
       "kind": "tag"
     },
     {
-      "file": "/og/tag-a11y.png",
-      "label": "Tagged “a11y”",
+      "file": "/og/tag-offline.png",
+      "label": "Tagged “offline”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-service-worker.png",
+      "label": "Tagged “service-worker”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-web-platform.png",
+      "label": "Tagged “web-platform”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-css.png",
+      "label": "Tagged “css”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-view-transitions.png",
+      "label": "Tagged “view-transitions”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-performance.png",
+      "label": "Tagged “performance”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-react.png",
+      "label": "Tagged “react”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-state.png",
+      "label": "Tagged “state”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-mongodb.png",
+      "label": "Tagged “mongodb”",
       "kind": "tag"
     },
     {
@@ -166,8 +286,33 @@
       "kind": "tag"
     },
     {
+      "file": "/og/tag-case-study.png",
+      "label": "Tagged “case-study”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-ci.png",
+      "label": "Tagged “ci”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-github-actions.png",
+      "label": "Tagged “github-actions”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-a11y.png",
+      "label": "Tagged “a11y”",
+      "kind": "tag"
+    },
+    {
       "file": "/og/tag-wcag.png",
       "label": "Tagged “wcag”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-accessibility.png",
+      "label": "Tagged “accessibility”",
       "kind": "tag"
     },
     {
@@ -186,13 +331,28 @@
       "kind": "tag"
     },
     {
-      "file": "/og/tag-performance.png",
-      "label": "Tagged “performance”",
+      "file": "/og/tag-fonts.png",
+      "label": "Tagged “fonts”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-core-web-vitals.png",
+      "label": "Tagged “core-web-vitals”",
       "kind": "tag"
     },
     {
       "file": "/og/tag-vitals.png",
       "label": "Tagged “vitals”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-ux.png",
+      "label": "Tagged “ux”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-ethereum.png",
+      "label": "Tagged “ethereum”",
       "kind": "tag"
     },
     {
@@ -206,13 +366,8 @@
       "kind": "tag"
     },
     {
-      "file": "/og/tag-accessibility.png",
-      "label": "Tagged “accessibility”",
-      "kind": "tag"
-    },
-    {
-      "file": "/og/tag-mongodb.png",
-      "label": "Tagged “mongodb”",
+      "file": "/og/tag-win95.png",
+      "label": "Tagged “win95”",
       "kind": "tag"
     },
     {
@@ -226,18 +381,33 @@
       "kind": "tag"
     },
     {
-      "file": "/og/tag-win95.png",
-      "label": "Tagged “win95”",
-      "kind": "tag"
-    },
-    {
-      "file": "/og/tag-ux.png",
-      "label": "Tagged “ux”",
+      "file": "/og/tag-ai.png",
+      "label": "Tagged “ai”",
       "kind": "tag"
     },
     {
       "file": "/og/tag-easter-eggs.png",
       "label": "Tagged “easter-eggs”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-indieweb.png",
+      "label": "Tagged “indieweb”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-webmentions.png",
+      "label": "Tagged “webmentions”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-operations.png",
+      "label": "Tagged “operations”",
+      "kind": "tag"
+    },
+    {
+      "file": "/og/tag-writing.png",
+      "label": "Tagged “writing”",
       "kind": "tag"
     },
     {
@@ -248,16 +418,6 @@
     {
       "file": "/og/tag-backups.png",
       "label": "Tagged “backups”",
-      "kind": "tag"
-    },
-    {
-      "file": "/og/tag-offline.png",
-      "label": "Tagged “offline”",
-      "kind": "tag"
-    },
-    {
-      "file": "/og/tag-service-worker.png",
-      "label": "Tagged “service-worker”",
       "kind": "tag"
     },
     {

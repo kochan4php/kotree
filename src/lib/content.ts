@@ -26,8 +26,12 @@ export interface Note {
   title: string;
   date: string;
   updated?: string;
+  reviewed?: string;
   summary: string;
   tags: string[];
+  /** Optional collection; notes in one series get ordered navigation. */
+  series?: string;
+  seriesOrder?: number;
   body: string;
 }
 
@@ -99,8 +103,11 @@ export function getNotes(): Note[] {
       title: data.title ?? slug,
       date: data.date ?? '',
       updated: data.updated || undefined,
+      reviewed: data.reviewed || undefined,
       summary: data.summary ?? '',
       tags: (data.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
+      series: data.series || undefined,
+      seriesOrder: data.seriesOrder ? Number(data.seriesOrder) : undefined,
       body,
     }))
     .sort(byDateDesc);
@@ -135,6 +142,27 @@ export function collectTags(items: { tags: string[] }[]): { tag: string; slug: s
 
 // K20: tag overlap ranks related items; when nothing overlaps (small
 // catalogue) the newest same-kind items fill the list so it is never empty.
+// Series are ordered by explicit seriesOrder, then by date. A note without a
+// series simply never appears in one of these listings.
+export function collectSeries(notes: Note[]): { series: string; slug: string; count: number }[] {
+  const bySlug = new Map<string, { series: string; slug: string; count: number }>();
+  for (const note of notes) {
+    if (!note.series) continue;
+    const slug = slugifyTag(note.series);
+    if (!slug) continue;
+    const entry = bySlug.get(slug);
+    if (entry) entry.count += 1;
+    else bySlug.set(slug, { series: note.series, slug, count: 1 });
+  }
+  return [...bySlug.values()].sort((a, b) => a.series.localeCompare(b.series));
+}
+
+export function getSeriesNotes(notes: Note[], series: string): Note[] {
+  return notes
+    .filter((note) => note.series && slugifyTag(note.series) === series)
+    .sort((a, b) => (a.seriesOrder ?? 999) - (b.seriesOrder ?? 999) || a.date.localeCompare(b.date));
+}
+
 export function relatedTo<T extends { slug: string; tags: string[]; date: string }>(
   current: T,
   all: T[],
