@@ -10,3 +10,6 @@ Standards: HTML5, CSS, JavaScript, TypeScript
 Components: Next.js, React, Tailwind CSS, MongoDB
 Built with: pnpm, Playwright, axe-core
 Privacy: no ads, no third-party analytics profiles — see /privacy
+
+/* ICONS */
+Brand marks: Simple Icons (CC0 1.0); LinkedIn and Dev.to: Font Awesome Free (CC BY 4.0)

@@ -1,7 +1,6 @@
 import type { SocialLink } from '@/interfaces';
 import { Briefcase, FileText, Globe, Mail } from 'lucide-react';
-import { FaDev, FaLinkedinIn } from 'react-icons/fa';
-import { SiGithub, SiGitlab, SiInstagram } from 'react-icons/si';
+import { DevToIcon, GithubIcon, GitlabIcon, InstagramIcon, LinkedinIcon } from '@/components/icons/brand';
 
 export const socialLinks: SocialLink[] = [
   {
@@ -35,35 +34,35 @@ export const socialLinks: SocialLink[] = [
   {
     name: 'GitHub',
     url: 'https://github.com/kochan4php',
-    icon: SiGithub,
+    icon: GithubIcon,
     color: '#c9d1d9',
     description: 'Code repositories',
   },
   {
     name: 'GitLab',
     url: 'https://gitlab.com/aprodeosubarno',
-    icon: SiGitlab,
+    icon: GitlabIcon,
     color: '#FC6D26',
     description: 'DevOps platform',
   },
   {
     name: 'LinkedIn',
     url: 'https://www.linkedin.com/in/aphrodeo-subarno',
-    icon: FaLinkedinIn,
+    icon: LinkedinIcon,
     color: '#0A66C2',
     description: 'Professional network',
   },
   {
     name: 'Dev.to',
     url: 'https://dev.to/aphrodeosubarno',
-    icon: FaDev,
+    icon: DevToIcon,
     color: '#c9d1d9',
     description: 'Developer community',
   },
   {
     name: 'Instagram',
     url: 'https://instagram.com/deo_sbrn',
-    icon: SiInstagram,
+    icon: InstagramIcon,
     color: '#E4405F',
     description: 'Visual stories',
   },
