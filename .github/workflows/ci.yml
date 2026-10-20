@@ -53,16 +53,45 @@ jobs:
         run: node scripts/audit-indexes.mjs
       - name: Light load check
         run: |
+          set -euo pipefail
           pnpm start > /tmp/kotree-server.log 2>&1 &
           SERVER=$!
-          trap 'kill $SERVER 2>/dev/null || true' EXIT
+          cleanup() {
+            kill "$SERVER" 2>/dev/null || true
+            # next start is a child of pnpm; free the port even if pnpm exits
+            # without forwarding the signal.
+            if command -v fuser >/dev/null 2>&1; then
+              fuser -k 3000/tcp 2>/dev/null || true
+            else
+              pkill -f 'next-server' 2>/dev/null || true
+            fi
+          }
+          trap cleanup EXIT
           for i in $(seq 1 30); do
             curl -fsS http://127.0.0.1:3000/api/health > /dev/null && break
             sleep 1
           done
           node scripts/load-check.mjs http://127.0.0.1:3000 40
+      - name: Free port 3000 before Playwright
+        if: always()
+        run: |
+          if command -v fuser >/dev/null 2>&1; then
+            fuser -k 3000/tcp 2>/dev/null || true
+          else
+            pkill -f 'next-server' 2>/dev/null || true
+          fi
+          sleep 1
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx playwright test
+      - name: Free port 3000 before the perf run
+        if: always()
+        run: |
+          if command -v fuser >/dev/null 2>&1; then
+            fuser -k 3000/tcp 2>/dev/null || true
+          else
+            pkill -f 'next-server' 2>/dev/null || true
+          fi
+          sleep 1
       # M1: the perf budget runs alone, after the main suite, so nothing else
       # hogs the CPU while it measures
       - run: pnpm test:perf
