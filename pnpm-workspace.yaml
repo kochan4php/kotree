@@ -1,8 +1,18 @@
+saveExact: true
+
+overrides:
+  'brace-expansion@<1.1.21': '1.1.21'
+  'brace-expansion@>=4.0.0 <5.0.12': '5.0.12'
+  'source-map-js@<1.2.2': '1.2.2'
+
 allowBuilds:
   sharp: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - lucide-react@1.59.0
+  - lucide-react@1.59.0 || 1.60.0
+  - '@netlify/edge-functions@4.0.3'
+  - '@netlify/plugin-nextjs@5.16.4'
+  - '@netlify/types@3.3.0'
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver
