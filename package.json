@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "clsx": "2.1.1",
-    "ethers": "6.17.0",
     "idb-keyval": "6.3.0",
     "lucide-react": "1.60.0",
     "mongodb": "7.7.0",
@@ -51,10 +50,10 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@types/three": "0.186.0",
+    "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.13.0",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "4.3.3",
-    "@typescript/native": "npm:typescript@7.0.2",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   }
 }
