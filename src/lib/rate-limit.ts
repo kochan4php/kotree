@@ -1,4 +1,5 @@
 import { consumeRateHit } from '@/connections/mongodb';
+import { memoryRateLimited } from '@/lib/memory-rate-limit';
 
 const WINDOW_MS = 60_000;
 
@@ -12,13 +13,13 @@ export function getClientIp(request: Request): string {
 
 // K6: limits live in Mongo (one small fixed-window bucket per key, cleaned up
 // by a TTL index), so they hold across serverless instances instead of
-// resetting with every cold process. Fails OPEN when Mongo is unreachable —
-// an outage must never lock everyone out of the site.
+// resetting with every cold process. When Mongo is unreachable the same
+// counter runs in this process: an outage must not remove the ceiling.
 export async function isRateLimited(key: string, maxHits = 30, windowMs = WINDOW_MS): Promise<boolean> {
   try {
     return (await consumeRateHit(key, windowMs)) > maxHits;
   } catch {
-    return false;
+    return memoryRateLimited(key, maxHits, windowMs);
   }
 }
 
@@ -45,6 +46,6 @@ export async function isGloballyRateLimited(key: string, maxHits: number, window
   try {
     return (await consumeRateHit(`global:${key}`, windowMs)) > maxHits;
   } catch {
-    return false;
+    return memoryRateLimited(`global:${key}`, maxHits, windowMs);
   }
 }

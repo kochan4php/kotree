@@ -8,24 +8,47 @@ const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017';
 let client: MongoClient;
 let clientPromise: Promise<MongoClient> | null = null;
 
+// A dead database must fail in seconds, not hold every request for the
+// driver's 30-second default. After a failed connect, wait briefly before
+// trying again instead of hammering it on every request.
+const MONGO_OPTIONS = { serverSelectionTimeoutMS: 2_000, connectTimeoutMS: 2_000 };
+const RETRY_AFTER_MS = 5_000;
+let retryAt = 0;
+let lastError: Error | null = null;
+
 function getClientPromise(): Promise<MongoClient> {
+  if (Date.now() < retryAt) {
+    return Promise.reject(lastError ?? new Error('MongoDB unavailable'));
+  }
+
   if (process.env.NODE_ENV === 'development') {
     const globalWithMongo = global as typeof globalThis & {
       _mongoClientPromise?: Promise<MongoClient>;
     };
 
     if (!globalWithMongo._mongoClientPromise) {
-      client = new MongoClient(uri);
-      globalWithMongo._mongoClientPromise = connect(client);
+      client = new MongoClient(uri, MONGO_OPTIONS);
+      globalWithMongo._mongoClientPromise = connect(client).catch((error) => {
+        globalWithMongo._mongoClientPromise = undefined;
+        retryAt = Date.now() + RETRY_AFTER_MS;
+        lastError = error instanceof Error ? error : new Error(String(error));
+        throw error;
+      });
     }
     return globalWithMongo._mongoClientPromise;
-  } else {
-    if (!clientPromise) {
-      client = new MongoClient(uri);
-      clientPromise = connect(client);
-    }
-    return clientPromise;
   }
+
+  if (!clientPromise) {
+    client = new MongoClient(uri, MONGO_OPTIONS);
+    clientPromise = connect(client).catch((error) => {
+      // Reset the cache so a later request can retry after Mongo returns.
+      clientPromise = null;
+      retryAt = Date.now() + RETRY_AFTER_MS;
+      lastError = error instanceof Error ? error : new Error(String(error));
+      throw error;
+    });
+  }
+  return clientPromise;
 }
 
 function connect(mongo: MongoClient): Promise<MongoClient> {
