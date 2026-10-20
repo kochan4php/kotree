@@ -163,7 +163,7 @@ export default function PollCard() {
 
         {archive.length > 0 && (
           <details className="mt-3">
-            <summary className="cursor-pointer text-[10px] font-mono font-bold uppercase tracking-wider text-accent-ink">
+            <summary className="min-h-6 cursor-pointer py-[5px] text-[10px] font-mono font-bold uppercase tracking-wider text-accent-ink">
               Past questions
             </summary>
             <ul className="mt-2 space-y-2">

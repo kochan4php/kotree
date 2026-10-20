@@ -57,7 +57,7 @@ export default async function NoteTagPage({ params }: { params: Promise<{ tag: s
       <div className="relative mx-auto w-full max-w-2xl">
         <Link
           href="/notes/tags"
-          className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-6 items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
           All tags

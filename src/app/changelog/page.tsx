@@ -120,7 +120,7 @@ export default function ChangelogPage() {
               <Card
                 key={version.title}
                 id={versionId(version.title)}
-                className="gap-3 fluid-glass neo-press scroll-mt-24"
+                className="gap-3 fluid-glass neo-press"
               >
                 <div className="relative z-10">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-foreground/20 pb-3">

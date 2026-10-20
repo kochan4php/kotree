@@ -205,7 +205,7 @@ export function renderMarkdown(blocks: MarkdownBlock[]): React.ReactNode[] {
     if (block.type === 'code') {
       const label = block.lang || 'text';
       return (
-        <figure key={key} id={`code-${key + 1}`} className="kt-code mt-4 scroll-mt-24">
+        <figure key={key} id={`code-${key + 1}`} className="kt-code mt-4">
           <figcaption className="kt-code-head">
             <span className="kt-code-lang">{label}</span>
             <CodeCopy code={block.lines.join('\n')} label={label} />
@@ -232,7 +232,7 @@ export function renderMarkdown(blocks: MarkdownBlock[]): React.ReactNode[] {
           <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Footnotes</h2>
           <ol className="mt-2 space-y-2 list-decimal pl-5">
             {block.items.map((item) => (
-              <li key={item.id} id={`fn-${item.id}`} className="scroll-mt-24 text-sm text-muted-foreground leading-relaxed">
+              <li key={item.id} id={`fn-${item.id}`} className="text-sm text-muted-foreground leading-relaxed">
                 {renderInline(item.text)}{' '}
                 <a
                   href={`#fnref-${item.id}`}
@@ -257,7 +257,7 @@ export function renderMarkdown(blocks: MarkdownBlock[]): React.ReactNode[] {
         key={key}
         id={id}
         style={styleOf({ viewTimelineName: `--kt-${id}` })}
-        className={`${blockClasses[block.type]} scroll-mt-24`}
+        className={`${blockClasses[block.type]}`}
       >
         {renderInline(block.text)}
         <HeadingAnchor id={id} />

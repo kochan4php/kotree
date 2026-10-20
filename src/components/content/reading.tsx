@@ -30,7 +30,7 @@ export function TableOfContents({ headings }: { headings: { id: string; text: st
             <a
               href={`#${heading.id}`}
               style={styleOf({ '--kt-tl': `--kt-${heading.id}` })}
-              className="kt-toc-link text-sm font-bold text-foreground decoration-accent decoration-2 underline-offset-2 hover:underline"
+              className="kt-toc-link inline-flex min-h-6 items-center text-sm font-bold text-foreground decoration-accent decoration-2 underline-offset-2 hover:underline"
             >
               {heading.text}
             </a>

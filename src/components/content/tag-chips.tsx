@@ -11,7 +11,7 @@ export default function TagChips({ tags, base }: { tags: string[]; base: '/notes
         <Link
           key={tag}
           href={`${base}/tags/${slugifyTag(tag)}`}
-          className="rounded border-2 border-foreground bg-secondary px-1.5 py-0.5 text-[10px] font-mono font-bold text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="inline-flex min-h-6 items-center rounded border-2 border-foreground bg-secondary px-1.5 py-0.5 text-[10px] font-mono font-bold text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         >
           {tag}
         </Link>

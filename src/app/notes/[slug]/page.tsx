@@ -59,7 +59,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
       <div className="relative mx-auto w-full max-w-2xl">
         <Link
           href="/notes"
-          className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-6 items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
           All notes
@@ -97,7 +97,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
               <PrintButton />
             </div>
             <h1 className="p-name mt-2 text-3xl font-black tracking-tight text-foreground">{note.title}</h1>
-            <a className="u-url sr-only" href={`${site.baseUrl}/notes/${note.slug}`}>
+            <a className="u-url sr-only" href={`${site.baseUrl}/notes/${note.slug}`} tabIndex={-1} aria-hidden="true">
               Permalink
             </a>
             <span className="p-author sr-only">{site.name}</span>

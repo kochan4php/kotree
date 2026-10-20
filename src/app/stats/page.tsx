@@ -37,7 +37,7 @@ export default function StatsPage() {
       <div className="relative mx-auto w-full max-w-2xl">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-6 items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
           Home

@@ -60,7 +60,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <div className="relative mx-auto w-full max-w-2xl lg:max-w-3xl">
         <Link
           href="/projects"
-          className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-6 items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
           All projects
@@ -99,7 +99,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </div>
 
             <h1 className="p-name mt-2 text-3xl font-black tracking-tight text-foreground">{project.title}</h1>
-            <a className="u-url sr-only" href={`${site.baseUrl}/projects/${project.slug}`}>
+            <a className="u-url sr-only" href={`${site.baseUrl}/projects/${project.slug}`} tabIndex={-1} aria-hidden="true">
               Permalink
             </a>
             <span className="p-author sr-only">{site.name}</span>

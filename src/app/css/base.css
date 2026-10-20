@@ -7,6 +7,8 @@
      components. Mixed unit (rem + vw) keeps user zoom working. */
   html {
     font-size: clamp(15px, 0.9rem + 0.25vw, 18px);
+    /* Keyboard focus and fragment links stop below the fixed header. */
+    scroll-padding-top: calc(6rem + env(safe-area-inset-top));
   }
   html,
   body {

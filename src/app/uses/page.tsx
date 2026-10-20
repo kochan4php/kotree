@@ -46,7 +46,7 @@ export default function UsesPage() {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-accent-ink underline underline-offset-2 decoration-2 hover:decoration-[3px]"
+                          className="inline-flex min-h-6 items-center text-accent-ink underline underline-offset-2 decoration-2 hover:decoration-[3px]"
                         >
                           {item.name}
                         </a>
