@@ -54,3 +54,6 @@ playwright-report/
 
 # local-only admin notes (token how-to, keep out of the public repo)
 /ADMIN_SETUP.local.md
+# local run artefacts
+build.log
+server.log
