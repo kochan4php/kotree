@@ -515,38 +515,42 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
           </p>
         )}
 
-        <div
-          ref={listRef}
-          className={`space-y-3 mb-4 pr-2 ${isLoading && entries.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'} ${full ? 'h-[clamp(20rem,52vh,34rem)]' : 'h-72 lg:flex-auto lg:min-h-72'}`}
-        >
-          {isLoading && entries.length === 0 ? (
-            <EntrySkeletons />
-          ) : entries.length > 0 && visible.length === 0 ? (
-            <EmptyState title="No secrets match your filters." hint="Try another search, or clear the filters." />
-          ) : (
-            <EntryList
-              entries={visible}
-              decryptedIndexes={decryptedIndexes}
-              onToggle={toggleDecrypt}
-              newSince={newSince}
-              mine={mine}
-              onDeleted={handleDeleted}
-              onEdited={handleEdited}
-            />
-          )}
-          {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
-        </div>
-
-        {hasMore && (
-          <p
-            role="status"
-            className={
-              isLoadingMore ? 'pb-4 text-center font-mono text-[10px] font-bold text-muted-foreground' : 'sr-only'
-            }
+        <div className="relative">
+          <div
+            ref={listRef}
+            className={`space-y-3 mb-4 pr-2 ${isLoading && entries.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'} ${full ? 'h-[clamp(20rem,52vh,34rem)]' : 'h-72 lg:flex-auto lg:min-h-72'}`}
           >
-            {isLoadingMore ? 'Loading more secrets…' : ''}
-          </p>
-        )}
+            {isLoading && entries.length === 0 ? (
+              <EntrySkeletons />
+            ) : entries.length > 0 && visible.length === 0 ? (
+              <EmptyState title="No secrets match your filters." hint="Try another search, or clear the filters." />
+            ) : (
+              <EntryList
+                entries={visible}
+                decryptedIndexes={decryptedIndexes}
+                onToggle={toggleDecrypt}
+                newSince={newSince}
+                mine={mine}
+                onDeleted={handleDeleted}
+                onEdited={handleEdited}
+              />
+            )}
+            {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
+          </div>
+
+          {/* Pinned to the wall's edge: the loading hint must not push the
+              composer down, or the card bounces every time a page arrives. */}
+          <div
+            role="status"
+            className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-center"
+          >
+            {isLoadingMore && (
+              <span className="rounded-md border-2 border-foreground bg-card px-2.5 py-1 font-mono text-[10px] font-bold text-foreground shadow-[2px_2px_0_0_var(--foreground)]">
+                Loading more secrets…
+              </span>
+            )}
+          </div>
+        </div>
 
         {/* M68: the obfuscation step is client-side by design (plaintext never
             reaches the server), so the form genuinely cannot work without
