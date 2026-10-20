@@ -2,7 +2,7 @@
 
 A log of every update to Kotree, from the newest to the oldest.
 
-## [3.5.0]
+## [3.5.0-stable]
 
 The update about remembering things: where you stopped reading, where you left the windows, and what you wrote while the train was in a tunnel.
 
@@ -35,7 +35,7 @@ The update about remembering things: where you stopped reading, where you left t
 
 - Two chips in the admin dashboard were unreadable in dark mode, sitting as dark text on a dark card
 
-## [3.4.0]
+## [3.4.0-stable]
 
 A big, quiet release: more to find, more to play with, and a lot of work you will only notice when something stops being annoying.
 
@@ -86,7 +86,7 @@ A big, quiet release: more to find, more to play with, and a lot of work you wil
 - The left column no longer leaves a bare patch on wide screens — the theme cards stretch to meet the column beside them
 - The little "note" or "project" label in the search palette was nearly invisible on the highlighted row, and the copy buttons had the same problem under the cursor
 
-## [3.3.0]
+## [3.3.0-stable]
 
 The biggest update yet in polish rather than pixels: new places to look, a search that actually searches, and a pile of invisible work that keeps the whole thing standing.
 
@@ -124,7 +124,7 @@ The biggest update yet in polish rather than pixels: new places to look, a searc
 - Messages can no longer bring invisible characters along for the ride
 - The site no longer asks browsers for anything it cannot honour on plain-HTTP setups
 
-## [3.2.0]
+## [3.2.0-stable]
 
 A quieter update with a big footprint: new pages, a smarter admin area, and proper manners when the connection drops.
 
@@ -154,7 +154,7 @@ A quieter update with a big footprint: new pages, a smarter admin area, and prop
 - Dark mode contrast and keyboard focus issues, checked from phones to very wide screens
 - Assorted layout rough edges on large displays
 
-## [3.1.0]
+## [3.1.0-stable]
 
 A bold new look and a pile of small fixes.
 
@@ -178,7 +178,7 @@ A bold new look and a pile of small fixes.
 
 - The old frosted-glass and glow effects
 
-## [3.0.0-lts]
+## [3.0.0-stable]
 
 The biggest update yet: new interactive features, a faster and safer page, and better accessibility.
 
@@ -247,7 +247,7 @@ The biggest update yet: new interactive features, a faster and safer page, and b
 - Links opened from games and easter eggs are fully sandboxed
 - All dependencies audited — no known vulnerabilities
 
-## [2.0.0-lts]
+## [2.0.0-stable]
 
 A big refresh. The whole page now matches the kochan.dev brand.
 
@@ -315,34 +315,9 @@ The release that made Kotree feel complete.
 - Blurred backgrounds
 - An unused module
 
-## [1.0.0-lts]
+## [1.0.0-stable]
 
-Maintenance release.
-
-### Removed
-
-- An unused animation library
-
-### Changed
-
-- Updated project settings
-
-## [1.0.0]
-
-The jump to the latest React version.
-
-### Added
-
-- New social media links
-
-### Changed
-
-- Upgraded to the latest version of React
-- Cleaned up the project
-
-## [0.0.0]
-
-The very first version of Kotree, built as a simple web page.
+The first Kotree: a simple page, the jump to the latest React, and the maintenance pass that followed.
 
 ### Added
 
@@ -353,11 +328,19 @@ The very first version of Kotree, built as a simple web page.
 - Project documentation and license
 - Styling with Tailwind CSS
 - Development setup with Docker and Netlify deployment
+- New social media links
 
 ### Changed
 
 - Button design
 - Footer year updates automatically
+- Upgraded to the latest version of React
+- Cleaned up the project
+- Updated project settings
+
+### Removed
+
+- An unused animation library
 
 ### Fixed
 
