@@ -27,7 +27,9 @@ function shortDay(day: string): string {
   return `${date}/${month}`;
 }
 
-export default function StatsPage() {
+export default async function StatsPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
+  const days = (await searchParams).days === '7' ? 7 : 30;
+
   return (
     <main id="main" tabIndex={-1} className="min-h-screen p-4 pt-[calc(4.75rem+env(safe-area-inset-top))] md:mt-2 focus:outline-none">
       <script
@@ -66,7 +68,7 @@ export default function StatsPage() {
         </Card>
 
         <Suspense fallback={<StatsFallback />}>
-          <StatsBody />
+          <StatsBody days={days} />
         </Suspense>
       </div>
     </main>
@@ -95,10 +97,11 @@ function StatsFallback() {
   );
 }
 
-async function StatsBody() {
+async function StatsBody({ days }: { days: number }) {
   const stats = await getPublicStats();
+  const series = days === 7 ? stats.last30Days.slice(-7) : stats.last30Days;
   const maxLink = Math.max(1, ...stats.topLinks.map((link) => link.count));
-  const maxDay = Math.max(1, ...stats.last30Days.map((day) => day.count));
+  const maxDay = Math.max(1, ...series.map((day) => day.count));
   const week = weekChange(stats.last30Days);
 
   return (
@@ -159,13 +162,31 @@ async function StatsBody() {
       <Card className="fluid-glass mt-3">
         <div className="liquid-gradient"></div>
         <div className="relative z-10">
-          <h2 className="text-lg font-bold text-foreground">Last 30 days</h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-foreground">Last {days} days</h2>
+            <div className="flex gap-1" aria-label="Chart range">
+              {[7, 30].map((range) => (
+                <Link
+                  key={range}
+                  href={range === 30 ? '/stats' : `/stats?days=${range}`}
+                  aria-current={days === range ? 'page' : undefined}
+                  className={`inline-flex min-h-6 items-center rounded border-2 border-foreground px-2 text-[10px] font-mono font-bold transition-colors ${
+                    days === range
+                      ? 'bg-accent text-accent-foreground'
+                      : 'bg-secondary text-foreground hover:bg-accent hover:text-accent-foreground'
+                  }`}
+                >
+                  {range} days
+                </Link>
+              ))}
+            </div>
+          </div>
           {stats.totalClicks === 0 ? (
             <p className="mt-2 text-sm italic text-muted-foreground">Nothing to plot yet.</p>
           ) : (
             <>
-              <div className="mt-3 flex h-24 items-end gap-1" role="img" aria-label="Daily clicks over the last 30 days">
-                {stats.last30Days.map((day) => (
+              <div className="mt-3 flex h-24 items-end gap-1" role="img" aria-label={`Daily clicks over the last ${days} days`}>
+                {series.map((day) => (
                   <div
                     key={day.day}
                     className="flex-1 rounded-t border-2 border-foreground bg-accent"
@@ -175,8 +196,8 @@ async function StatsBody() {
                 ))}
               </div>
               <div className="mt-1 flex justify-between text-[10px] font-mono font-bold text-muted-foreground">
-                <span>{shortDay(stats.last30Days[0].day)}</span>
-                <span>{shortDay(stats.last30Days[stats.last30Days.length - 1].day)}</span>
+                <span>{shortDay(series[0].day)}</span>
+                <span>{shortDay(series[series.length - 1].day)}</span>
               </div>
               {/* G4: the same series, read as a week-on-week comparison */}
               <p className="mt-2 text-xs font-medium text-muted-foreground">

@@ -262,6 +262,9 @@ test('the public stats page shows real numbers', async ({ page }) => {
   await expect(page.locator('div').filter({ hasText: /^Total clicks$/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Most tapped links' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Last 30 days' })).toBeVisible();
+
+  await page.getByRole('link', { name: '7 days', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Last 7 days' })).toBeVisible();
 });
 
 test('wrapped recaps the year', async ({ page }) => {
@@ -597,4 +600,14 @@ test('a fresh deep link to a heading clears the sticky header', async ({ page })
   const top = await heading.evaluate((el) => el.getBoundingClientRect().top);
   expect(top).toBeGreaterThan(40);
   expect(top).toBeLessThan(160);
+});
+
+test('the 404 search forgives a typo', async ({ page }) => {
+  await page.goto('/definitely-not-a-page');
+  await page.getByLabel('Search pages and links').fill('projcts');
+
+  const projects = page.getByRole('button', { name: /Projects/ });
+  await expect(projects).toBeVisible();
+  await projects.click();
+  await expect(page).toHaveURL(/\/projects$/);
 });

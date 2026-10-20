@@ -6,6 +6,7 @@ import StateCard from '@/components/ui/state-card';
 import { socialLinks } from '@/data/social-links';
 import { ArrowLeft, Dices, ExternalLink, Home, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { fuzzy } from '@/lib/fuzzy';
 import { pickLucky } from '@/lib/lucky';
 
 const PAGES = [
@@ -30,14 +31,29 @@ export default function NotFound() {
   const router = useRouter();
   const [query, setQuery] = useState('');
 
-  const q = query.trim().toLowerCase();
-  const suggestions: Suggestion[] = q
+  const q = query.trim();
+  const lower = q.toLowerCase();
+  // Exact substring hits rank first; a subsequence match catches typos such as
+  // "projcts" without needing a spell checker or a round trip.
+  const score = (text: string) => {
+    const hit = text.toLowerCase().indexOf(lower);
+    return hit >= 0 ? 1000 - hit : (fuzzy(q, text)?.score ?? -Infinity);
+  };
+  const ranked = (label: string, description: string) => Math.max(score(label), score(description) - 10);
+  const suggestions: (Suggestion & { score: number })[] = q
     ? [
-        ...PAGES.filter((page) => `${page.label} ${page.description}`.toLowerCase().includes(q)),
-        ...socialLinks
-          .filter((link) => `${link.name} ${link.description}`.toLowerCase().includes(q))
-          .map((link) => ({ label: link.name, href: link.url, description: link.description, external: true })),
-      ].slice(0, 5)
+        ...PAGES.map((page) => ({ ...page, score: ranked(page.label, page.description) })),
+        ...socialLinks.map((link) => ({
+          label: link.name,
+          href: link.url,
+          description: link.description,
+          external: true,
+          score: ranked(link.name, link.description),
+        })),
+      ]
+        .filter((item) => Number.isFinite(item.score))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
     : [];
 
   const go = (item: { href: string; external?: boolean }) => {
