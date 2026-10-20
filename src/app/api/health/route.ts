@@ -15,15 +15,17 @@ export const dynamic = 'force-dynamic';
 // 200 = everything reachable, 503 = Mongo is down (counters and guestbook
 // cannot work without it). Version + commit make a deployed build identifiable.
 export async function GET(request: Request) {
+  const started = performance.now();
   if (await isRateLimited(`health:${getClientIp(request)}`, 60)) {
     return new NextResponse('Too Many Requests', { status: 429 });
   }
 
-  const started = Date.now();
+  const dbStarted = performance.now();
   const mongo = await pingDb();
+  const dbMs = performance.now() - dbStarted;
   // H1: only a healthy answer is a heartbeat, and the write itself needs Mongo,
   // so /status can draw a strip of days rather than guessing at downtime.
-  if (mongo) await recordHealthBeat(Date.now() - started).catch(() => {});
+  if (mongo) await recordHealthBeat(Math.round(dbMs)).catch(() => {});
   // M63: the alert workflow watches this number against a repo-variable
   // threshold; reporting it here keeps the check to one anonymous request.
   const cspViolations24h = mongo ? await getCspViolationCount24h() : 0;
@@ -45,6 +47,6 @@ export async function GET(request: Request) {
       uptime: Math.round(process.uptime()),
       time: new Date().toISOString(),
     },
-    { status: mongo ? 200 : 503, headers: { 'Cache-Control': 'no-store' } }
+    { status: mongo ? 200 : 503, headers: { 'Cache-Control': 'no-store', 'Server-Timing': `db;dur=${dbMs.toFixed(1)}, app;dur=${(performance.now() - started).toFixed(1)}` } }
   );
 }

@@ -65,6 +65,7 @@ function contentSecurityPolicy(nonce: string): string {
 }
 
 export function proxy(request: NextRequest, event: NextFetchEvent) {
+  const started = performance.now();
   const { pathname } = request.nextUrl;
 
   if (shouldTrapProbe(pathname)) {
@@ -118,6 +119,9 @@ export function proxy(request: NextRequest, event: NextFetchEvent) {
     'content-security-policy-report-only',
     "require-trusted-types-for 'script'; report-to default"
   );
+  // One honest number the browser can show in DevTools: the proxy work only,
+  // separate from render and DB time. /api/health adds its own db/app entries.
+  response.headers.set('server-timing', `proxy;dur=${(performance.now() - started).toFixed(1)}`);
   return response;
 }
 

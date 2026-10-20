@@ -60,6 +60,15 @@ function firstTaggedNote(): { slug: string; tag: string; title: string } {
 
 const slugifyTag = (tag: string) => tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
+test('server timing reports proxy and database work', async ({ request }) => {
+  const page = await request.get('/');
+  expect(page.headers()['server-timing']).toMatch(/proxy;dur=\d/);
+
+  const health = await request.get('/api/health');
+  expect(health.headers()['server-timing']).toMatch(/db;dur=\d/);
+  expect(health.headers()['server-timing']).toMatch(/app;dur=\d/);
+});
+
 test.describe('feeds', () => {
   test('rss.xml carries full content and revalidation headers', async ({ request }) => {
     const res = await request.get('/rss.xml');
