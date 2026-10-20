@@ -23,7 +23,7 @@ jobs:
       LOGIN_ALERT_THRESHOLD: '1'
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
