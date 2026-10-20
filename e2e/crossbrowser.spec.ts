@@ -81,11 +81,21 @@ test('a Win95 window follows a pointer drag @crossbrowser', async ({ page }) => 
   const left = async () =>
     Number.parseFloat(await frame.evaluate((el) => (el as HTMLElement).style.left));
 
-  // Let the open transition settle before measuring
-  await page.waitForTimeout(600);
-  const opened = await left();
-  const box = await bar.boundingBox();
+  // Wait until the open transition stops moving the title bar. A fixed wait
+  // was not enough on WebKit: the box could still be settling when measured,
+  // so the pointer landed where the bar had been a frame earlier.
+  let box = await bar.boundingBox();
+  for (let i = 0; i < 20 && box; i++) {
+    await page.waitForTimeout(50);
+    const next = await bar.boundingBox();
+    if (next && Math.abs(next.x - box.x) < 0.5 && Math.abs(next.y - box.y) < 0.5) {
+      box = next;
+      break;
+    }
+    box = next;
+  }
   if (!box) throw new Error('the Calculator title bar has no box');
+  const opened = await left();
 
   // Grab the empty left half of the title bar, away from the window buttons
   await page.mouse.move(box.x + 40, box.y + box.height / 2);
