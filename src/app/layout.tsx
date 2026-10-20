@@ -23,6 +23,7 @@ import HeaderBar from '@/components/layout/header-bar';
 import KeyboardHelp from '@/components/layout/keyboard-help';
 import ThemeSync from '@/components/layout/theme-sync';
 import RouteFocus from '@/components/layout/route-focus';
+import HashLanding from '@/components/layout/hash-landing';
 import VisitTracker from '@/components/layout/visit-tracker';
 import CommandPalette from '@/components/layout/command-palette';
 import SelfDestruct from '@/components/self-destruct';
@@ -175,6 +176,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <PageViewReporter />
         <ThemeSync />
         <RouteFocus />
+        <HashLanding />
         <VisitTracker />
         <WhatsNew />
         <KonamiCode />

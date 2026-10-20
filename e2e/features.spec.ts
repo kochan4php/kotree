@@ -572,3 +572,28 @@ test('the Wrapped recap is downloadable as an image', async ({ page }) => {
   expect((await download).suggestedFilename()).toMatch(/^kotree-wrapped-20\d\d\.png$/);
   await expect(page.getByText(/is in your downloads/)).toBeVisible();
 });
+
+// Next resets scroll on a fresh load, so the browser's own fragment jump is
+// lost. A copied link has to land on its release, not the top of the page.
+test('a fresh deep link lands on its changelog release', async ({ page }) => {
+  await page.goto('/changelog#1.0.0');
+  const card = page.locator('[id="1.0.0"]');
+  await expect(card).toBeVisible();
+  await page.waitForTimeout(1000);
+
+  const top = await card.evaluate((el) => el.getBoundingClientRect().top);
+  expect(top).toBeGreaterThanOrEqual(0);
+  expect(top).toBeLessThan(200);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+});
+
+test('a fresh deep link to a heading clears the sticky header', async ({ page }) => {
+  await page.goto('/projects/kotree#what-is-inside');
+  const heading = page.getByRole('heading', { name: 'What is inside' });
+  await expect(heading).toBeVisible();
+  await page.waitForTimeout(1000);
+
+  const top = await heading.evaluate((el) => el.getBoundingClientRect().top);
+  expect(top).toBeGreaterThan(40);
+  expect(top).toBeLessThan(160);
+});
