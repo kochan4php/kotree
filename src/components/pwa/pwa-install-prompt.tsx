@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 // BeforeInstallPromptEvent isn't in TS's DOM lib yet
 type BeforeInstallPromptEvent = {

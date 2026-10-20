@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 // K24: a returning visitor sees one toast pointing at what changed since the
 // version they last saw. First-ever visitors see nothing (nothing to catch up

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Download, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { ownerToken } from '@/components/guestbook/mine';
 import { downloadBlob } from '@/lib/qr-download';
 

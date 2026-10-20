@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { updateAppBadge } from '@/lib/offline-sync';
 
 // K8 — service worker registration with an honest update flow. The worker no

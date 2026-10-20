@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { decryptMessage, encryptMessage } from './obfuscation';
 import { relativeTime } from '@/lib/relative-time';
 import { Check, Flag, Link2, Pencil, Pin, Share2, Trash2, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { deleteOwnEntry, editOwnEntry, reactToEntry, reportEntry } from './api';
 import { ownerToken } from './mine';
 import { clientToken } from '@/lib/csrf-client';

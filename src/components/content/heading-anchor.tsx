@@ -1,7 +1,7 @@
 'use client';
 
 import { Link2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 // M36: one copy-link button per heading. The hash is set either way, so the
 // link still works when the clipboard API is unavailable or denied.

@@ -1,7 +1,7 @@
 'use client';
 
 import { Link2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useSensory } from '@/hooks/use-sensory';
 
 // K25: deep link to a single changelog version — /changelog#3.3.0

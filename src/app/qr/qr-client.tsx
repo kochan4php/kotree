@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { Copy, Download, FileImage } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { downloadBlob, downloadQrSvg, qrPngBlob } from '@/lib/qr-download';
 
 // High-contrast pairs only — scanners need the contrast more than the style.

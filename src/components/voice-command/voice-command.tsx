@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Mic, MicOff } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { getSpeechRecognitionCtor } from './speech';
 import { startListening } from './listener';
 import { processCommand } from './commands';

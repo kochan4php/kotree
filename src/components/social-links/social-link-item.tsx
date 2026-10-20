@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useSensory } from '@/hooks/use-sensory';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface SocialLinkItemProps {
   link: SocialLink;

@@ -11,6 +11,17 @@
   }
 }
 
+@keyframes kt-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.kt-toast-in {
+  animation: kt-toast-in 180ms ease-out;
+}
+
 /* "Background effects" preference (Preferences panel) */
 [data-fx="off"] .kt-scroll-fades {
   display: none;

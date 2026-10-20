@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Brain, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const QUIZ_KEY = 'kotree-quiz-best';
 

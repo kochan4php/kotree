@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 // Only the two EIP-1193 calls this card needs; importing ethers for them cost
 // a ~380 KB lazy chunk and a dependency for a joke tip.

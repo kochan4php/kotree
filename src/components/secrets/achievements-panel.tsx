@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Award, Download, Upload } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { SECRETS, VETERAN_KEY, discoveredSecrets } from '@/lib/secrets';
 import {
   ACHIEVEMENTS,

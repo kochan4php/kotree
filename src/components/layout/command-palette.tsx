@@ -29,7 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { socialLinks } from '@/data/social-links';
 import { trackLinkClick } from '@/lib/track-click';
 import { refreshLinkCounts } from '@/hooks/use-link-counts';

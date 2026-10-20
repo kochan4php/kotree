@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import QRCode from 'react-qr-code';
 import { Check, Copy, Download, FileImage, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useSensory } from '@/hooks/use-sensory';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 import { downloadBlob, downloadQrSvg, qrPngBlob } from '@/lib/qr-download';

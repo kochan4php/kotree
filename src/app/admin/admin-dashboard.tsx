@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Ban, BarChart3, Bug, Check, Download, Eye, EyeOff, FileDown, Gauge, LogOut, Pin, PinOff, RefreshCw, Reply, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
 import { decryptMessage } from '@/components/guestbook/obfuscation';
 import InlineMarkdown from '@/components/content/inline-markdown';

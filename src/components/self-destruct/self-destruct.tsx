@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useBatteryAlert } from './battery';
 import { CountdownOverlay, TerminatedOverlay } from './overlays';
 

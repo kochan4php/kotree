@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Bitcoin, Wallet, CreditCard, Check, Copy } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Card } from '@/components/ui/card';
 import { useSensory } from '@/hooks/use-sensory';
 import { connectWallet, sendTip } from './actions';

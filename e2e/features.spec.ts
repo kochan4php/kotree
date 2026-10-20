@@ -242,8 +242,9 @@ test("returning visitors get a one-time what's-new toast", async ({ page }) => {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
 
-  // K24: the toast shows up a moment after the page settles
+  // K24: the toast shows up a moment after the page settles, with a way in
   await expect(page.getByText(/see what changed/)).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole('button', { name: 'See changes' })).toBeVisible();
 
   // Seen now — a reload stays quiet
   await page.reload();

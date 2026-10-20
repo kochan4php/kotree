@@ -2,7 +2,7 @@
 
 import { Share2, QrCode, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useSensory } from '@/hooks/use-sensory';
 
 interface ProfileActionsProps {

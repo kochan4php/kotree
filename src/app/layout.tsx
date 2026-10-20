@@ -6,7 +6,7 @@ import { metadata } from './metadata';
 import { jsonLd } from './schema';
 import './globals.css';
 
-import { Toaster } from 'sonner';
+import Toaster from '@/components/ui/toaster';
 import PwaInstallPrompt from '@/components/pwa';
 import PwaRegister from '@/components/pwa/pwa-register';
 import ErrorReporter from '@/components/error-reporter';
@@ -152,23 +152,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               it navigate exactly as before. */}
           <ViewTransition>{children}</ViewTransition>
         </div>
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            classNames: {
-              toast: 'rounded-xl! border-[3px]! border-foreground! shadow-[4px_4px_0_0_var(--foreground)]! font-bold',
-              default: 'bg-[#ffe6d1]! [&_svg]:text-accent!',
-              info: 'bg-[#d6ecff]! [&_svg]:text-blue-600!',
-              success: 'bg-[#dcf7c4]! [&_svg]:text-green-700!',
-              warning: 'bg-[#ffeeb0]! [&_svg]:text-amber-600!',
-              error: 'bg-[#ffd6d6]! [&_svg]:text-red-600!',
-              title: 'text-sm font-black text-[#14110f]! font-display',
-              description: 'text-xs text-[#14110f]/70! font-medium',
-              actionButton: 'bg-foreground! text-background! font-bold rounded-md! px-4 py-1.5 text-xs border-2! border-foreground! hover:bg-accent! hover:text-accent-foreground! transition-colors',
-              cancelButton: 'bg-transparent! text-[#6f6257]! hover:text-[#14110f]! transition-colors font-semibold',
-            },
-          }}
-        />
+        <Toaster />
         <PwaInstallPrompt />
         <PwaRegister />
         <ErrorReporter />

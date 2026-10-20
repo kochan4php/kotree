@@ -1,7 +1,7 @@
 'use client';
 
 import { Bluetooth } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { discoverSecret } from '@/lib/secrets';
 
 type BluetoothNavigator = {

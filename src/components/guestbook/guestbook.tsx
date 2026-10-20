@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { get as idbGet, del as idbDel } from 'idb-keyval';
 import { Card } from '@/components/ui/card';
 import { Link2, MessageSquare, Send } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { encryptMessage, decryptMessage } from './obfuscation';
 import EntryList from './entry-list';
 import EmptyState from '@/components/ui/empty-state';
