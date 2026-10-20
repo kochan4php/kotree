@@ -7,7 +7,6 @@ import { jsonLd } from './schema';
 import './globals.css';
 
 import Toaster from '@/components/ui/toaster';
-import PwaInstallPrompt from '@/components/pwa';
 import PwaRegister from '@/components/pwa/pwa-register';
 import ErrorReporter from '@/components/error-reporter';
 import VitalsReporter from '@/components/analytics/vitals-reporter';
@@ -26,9 +25,8 @@ import RouteFocus from '@/components/layout/route-focus';
 import HashLanding from '@/components/layout/hash-landing';
 import VisitTracker from '@/components/layout/visit-tracker';
 import CommandPalette from '@/components/layout/command-palette';
-import SelfDestruct from '@/components/self-destruct';
 import EasterEggLauncher from '@/components/easter-eggs';
-import WhatsNew from '@/components/layout/whats-new';
+import DeferredIslands from '@/components/layout/deferred-islands';
 import { Viewport } from 'next';
 
 // M4: both faces paint above the fold, so both stay preloaded; the explicit
@@ -153,7 +151,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <ViewTransition>{children}</ViewTransition>
         </div>
         <Toaster />
-        <PwaInstallPrompt />
         <PwaRegister />
         <ErrorReporter />
         <VitalsReporter />
@@ -162,15 +159,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <RouteFocus />
         <HashLanding />
         <VisitTracker />
-        <WhatsNew />
         <KonamiCode />
         <KeyboardHelp />
         <GhostCursor />
         <HeaderBar />
         <CommandPalette />
 
-        <SelfDestruct />
         <EasterEggLauncher />
+        <DeferredIslands />
       </body>
     </html>
   );
