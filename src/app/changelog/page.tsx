@@ -29,10 +29,22 @@ const versionId = (title: string) =>
 // syntax, not part of the version, and read as debris in a heading.
 const versionLabel = (title: string) => title.replace(/[[\]]/g, '').trim();
 
+// Long-term support is a property of the release, not of its number, so it is
+// marked here rather than by renaming the version (which would move its anchor).
+const LTS_VERSIONS = new Set(['3.5.0']);
+
 function LatestTag() {
   return (
     <span className="shrink-0 rounded border-2 border-foreground bg-accent px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-foreground">
       latest
+    </span>
+  );
+}
+
+function LtsTag() {
+  return (
+    <span className="shrink-0 rounded border-2 border-foreground bg-foreground px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-background">
+      LTS
     </span>
   );
 }
@@ -79,14 +91,14 @@ export default function ChangelogPage() {
             <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
           <ul className="grid grid-cols-2 gap-x-4 gap-y-1 border-t-[3px] border-foreground px-4 py-3">
-            {versions.map((version, i) => (
+            {versions.map((version) => (
               <li key={version.title}>
                 <a
                   href={`#${versionId(version.title)}`}
                   className="flex min-h-9 items-center justify-between gap-2 font-mono text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {versionLabel(version.title)}
-                  {i === 0 && <LatestTag />}
+                  {LTS_VERSIONS.has(versionLabel(version.title)) && <LtsTag />}
                 </a>
               </li>
             ))}
@@ -96,13 +108,16 @@ export default function ChangelogPage() {
         <div className="mt-3 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start lg:gap-4">
           {/* Desktop jump list — a panel with a rail, so it reads as navigation
               rather than a loose column of grey numbers on the wallpaper. */}
-          <nav aria-label="Versions" className="hidden lg:sticky lg:top-24 lg:block">
+          <nav
+            aria-label="Versions"
+            className="hidden lg:sticky lg:top-[calc(4.75rem+env(safe-area-inset-top))] lg:block"
+          >
             <div className="fluid-glass rounded-lg p-3">
               <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
                 Versions
               </p>
               <ol className="border-l-2 border-dashed border-foreground/25">
-                {versions.map((version, i) => (
+                {versions.map((version) => (
                   <li key={version.title} className="relative">
                     <span
                       aria-hidden="true"
@@ -115,7 +130,7 @@ export default function ChangelogPage() {
                       <span className="whitespace-nowrap font-mono tracking-tight">
                         {versionLabel(version.title)}
                       </span>
-                      {i === 0 && <LatestTag />}
+                      {LTS_VERSIONS.has(versionLabel(version.title)) && <LtsTag />}
                     </a>
                   </li>
                 ))}
@@ -137,10 +152,11 @@ export default function ChangelogPage() {
                         {versionLabel(version.title)}
                       </h2>
                       {i === 0 && <LatestTag />}
+                      {LTS_VERSIONS.has(versionLabel(version.title)) && <LtsTag />}
                     </div>
                     <CopyVersionLink version={versionId(version.title)} />
                   </div>
-                  <div className="mt-4 max-w-[68ch] text-muted-foreground leading-relaxed font-medium">
+                  <div className="mt-4 max-w-[80ch] text-muted-foreground leading-relaxed font-medium">
                     {version.body}
                   </div>
                 </div>

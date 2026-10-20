@@ -7,7 +7,6 @@ import { Link2, MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { encryptMessage, decryptMessage } from './obfuscation';
 import EntryList from './entry-list';
-import Skeleton from '@/components/ui/skeleton';
 import EmptyState from '@/components/ui/empty-state';
 import { fetchEntries, postEntry, GuestbookHttpError } from './api';
 import { queueMessage, queuedMessages, flushQueue } from './offline';
@@ -35,6 +34,30 @@ function celebrateFirstSend() {
 
 const readKind = (value: string | null): KindFilter =>
   value === 'reactions' || value === 'today' ? value : 'all';
+
+// The wall has a fixed height, so the placeholder is shaped like the entries it
+// becomes: the card keeps its size from the first paint to the first page.
+function EntrySkeletons() {
+  return (
+    <div data-skeleton role="status" className="space-y-3">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="rounded-md border-2 border-foreground bg-secondary py-2 pl-3 pr-2 shadow-[2px_2px_0_0_var(--foreground)]"
+        >
+          <div className="kt-skeleton h-3 w-[88%] rounded" />
+          <div className="kt-skeleton mt-2 h-3 w-[62%] rounded" />
+          <div className="mt-2 flex items-center justify-between">
+            <div className="kt-skeleton h-2.5 w-14 rounded" />
+            <div className="kt-skeleton h-3 w-24 rounded" />
+          </div>
+        </div>
+      ))}
+      <span className="sr-only">Loading secrets…</span>
+    </div>
+  );
+}
 
 export default function Guestbook({ token, full = false }: { token?: string; full?: boolean }) {
   const [entries, setEntries] = useState<GuestbookEntry[]>([]);
@@ -494,10 +517,10 @@ export default function Guestbook({ token, full = false }: { token?: string; ful
 
         <div
           ref={listRef}
-          className={`overflow-y-auto space-y-3 mb-4 pr-2 ${full ? 'max-h-[70vh]' : 'h-72 lg:flex-auto lg:min-h-72'}`}
+          className={`space-y-3 mb-4 pr-2 ${isLoading && entries.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'} ${full ? 'h-[clamp(20rem,52vh,34rem)]' : 'h-72 lg:flex-auto lg:min-h-72'}`}
         >
           {isLoading && entries.length === 0 ? (
-            <Skeleton rows={3} className="mb-3" />
+            <EntrySkeletons />
           ) : entries.length > 0 && visible.length === 0 ? (
             <EmptyState title="No secrets match your filters." hint="Try another search, or clear the filters." />
           ) : (
