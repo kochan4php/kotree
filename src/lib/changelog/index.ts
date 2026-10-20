@@ -1,3 +1,3 @@
-export { parseChangelog } from './parser';
+export { parseChangelog, versionId } from './parser';
 export type { Changelog, ChangelogBlock, ChangelogVersion } from './parser';
 export { renderChangelog } from './render';

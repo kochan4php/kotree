@@ -13,6 +13,17 @@ export interface Changelog {
   versions: ChangelogVersion[];
 }
 
+// K25: versions get a plain-number anchor (/changelog#3.3.0) so the "what's
+// new" toast, copied links and feeds all point somewhere stable. The channel
+// suffix stays in the heading, not in the id.
+export function versionId(title: string): string {
+  return title
+    .replace(/[[\]]/g, '')
+    .trim()
+    .split(/\s+/)[0]
+    .replace(/-[a-z][a-z0-9.]*$/i, '');
+}
+
 function headingLevel(line: string): 'h1' | 'h2' | 'h3' | null {
   if (line.startsWith('### ')) return 'h3';
   if (line.startsWith('## ')) return 'h2';

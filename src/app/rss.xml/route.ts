@@ -1,4 +1,4 @@
-import { parseChangelog } from '@/lib/changelog';
+import { parseChangelog, versionId } from '@/lib/changelog';
 import { getNotes } from '@/lib/content';
 import { blocksToHtml, rssDocument, versionDate, type RssItem } from '@/lib/feed';
 import { weakEtag } from '@/lib/http-cache';
@@ -22,8 +22,8 @@ export async function GET() {
     const dateMatch = version.title.match(/\d{4}-\d{2}-\d{2}/);
     items.push({
       title: version.title,
-      link: `${site.baseUrl}/changelog`,
-      guid: `${site.baseUrl}/changelog#${version.title.replace(/[^a-zA-Z0-9]/g, '-')}`,
+      link: `${site.baseUrl}/changelog#${versionId(version.title)}`,
+      guid: `${site.baseUrl}/changelog#${versionId(version.title)}`,
       date: dateMatch ? new Date(dateMatch[0]) : new Date(versionDate(version.title)),
       html: blocksToHtml(version.blocks),
     });

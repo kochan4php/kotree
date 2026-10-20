@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseChangelog } from '../../src/lib/changelog/parser.ts';
+import fs from 'node:fs';
+import { parseChangelog, versionId } from '../../src/lib/changelog/parser.ts';
 
 const SAMPLE = [
   '# Changelog',
@@ -41,4 +42,20 @@ test('CRLF files parse exactly like LF ones', () => {
 
 test('empty input yields an empty changelog', () => {
   assert.deepEqual(parseChangelog(''), { header: [], versions: [] });
+});
+
+test('versionId strips brackets, dates and channel suffixes', () => {
+  assert.equal(versionId('[3.5.0-stable]'), '3.5.0');
+  assert.equal(versionId('[3.3.0] - 2026-06-01'), '3.3.0');
+  assert.equal(versionId('[1.0.0-lts]'), '1.0.0');
+  assert.equal(versionId('3.0.0'), '3.0.0');
+});
+
+test('every real changelog release has a unique plain-number anchor', () => {
+  const changelog = parseChangelog(fs.readFileSync(new URL('../../CHANGELOG.md', import.meta.url), 'utf-8'));
+  const ids = changelog.versions.map((version) => versionId(version.title));
+
+  assert.ok(ids.length > 0);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of ids) assert.match(id, /^\d+\.\d+\.\d+$/);
 });

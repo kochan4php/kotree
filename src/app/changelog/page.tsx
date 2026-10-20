@@ -2,8 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Card } from '@/components/ui/card';
 import CopyVersionLink from '@/components/content/copy-version-link';
-import { parseChangelog } from '@/lib/changelog';
-import { renderChangelog } from '@/lib/changelog';
+import { parseChangelog, renderChangelog, versionId } from '@/lib/changelog';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
 import { ChevronDown, History, ListTree, Rss } from 'lucide-react';
@@ -16,16 +15,6 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   ...pageOg('changelog', 'Kotree changelog — every update, newest first'),
 };
-
-// K25: versions get a plain-number anchor (/changelog#3.3.0) so the "what's
-// new" toast and shared links point somewhere stable and human-readable. The
-// channel suffix stays in the heading, not in the id.
-const versionId = (title: string) =>
-  title
-    .replace(/[[\]]/g, '')
-    .trim()
-    .split(/\s+/)[0]
-    .replace(/-[a-z][a-z0-9.]*$/i, '');
 
 // The markdown titles are Keep-a-Changelog's `[3.5.0]`; the brackets are link
 // syntax, not part of the version, and read as debris in a heading.

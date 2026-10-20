@@ -71,6 +71,10 @@ test.describe('feeds', () => {
     expect(body).toContain('<content:encoded>');
     expect(body).toContain('<category>');
     expect(body).toContain('<lastBuildDate>');
+    // Changelog items link to their page anchor, not a slugified title.
+    expect(body).toMatch(/<link>[^<]*\/changelog#\d+\.\d+\.\d+<\/link>/);
+    expect(body).toMatch(/<guid>[^<]*\/changelog#\d+\.\d+\.\d+<\/guid>/);
+    expect(body).not.toContain('-stable</guid>');
   });
 
   test('feed.json is JSON Feed 1.1 with full html content', async ({ request }) => {
@@ -80,7 +84,7 @@ test.describe('feeds', () => {
       version: string;
       icon: string;
       favicon: string;
-      items: { content_html?: string; date_published?: string }[];
+      items: { id: string; url: string; content_html?: string; date_published?: string }[];
     };
     expect(feed.version).toContain('jsonfeed.org/version/1.1');
     expect(feed.icon).toContain('/icons/');
@@ -89,6 +93,12 @@ test.describe('feeds', () => {
     for (const item of feed.items) {
       expect(item.content_html).toBeTruthy();
       expect(item.date_published).toBeTruthy();
+    }
+    const releases = feed.items.filter((item) => item.url.includes('/changelog#'));
+    expect(releases.length).toBeGreaterThan(5);
+    for (const item of releases) {
+      expect(item.id).toBe(item.url);
+      expect(item.url).toMatch(/\/changelog#\d+\.\d+\.\d+$/);
     }
   });
 

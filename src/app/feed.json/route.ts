@@ -1,4 +1,4 @@
-import { parseChangelog } from '@/lib/changelog';
+import { parseChangelog, versionId } from '@/lib/changelog';
 import { getNotes } from '@/lib/content';
 import { blocksToHtml, blocksToText, versionDate } from '@/lib/feed';
 import { weakEtag } from '@/lib/http-cache';
@@ -30,8 +30,8 @@ export async function GET() {
     items.push({
       date: new Date(published).getTime(),
       item: {
-        id: `${site.baseUrl}/changelog#${version.title.replace(/[^a-zA-Z0-9]/g, '-')}`,
-        url: `${site.baseUrl}/changelog`,
+        id: `${site.baseUrl}/changelog#${versionId(version.title)}`,
+        url: `${site.baseUrl}/changelog#${versionId(version.title)}`,
         title: version.title,
         content_html: blocksToHtml(version.blocks),
         content_text: blocksToText(version.blocks),
