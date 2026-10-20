@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#14110f" stroke="#fff7e9" stroke-width="4"/>
-  <text x="32" y="41" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-weight="700" font-size="24"><tspan fill="#fff7e9">&lt;k</tspan><tspan fill="#ff7c47">/</tspan><tspan fill="#fff7e9">&gt;</tspan></text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="60" height="60" x="2" y="2" fill="#14110f" stroke="#fff7e9" stroke-width="4" rx="14"/><text x="32" y="41" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="24" font-weight="700" text-anchor="middle"><tspan fill="#fff7e9">&lt;k</tspan><tspan fill="#ff7c47">/</tspan><tspan fill="#fff7e9">&gt;</tspan></text></svg>
