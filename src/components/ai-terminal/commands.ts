@@ -19,12 +19,12 @@ export const RESPONSES: Record<string, string> = {
   neofetch: '',
   ls: "To see all links, type 'ls'. To open one, type 'open <name>'.",
   clear: '',
-  help: `Available commands: ${COMMAND_NAMES.join(', ')} · theme <light|dark|auto> · man <command>`,
+  help: `Available commands: ${COMMAND_NAMES.join(', ')} · theme <light|dark|auto|oled> · man <command>`,
 };
 
 // M49: manual pages — `man <command>` prints these
 export const MAN: Record<string, string> = {
-  theme: 'theme <light|dark|auto> — switch the colour scheme',
+  theme: 'theme <light|dark|auto|oled> — switch the colour scheme',
   accent: `accent <${ACCENT_IDS.join('|')}> — recolour the whole site`,
   mute: 'mute — silence the little synth (unmute brings it back)',
   unmute: 'unmute — bring the sounds back',
@@ -33,6 +33,15 @@ export const MAN: Record<string, string> = {
   poll: 'poll — print the question of the day and its current results',
   badge: 'badge — the README badge URLs for this site',
   man: 'man <command> — the manual page for a command',
+  notes: 'notes — open every note',
+  projects: 'projects — open the project list',
+  guestbook: 'guestbook — open the confession wall',
+  series: 'series — open the ordered note series',
+  qr: 'qr — make a QR code for any internal path',
+  health: 'health — open the live status page',
+  slo: 'slo — print the current service-level targets and readings',
+  now: 'now — what I am doing at the moment',
+  uses: 'uses — the hardware and software behind this site',
   open: 'open <name> — open a social link or a project by slug',
   ls: 'ls — list every social link',
   stats: 'stats — open the numbers',
@@ -104,7 +113,7 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
         writePrefs({ theme: arg as Theme });
         return { reply: `Theme set to ${arg}.` };
       }
-      return { reply: 'Usage: theme light | dark | auto' };
+      return { reply: 'Usage: theme light | dark | auto | oled' };
     }
     case 'accent': {
       if ((ACCENT_IDS as readonly string[]).includes(arg)) {
@@ -133,6 +142,24 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
       return {
         reply: 'Badge URLs — drop one in your README:\n- /api/badge/clicks.svg\n- /api/badge/wrapped.svg',
       };
+    case 'notes':
+      return { reply: 'Opening every note...', navigate: '/notes' };
+    case 'projects':
+      return { reply: 'Opening the project list...', navigate: '/projects' };
+    case 'guestbook':
+      return { reply: 'Opening the wall...', navigate: '/guestbook' };
+    case 'series':
+      return { reply: 'Opening the note series...', navigate: '/notes/series' };
+    case 'qr':
+      return { reply: 'Opening the QR studio...', navigate: '/qr' };
+    case 'health':
+      return { reply: 'Checking the live status...', navigate: '/status' };
+    case 'slo':
+      return { reply: 'Reading the service-level numbers...', fetchReply: '/api/slo.json' };
+    case 'now':
+      return { reply: 'Opening the now page...', navigate: '/now' };
+    case 'uses':
+      return { reply: 'Opening the setup...', navigate: '/uses' };
     case 'man':
       return arg
         ? { reply: MAN[arg] ?? `No manual entry for ${arg}.` }

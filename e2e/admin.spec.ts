@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { createHmac } from 'node:crypto';
 import { currentTotpCode } from './helpers/totp';
 
-// The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token
-const TOKEN = 'e2e-admin-token';
+// The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token-123
+const TOKEN = 'e2e-admin-token-123';
 
 // Same hydration gate as regression.spec.ts: fill()+click() before React
 // hydrates leaves the Connect button disabled forever under machine load.

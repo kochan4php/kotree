@@ -24,9 +24,18 @@ export const COMMAND_NAMES = [
   'badge',
   'man',
   'help',
+  'notes',
+  'projects',
+  'guestbook',
+  'series',
+  'qr',
+  'health',
+  'slo',
+  'now',
+  'uses',
 ] as const;
 
-export const THEME_VALUES = ['light', 'dark', 'auto'] as const;
+export const THEME_VALUES = ['light', 'dark', 'auto', 'oled'] as const;
 
 // Kept in step with ACCENTS in src/lib/prefs.ts by hand — importing it would
 // break this module's node-testable, import-free promise.

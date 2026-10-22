@@ -289,7 +289,9 @@ test('a wrapped year with notes names its tag and its first note', async ({ page
   await expect(page.getByRole('heading', { name: 'From the notes' })).toBeVisible();
   await expect(page.getByText('Most-used tag')).toBeVisible();
   await expect(page.getByText('First note of the year')).toBeVisible();
-  await expect(page.getByRole('link', { name: /accessibility as a test/i })).toBeVisible();
+  // The first note is data-driven; assert the card links somewhere in 2026
+  // rather than pinning one title that a content reshuffle will rename.
+  await expect(page.locator('dt:has-text("First note of the year") + dd a')).toHaveAttribute('href', /^\/notes\/2026-/);
 });
 
 // H1: a health check leaves a heartbeat, and /status draws the last 30 days of
@@ -430,6 +432,17 @@ test('terminal completes commands, keeps history and navigates', async ({ page }
   await page.waitForURL('**/wrapped', { timeout: 10000 });
 });
 
+test('the terminal can read the service-level numbers', async ({ page }) => {
+  await page.goto('/');
+  await waitHydrated(page);
+  await page.getByRole('button', { name: 'Open AI Terminal' }).click();
+  const input = page.getByRole('textbox', { name: 'Terminal command' });
+  await input.fill('slo');
+  await input.press('Enter');
+  await expect(page.getByText(/Monitor coverage:/)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText(/LCP p75:/)).toBeVisible();
+});
+
 test('holding the logo and typing the site name find two secrets', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
@@ -470,26 +483,19 @@ test('the first konami earns the veteran badge', async ({ page }) => {
   await expect(page.getByText('Konami veteran')).toBeVisible();
 });
 
-test('guestbook shows skeleton rows until the first page arrives', async ({ page }) => {
-  // Hold the guestbook response so the loading state is observable
-  let release = () => {};
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
+test('guestbook keeps its server-rendered wall and refreshes it from the API', async ({ page }) => {
+  // P11: page one is rendered on the server, so there is no first-load
+  // skeleton any more. The client still refreshes, and that request is what
+  // this test holds open until the fresh entry is ready.
   await page.route('**/api/guestbook?*', async (route) => {
-    await gate;
     await route.fulfill({
       json: [{ message: 'cipher-slow', createdAt: new Date().toISOString() }],
     });
   });
 
   await page.goto('/guestbook', { waitUntil: 'domcontentloaded' });
-  // The route's loading shell and the guestbook list both use skeletons
-  await expect(page.locator('[data-skeleton]').first()).toBeVisible({ timeout: 15000 });
-
-  release();
+  await expect(page.getByText('cipher-slow', { exact: true })).toBeVisible({ timeout: 15000 });
   await expect(page.locator('[data-skeleton]')).toHaveCount(0);
-  await expect(page.getByText('cipher-slow', { exact: true })).toBeVisible();
 });
 
 test('scroll-driven reveal settles at full opacity', async ({ page }) => {

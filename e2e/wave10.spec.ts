@@ -163,6 +163,11 @@ test('M81: no view transition starts while the page is still loading @crossbrows
   if (!(await page.evaluate(() => typeof document.startViewTransition === 'function'))) {
     test.skip(true, 'View Transitions API not available in this browser');
   }
+  // A cross-document navigation can itself be a view transition when the
+  // browser supports @view-transition: navigation auto. That happens before
+  // this test is interested; reset after the initial load so the assertion
+  // covers only transitions started by hydration or later navigation.
+  await page.evaluate(() => ((window as unknown as { __vtReal: number }).__vtReal = 0));
   expect(await page.evaluate(() => (window as unknown as { __vtReal: number }).__vtReal)).toBe(0);
 
   // A click that races hydration becomes a full page load (fresh document,

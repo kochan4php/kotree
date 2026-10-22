@@ -31,7 +31,7 @@ test('references and placeholders are not findings', () => {
   const diff = [
     '+++ b/ci.yml',
     '+ADMIN_TOKEN: process.env.ADMIN_TOKEN',
-    '+ADMIN_TOKEN: e2e-admin-token',
+    '+ADMIN_TOKEN: e2e-admin-token-123',
     '+const key = "placeholder-value-here"',
   ].join('\n');
   assert.deepEqual(scanText(diff), []);

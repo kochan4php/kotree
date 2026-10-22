@@ -22,6 +22,8 @@
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:links": "node scripts/check-external-links.mjs",
     "check:headers": "node scripts/check-headers.mjs",
+    "check:preview": "node scripts/check-preview.mjs",
+    "supply-chain": "pnpm sbom --sbom-format cyclonedx --prod --lockfile-only --out sbom.cdx.json",
     "changelog:draft": "node scripts/changelog-draft.mjs",
     "smoke": "node scripts/smoke.mjs",
     "load:check": "node scripts/load-check.mjs",

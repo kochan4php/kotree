@@ -12,7 +12,7 @@ jobs:
       github.event.deployment_status.state == 'success' &&
       github.event.deployment_status.environment != 'production'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,6 +22,15 @@ jobs:
         env:
           SMOKE_URL: ${{ github.event.deployment_status.environment_url }}
         run: node scripts/smoke.mjs "$SMOKE_URL"
+      - uses: pnpm/action-setup@v4
+      - name: Install preview check dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Accessibility and paint
+        env:
+          SMOKE_URL: ${{ github.event.deployment_status.environment_url }}
+        run: pnpm check:preview "$SMOKE_URL"
       - name: Security headers
         env:
           SMOKE_URL: ${{ github.event.deployment_status.environment_url }}

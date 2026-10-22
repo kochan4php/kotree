@@ -76,7 +76,7 @@ export default function PrefsPanel() {
           role="dialog"
           aria-label="Preferences"
           {...swipe}
-          className="fixed right-4 top-[calc(5rem+env(safe-area-inset-top))] z-60 w-[19rem] max-w-[calc(100vw-2rem)] rounded-xl border-[3px] border-foreground bg-card p-4 shadow-[5px_5px_0_0_var(--foreground)] animate-modal-content"
+          className="fixed right-4 top-[calc(5rem+env(safe-area-inset-top))] z-60 w-[19rem] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain rounded-xl border-[3px] border-foreground bg-card p-4 shadow-[5px_5px_0_0_var(--foreground)] animate-modal-content"
         >
           <div className="flex items-center gap-2 mb-3">
             <Settings2 className="w-4 h-4 text-accent-ink" aria-hidden="true" />

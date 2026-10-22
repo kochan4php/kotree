@@ -13,6 +13,7 @@ const REQUIRED = [
   'referrer-policy',
   'permissions-policy',
   'x-frame-options',
+  'x-permitted-cross-domain-policies',
 ];
 const response = await fetch(base, {
   redirect: 'follow',
@@ -27,6 +28,9 @@ const missing = REQUIRED.filter((name) => !response.headers.get(name));
 const csp = response.headers.get('content-security-policy') ?? '';
 if (!csp.includes("frame-ancestors 'none'")) {
   missing.push('csp frame-ancestors');
+}
+if (!csp.includes("script-src-attr 'none'")) {
+  missing.push('csp script-src-attr');
 }
 for (const name of missing) console.error(`missing header: ${name}`);
 console.log(`${base}: ${response.status}, ${missing.length ? 'missing headers' : 'headers ok'}.`);

@@ -22,19 +22,23 @@ export async function POST(request: Request) {
     return new NextResponse('Payload Too Large', { status: 413 });
   }
 
+  let body: { message?: unknown; source?: unknown; stack?: unknown; url?: unknown };
   try {
-    const body = (await request.json()) as { message?: unknown; source?: unknown; stack?: unknown; url?: unknown };
-    const message = typeof body.message === 'string' ? body.message.slice(0, MAX_LEN.message) : '';
-    if (!message.trim()) return new NextResponse('Bad Request', { status: 400 });
-
-    await addClientError({
-      message,
-      source: typeof body.source === 'string' ? body.source.slice(0, MAX_LEN.source) : 'error',
-      stack: typeof body.stack === 'string' ? body.stack.slice(0, MAX_LEN.stack) : undefined,
-      url: typeof body.url === 'string' ? body.url.slice(0, MAX_LEN.url) : undefined,
-    });
-    return new NextResponse('OK', { status: 200 });
+    body = (await request.json()) as typeof body;
   } catch {
     return new NextResponse('Bad Request', { status: 400 });
   }
+
+  const message = typeof body.message === 'string' ? body.message.slice(0, MAX_LEN.message) : '';
+  if (!message.trim()) return new NextResponse('Bad Request', { status: 400 });
+
+  // Reporting is best effort: a database hiccup must not turn a valid report
+  // into a client error, or the reporter will show the wrong thing.
+  await addClientError({
+    message,
+    source: typeof body.source === 'string' ? body.source.slice(0, MAX_LEN.source) : 'error',
+    stack: typeof body.stack === 'string' ? body.stack.slice(0, MAX_LEN.stack) : undefined,
+    url: typeof body.url === 'string' ? body.url.slice(0, MAX_LEN.url) : undefined,
+  }).catch(() => {});
+  return new NextResponse('OK', { status: 200 });
 }

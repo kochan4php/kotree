@@ -21,8 +21,17 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [22, 24]
+    services:
+      # Coverage is measured without a database when Mongo is absent, which
+      # marks most of the data layer as unexecuted on CI only. A throwaway
+      # Mongo keeps the gate honest and identical to a developer machine.
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
     env:
       NEXT_TELEMETRY_DISABLED: '1'
+      MONGODB_URL: mongodb://127.0.0.1:27017
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,6 +59,18 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm build
       - run: pnpm check:bundle
+      # P12: a CycloneDX SBOM for the shipped dependency tree, kept with the
+      # run so a future advisory can be matched against what actually shipped.
+      - name: Generate SBOM
+        if: matrix.node-version == 24
+        run: pnpm supply-chain
+      - name: Upload SBOM
+        if: matrix.node-version == 24
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotree-sbom
+          path: sbom.cdx.json
+          retention-days: 90
 
   e2e:
     needs: verify
@@ -62,7 +83,7 @@ jobs:
         ports:
           - 27017:27017
     env:
-      ADMIN_TOKEN: e2e-admin-token
+      ADMIN_TOKEN: e2e-admin-token-123
       ADMIN_TOTP_SECRET: JBSWY3DPEHPK3PXP
       LOGIN_ALERT_THRESHOLD: '1'
       NEXT_TELEMETRY_DISABLED: '1'
@@ -148,7 +169,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     env:
-      ADMIN_TOKEN: e2e-admin-token
+      ADMIN_TOKEN: e2e-admin-token-123
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v4

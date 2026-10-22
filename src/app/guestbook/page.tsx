@@ -6,7 +6,7 @@ import type { GuestbookEntry } from '@/components/guestbook/types';
 import { generateToken } from '@/lib/security';
 import { site } from '@/lib/site';
 import { breadcrumbLd, pageOg } from '@/lib/seo';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Rss } from 'lucide-react';
 import type { Metadata } from 'next';
 
 // The wall is fresh data: render page one on the server so it exists before
@@ -16,7 +16,10 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Guestbook',
   description: 'The full confession wall — every obfuscated secret ever left on Kotree.',
-  alternates: { canonical: `${site.baseUrl}/guestbook` },
+  alternates: {
+    canonical: `${site.baseUrl}/guestbook`,
+    types: { 'application/rss+xml': `${site.baseUrl}/guestbook/feed.xml` },
+  },
   ...pageOg('guestbook', 'Kotree guestbook — the full confession wall'),
 };
 
@@ -52,6 +55,13 @@ export default async function GuestbookPage() {
               Every secret ever left here, newest first. Messages are obfuscated at rest — reveal one to read it, and
               leave your own below. Links to individual secrets work as permalinks.
             </p>
+            <a
+              href="/guestbook/feed.xml"
+              className="mt-2 inline-flex min-h-6 items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground hover:text-foreground"
+            >
+              <Rss className="w-3.5 h-3.5" aria-hidden="true" />
+              Feed of new secrets
+            </a>
           </div>
         </Card>
 

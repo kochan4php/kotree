@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto';
 import { encryptMessage } from '../src/components/guestbook/obfuscation';
 import { currentTotpCode } from './helpers/totp';
 
-// The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token
-const TOKEN = 'e2e-admin-token';
+// The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token-123
+const TOKEN = 'e2e-admin-token-123';
 const ORIGIN = { origin: 'http://localhost:3000', 'sec-fetch-site': 'same-origin' };
 
 // These tests share global state (there is only ever one active poll, the

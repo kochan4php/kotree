@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { currentTotpCode } from './helpers/totp';
 
-// The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token
-const TOKEN = 'e2e-admin-token';
+// The webServer (playwright.config.ts) runs with ADMIN_TOKEN=e2e-admin-token-123
+const TOKEN = 'e2e-admin-token-123';
 
 // M26: the public read endpoints answer conditional requests, so an unchanged
 // payload costs a 304 instead of a body.

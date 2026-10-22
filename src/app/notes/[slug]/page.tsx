@@ -4,6 +4,7 @@ import PrintButton from '@/components/content/print-button';
 import ShelfActions from '@/components/content/shelf-actions';
 import HighlightsLayer from '@/components/content/highlights-layer';
 import Reactions from '@/components/content/reactions';
+import Webmentions from '@/components/content/webmentions';
 import { PrevNext, RelatedList, TableOfContents, tocTimelineScope } from '@/components/content/reading';
 import { formatDate, getNote, getNotes, getSeriesNotes, relatedTo, slugifyTag } from '@/lib/content';
 import { extractHeadings, parseMarkdown, readingMinutes, renderMarkdown } from '@/lib/markdown';
@@ -132,6 +133,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
             </article>
             <HighlightsLayer path={`/notes/${note.slug}`} title={note.title} />
             <Reactions path={`/notes/${note.slug}`} />
+            <Webmentions target={`${site.baseUrl}/notes/${note.slug}`} />
             <RelatedList items={related} base="/notes" />
             <PrevNext items={notes} currentSlug={note.slug} base="/notes" />
           </div>

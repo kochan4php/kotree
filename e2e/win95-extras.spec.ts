@@ -83,6 +83,16 @@ test('the desktop colour is a choice that sticks', async ({ page }) => {
   await expect(page.getByTestId('win95-desktop')).toHaveCSS('background-color', 'rgb(75, 46, 90)');
 });
 
+test('the Media Player owns its tiny chiptune', async ({ page }) => {
+  await bootWin95(page);
+  await page.getByRole('button', { name: 'Media Player', exact: true }).dblclick();
+  await expect(page.getByRole('combobox', { name: 'Track' })).toHaveValue('boot');
+  await page.getByRole('button', { name: 'Play track' }).click();
+  await expect(page.getByText(/▶ playing/)).toBeVisible();
+  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await expect(page.getByText(/■ stopped/)).toBeVisible();
+});
+
 test('the screensaver drifts in after a quiet minute', async ({ page }) => {
   await page.clock.install();
   await bootWin95(page);

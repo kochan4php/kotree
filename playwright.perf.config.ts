@@ -14,6 +14,6 @@ export default defineConfig({
     command: process.env.CI ? 'npm start' : 'npm run build && npm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    env: { ADMIN_TOKEN: 'e2e-admin-token' },
+    env: { ADMIN_TOKEN: 'e2e-admin-token-123' },
   },
 });

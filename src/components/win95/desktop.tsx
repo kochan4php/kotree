@@ -1,11 +1,12 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { User, FolderOpen, Power, Bomb, FileText, Calculator, Paintbrush } from 'lucide-react';
+import { User, FolderOpen, Power, Bomb, FileText, Calculator, Paintbrush, Music } from 'lucide-react';
 import Minesweeper from './minesweeper';
 import Notepad from './notepad';
 import Calc from './calculator';
 import Paint from './paint';
+import MediaPlayer from './media-player';
 import { linksWindowContent, profileWindowContent, randomWindowPos } from './content';
 
 interface DesktopIconsProps {
@@ -97,6 +98,14 @@ export default function DesktopIcons({ onOpen, onExit }: DesktopIconsProps) {
       >
         <Paintbrush className="w-10 h-10 text-[#c9f5ff]" strokeWidth={1.75} />
         <span className={iconLabel}>Paint</span>
+      </button>
+
+      <button
+        {...keyboardOpen('media-player', 'Media Player.exe', <MediaPlayer />, 'min(92vw, 360px)', 'min(70vh, 330px)')}
+        className={iconButton}
+      >
+        <Music className="w-10 h-10 text-[#e6d7ff]" strokeWidth={1.75} />
+        <span className={iconLabel}>Media Player</span>
       </button>
 
       <button onClick={onExit} className={iconButton}>

@@ -33,7 +33,7 @@ test('reads: home, the palette, a note and a project', async ({ page }) => {
   await expect(page).toHaveTitle(/Kotree/);
   await expect(page.getByRole('heading', { name: 'Deo Subarno' })).toBeVisible();
 
-  await palette(page, 'offline');
+  await palette(page, 'on purpose');
   await expect(page).toHaveURL(/\/notes\/2026-10-12-offline-first$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Offline, on purpose' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save to your shelf' })).toBeVisible();

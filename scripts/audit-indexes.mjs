@@ -34,6 +34,9 @@ const indexes = [
   ['daily_clicks', { day: 1 }, {}],
   ['link_counter', { name: 1 }, {}],
   ['boss_scores', { score: -1, createdAt: 1 }, {}],
+  ['webmentions', { source: 1, target: 1 }, { unique: true }],
+  ['webmentions', { createdAt: -1 }, {}],
+  ['webmentions', { target: 1, status: 1, createdAt: -1 }, {}],
 ];
 for (const [coll, keys, opts] of indexes) await db.collection(coll).createIndex(keys, opts);
 
@@ -58,6 +61,10 @@ await insert('daily_clicks', Array.from({ length: 400 }, (_, i) => ({ day: dayOf
 await insert('page_views', Array.from({ length: 600 }, (_, i) => ({
   _id: `${dayOf(Math.floor(i / 5), DAY_MS)}:/p${i % 8}`, day: dayOf(Math.floor(i / 5), DAY_MS), path: `/p${i % 8}`, count: i % 9,
 })));
+await insert('webmentions', Array.from({ length: 300 }, (_, i) => ({
+  source: `https://blog.example/${i}`, target: 'https://kotree.example/notes/hello', title: `reply ${i}`,
+  author: '', excerpt: '', status: i % 3 === 0 ? 'approved' : 'pending', createdAt: ago(i, 3000),
+})));
 
 const since14 = dayOf(13, DAY_MS);
 const since28 = ago(28, DAY_MS);
@@ -69,6 +76,8 @@ const finds = [
   ['guestbook admin list', 'guestbook', {}, { createdAt: -1 }, 100, true],
   ['boss leaderboard', 'boss_scores', {}, { score: -1, createdAt: 1 }, 5, true],
   ['audit log', 'audit_log', {}, { at: -1 }, 30, true],
+  ['webmention inbox', 'webmentions', {}, { createdAt: -1 }, 100, true],
+  ['webmention approved', 'webmentions', { target: 'https://kotree.example/notes/hello', status: 'approved' }, { createdAt: -1 }, 20, true],
   ['client errors (TTL-bounded)', 'client_errors', { resolved: { $ne: true } }, { lastSeenAt: -1, createdAt: -1 }, 10, false],
   ['vitals window', 'vitals', { createdAt: { $gte: since28 } }, {}, 10_000, true],
 ];

@@ -104,7 +104,7 @@ test('terminal v3: man pages, accent command, poll and lasting history', async (
   // man prints the manual page
   await input.fill('man theme');
   await input.press('Enter');
-  await expect(page.getByText('theme <light|dark|auto> — switch the colour scheme')).toBeVisible();
+  await expect(page.getByText('theme <light|dark|auto|oled> — switch the colour scheme')).toBeVisible();
 
   // accent recolours the whole site
   await input.fill('accent pink');

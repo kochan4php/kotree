@@ -14,21 +14,28 @@ Next.js App Router, Tailwind CSS v4, MongoDB, no client-state library.
 ## Features
 
 - Profile card, social links with live click counters, live totals
-- Search palette (`Ctrl+K`) over links, pages and content
+- Search palette (`Ctrl+K`) over links, pages and content, plus a filterable
+  `/search` page with snippets and shareable URL state
 - Reference pages: `/uses`, `/links`, `/og`, `/explore`, `/qr`, `/status`
-- Locked notes with per-note secret pages, tags and a quiz
-- Secret Confessions guestbook — messages are obfuscated in the browser; the
-  wall works without JavaScript via a `<noscript>` fallback
+- Locked notes with per-note secret pages, tags, series and per-series feeds
+- Secret Confessions guestbook — messages are obfuscated in the browser; page
+  one is server-rendered and the wall works without JavaScript via a
+  `<noscript>` fallback
+- Webmentions — inbound links are verified, held for moderation and shown on
+  the note only after approval
 - Kotree Wrapped (`/wrapped`) — a yearly recap with links, clicks, tags and a
   Windows 95 guest mode
+- Reading comfort controls (text scale, leading, readable face) that change
+  note bodies without touching the rest of the UI
 - Client-error reporting (with source maps kept server-side) and Core Web
-  Vitals ranking, both rolling up into `/api/health` and the admin dashboard
-- PWA — installable, offline shell, share target, iOS splash screens,
-  background refresh
+  Vitals ranking, both rolling up into `/api/health`, `/api/slo.json` and the
+  admin dashboard
+- PWA — installable, offline shell, offline note cache, share target, iOS
+  splash screens, background refresh
 - SEO: JSON-LD, Open Graph, image sitemaps, microformats2, RSS + JSON feeds,
-  one feed per tag
+  one feed per tag and one per series
 - WCAG AA contrast everywhere, reduced-motion support, focus management;
-  enforced by axe in the e2e suite
+  enforced by axe in the e2e suite and again against the preview deployment
 
 ## Stack
 
@@ -73,6 +80,8 @@ Open https://localhost:3000 (the dev server runs with HTTPS).
 | `pnpm test:e2e`       | Playwright e2e + axe a11y suite                     |
 | `pnpm test:perf`      | Playwright perf budget suite                        |
 | `pnpm check:bundle`   | Bundle-size budget against `bundle-baseline.json`   |
+| `pnpm check:preview`  | Axe + paint check against a preview URL             |
+| `pnpm supply-chain`   | Write a CycloneDX SBOM for shipped dependencies     |
 | `pnpm smoke`          | Smoke-test a deployed site: `pnpm smoke -- <url>`   |
 | `pnpm scan:secrets`   | Fail if a secret pattern sneaks into the repo       |
 | `pnpm gen:splash`     | Regenerate the iOS splash screens                   |

@@ -11,6 +11,7 @@ import {
   loginAlertCount,
   getTopCspViolations,
   getActivePoll,
+  getAdminWebmentions,
 } from '@/connections/mongodb';
 import { guardAdmin } from '@/lib/security';
 import { adminRateLimited } from '@/lib/rate-limit';
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
   const wantModeration = section !== 'stats';
 
   try {
-    const [links, guestbook, daily, errors, vitals, pageviews, audit, auditEvents, csp, poll, loginAlert] =
+    const [links, guestbook, daily, errors, vitals, pageviews, audit, auditEvents, csp, poll, loginAlert, webmentions] =
       await Promise.all([
       wantStats ? getLinkCounts() : null,
       wantModeration ? getGuestbookAdminEntries() : null,
@@ -50,6 +51,8 @@ export async function GET(request: Request) {
       wantModeration ? getActivePoll().catch(() => null) : null,
       // H8: a burst of failed sign-ins, or null when it is quiet
       wantModeration ? loginAlertCount().catch(() => null) : null,
+      // P13: the webmention inbox lives with moderation
+      wantModeration ? getAdminWebmentions().catch(() => []) : null,
     ]);
 
     const payload: Record<string, unknown> = {};
@@ -69,6 +72,7 @@ export async function GET(request: Request) {
       payload.auditEvents = auditEvents;
       payload.poll = poll;
       payload.loginAlert = loginAlert;
+      payload.webmentions = webmentions;
     }
 
     // M26: admin data is per-request and behind a cookie — never cacheable

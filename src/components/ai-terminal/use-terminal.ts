@@ -23,17 +23,33 @@ interface PollPayload {
   active: { question: string; options: { label: string; count: number }[]; total: number } | null;
 }
 
-// M49: `poll` prints the live question of the day
-async function fetchPollReply(url: string): Promise<string> {
+interface SloPayload {
+  targets: { monitorCoverage: number; lcpP75: number; appErrors24h: number };
+  current: { monitorCoverage: number; lcpP75: number | null; appErrors24h: number };
+  met: { monitorCoverage: boolean; lcpP75: boolean; appErrors24h: boolean };
+}
+
+// M49: `poll` prints the live question; P12 adds `slo`. Both return text the
+// terminal can append without a second command parser.
+async function fetchLiveReply(url: string): Promise<string> {
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('poll unavailable');
+    if (!res.ok) throw new Error('live data unavailable');
+    if (url.includes('/api/slo')) {
+      const data = (await res.json()) as SloPayload;
+      const mark = (ok: boolean) => (ok ? 'met' : 'missed');
+      return [
+        `Monitor coverage: ${data.current.monitorCoverage}% (target ${data.targets.monitorCoverage}%) — ${mark(data.met.monitorCoverage)}`,
+        `LCP p75: ${data.current.lcpP75 === null ? 'no samples' : `${data.current.lcpP75} ms`} (target ${data.targets.lcpP75} ms) — ${mark(data.met.lcpP75)}`,
+        `App errors 24h: ${data.current.appErrors24h} (budget ${data.targets.appErrors24h}) — ${mark(data.met.appErrors24h)}`,
+      ].join('\n');
+    }
     const data = (await res.json()) as PollPayload;
     if (!data.active) return 'No question right now — check back later.';
     const lines = data.active.options.map((option) => `- ${option.label} (${option.count})`);
     return [`Question: ${data.active.question}`, ...lines, `${data.active.total} vote(s) so far.`].join('\n');
   } catch {
-    return 'Could not reach the poll — the wire is asleep.';
+    return 'Could not reach the live data — the wire is asleep.';
   }
 }
 
@@ -141,7 +157,7 @@ export function useTerminal() {
       if (result.fetchReply) {
         const url = result.fetchReply;
         setTimeout(async () => {
-          const text = await fetchPollReply(url);
+          const text = await fetchLiveReply(url);
           setHistory(prev => [...prev, { type: 'bot', text }]);
         }, 800);
       }

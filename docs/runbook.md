@@ -61,7 +61,7 @@ from the Actions tab:
    env changes consistent across functions).
 4. All existing admin sessions and cookies are invalid immediately — the HMAC
    key changed. Log in again with the new token.
-5. e2e locally uses `e2e-admin-token`; that value only exists in tests.
+5. e2e locally uses `e2e-admin-token-123`; that value only exists in tests.
 
 ## Restoring data
 
@@ -187,6 +187,21 @@ if the score was wrong. The threshold lives in `src/lib/spam.ts`.
 **Uptime strips look patchy on `/stats`** — a quiet day, not an outage: a beat is
 only written when Mongo answered, so a gap means nothing polled `/api/health`
 (ADR 0005). The scheduled smoke workflow is what actually establishes uptime.
+`/api/slo.json` reports the same coverage number against the 99.5% target,
+alongside LCP p75 and the 24-hour error count, so a monitor can read the
+promises without scraping the page.
+
+**A webmention never appeared** — check Admin → Webmention inbox first. Every
+inbound mention starts `pending`; approve it to publish. A sender gets `400`
+when the source page no longer links to the target, and `422`/`400` when the
+source cannot be fetched. Private, link-local and loopback addresses are
+refused before the request, and the resolver is pinned between the check and
+the connection. If the sender retries a link that was rejected, delete the old
+row first — the `(source, target)` index treats it as a duplicate.
+
+**A release has no SBOM** — `pnpm supply-chain` writes `sbom.cdx.json` with
+the production dependency graph. CI uploads it for 90 days on the Node 24
+leg, and the tag workflow attaches it to the GitHub release.
 
 ## Local gates (same order as CI)
 

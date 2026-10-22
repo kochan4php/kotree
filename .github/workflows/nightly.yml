@@ -18,7 +18,7 @@ jobs:
         ports:
           - 27017:27017
     env:
-      ADMIN_TOKEN: e2e-admin-token
+      ADMIN_TOKEN: e2e-admin-token-123
       ADMIN_TOTP_SECRET: JBSWY3DPEHPK3PXP
       LOGIN_ALERT_THRESHOLD: '1'
       NEXT_TELEMETRY_DISABLED: '1'

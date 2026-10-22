@@ -94,6 +94,11 @@ function ensureIndexes(connected: MongoClient): Promise<void> {
       db.collection('boss_scores').createIndex({ score: -1, createdAt: 1 }),
       // G1: one reactions row per page, counted per kind
       db.collection('reactions').createIndex({ path: 1 }, { unique: true }),
+      // P13: one pending/approved row per source+target, and the inbox sort
+      db.collection('webmentions').createIndex({ source: 1, target: 1 }, { unique: true }),
+      db.collection('webmentions').createIndex({ createdAt: -1 }),
+      db.collection('webmentions').createIndex({ status: 1, createdAt: -1 }),
+      db.collection('webmentions').createIndex({ target: 1, status: 1, createdAt: -1 }),
     ]);
   })();
   return indexesPromise;
@@ -381,6 +386,75 @@ export async function deleteGuestbookEntry(id: string): Promise<boolean> {
   const collection = await guestbookCollection();
   const { deletedCount } = await collection.deleteOne({ _id: new ObjectId(id) }, { maxTimeMS: 3_000 });
   return deletedCount === 1;
+}
+
+// ---------- Webmentions (P13) ----------
+export interface Webmention {
+  source: string;
+  target: string;
+  title: string;
+  author: string;
+  excerpt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Date;
+  ipHash?: string;
+}
+
+export interface AdminWebmention extends Webmention {
+  id: string;
+}
+
+const webmentionsCollection = () =>
+  getClientPromise().then((client) => client.db('kotreedb').collection<Webmention>('webmentions'));
+
+export async function addWebmention(
+  entry: Omit<Webmention, 'status' | 'createdAt'>,
+): Promise<'ok' | 'duplicate'> {
+  const collection = await webmentionsCollection();
+  try {
+    await collection.insertOne({ ...entry, status: 'pending', createdAt: new Date() }, { maxTimeMS: 3_000 });
+    return 'ok';
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) return 'duplicate';
+    throw err;
+  }
+}
+
+export async function getAdminWebmentions(limit = 100): Promise<AdminWebmention[]> {
+  const collection = await webmentionsCollection();
+  const docs = await collection.find({}, { maxTimeMS: 3_000 }).sort({ createdAt: -1 }).limit(limit).toArray();
+  return docs.map((doc) => ({ ...doc, id: doc._id.toString() }));
+}
+
+export async function setWebmentionStatus(
+  id: string,
+  status: 'approved' | 'rejected' | 'pending',
+): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await webmentionsCollection();
+  const { matchedCount } = await collection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { status } },
+    { maxTimeMS: 3_000 },
+  );
+  return matchedCount === 1;
+}
+
+export async function deleteWebmention(id: string): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const collection = await webmentionsCollection();
+  const { deletedCount } = await collection.deleteOne({ _id: new ObjectId(id) }, { maxTimeMS: 3_000 });
+  return deletedCount === 1;
+}
+
+export async function getApprovedWebmentions(target: string, limit = 20): Promise<AdminWebmention[]> {
+  const collection = await webmentionsCollection();
+  const docs = await collection
+    .find({ target, status: 'approved' }, { maxTimeMS: 3_000 })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+  return docs.map((doc) => ({ ...doc, id: doc._id.toString() }));
 }
 
 // M40/M41: author-side ownership — a soft delete and a five-minute edit

@@ -185,6 +185,13 @@ export default async function StatusPage() {
                     Each block is one day. A green block is a day the health check answered; an empty
                     one means nothing pinged that day, not that the site was down.
                   </p>
+                  <p className="mt-2 text-[11px] font-bold text-foreground">
+                    SLO: 99.5% monitor coverage · {uptime.total > 0 ? Math.round((uptime.covered / uptime.total) * 1000) / 10 : 0}% this
+                    window ·{' '}
+                    <a href="/api/slo.json" className="underline underline-offset-2">
+                      machine-readable
+                    </a>
+                  </p>
                 </div>
               </section>
 

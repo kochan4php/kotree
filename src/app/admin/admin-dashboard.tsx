@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
 import { toast } from '@/lib/toast';
-import { Ban, BarChart3, Bug, Check, Download, Eye, EyeOff, FileDown, Gauge, LogOut, Pin, PinOff, RefreshCw, Reply, ScrollText, Search, ShieldCheck, Trash2 } from 'lucide-react';
+import { Ban, BarChart3, Bug, Check, Download, Eye, EyeOff, FileDown, Gauge, Inbox, LogOut, Pin, PinOff, RefreshCw, Reply, ScrollText, Search, ShieldCheck, Trash2, X } from 'lucide-react';
 import { decryptMessage } from '@/components/guestbook/obfuscation';
 import InlineMarkdown from '@/components/content/inline-markdown';
 
@@ -41,6 +41,17 @@ interface Overview {
   // H8: the number of failed sign-ins in the last day, when it crossed the
   // alert threshold; null when things are quiet
   loginAlert?: number | null;
+  // P13: inbound webmentions, all statuses
+  webmentions?: {
+    id: string;
+    source: string;
+    target: string;
+    title: string;
+    author: string;
+    excerpt: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: string;
+  }[];
 }
 
 // M61: one row in the sessions registry (ids arrive truncated)
@@ -443,6 +454,47 @@ export default function AdminDashboard() {
       toast.success(trimmed ? 'Reply posted' : 'Reply cleared');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Reply failed');
+    }
+  };
+
+  // P13: approve, reject or delete an inbound webmention
+  const setMentionStatus = async (id: string, status: 'approved' | 'rejected' | 'pending') => {
+    try {
+      const res = await fetch('/api/admin/webmentions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': readCsrfCookie() },
+        body: JSON.stringify({ id, status }),
+      });
+      if (!res.ok) throw new Error(`Mention update failed (${res.status})`);
+      setOverview((prev) =>
+        prev
+          ? {
+              ...prev,
+              webmentions: (prev.webmentions ?? []).map((mention) =>
+                mention.id === id ? { ...mention, status } : mention,
+              ),
+            }
+          : prev,
+      );
+      toast.success(status === 'approved' ? 'Mention approved' : status === 'rejected' ? 'Mention rejected' : 'Mention returned to pending');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Mention update failed');
+    }
+  };
+
+  const removeMention = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/webmentions?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { 'x-csrf-token': readCsrfCookie() },
+      });
+      if (!res.ok) throw new Error(`Mention delete failed (${res.status})`);
+      setOverview((prev) =>
+        prev ? { ...prev, webmentions: (prev.webmentions ?? []).filter((mention) => mention.id !== id) } : prev,
+      );
+      toast.success('Mention deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Mention delete failed');
     }
   };
 
@@ -939,6 +991,81 @@ export default function AdminDashboard() {
                         >
                           Revoke
                         </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Card>
+
+            <Card className="fluid-glass">
+              <div className="relative z-10 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Inbox className="w-5 h-5 text-accent-ink" />
+                  <h2 className="text-lg font-bold text-foreground">Webmention inbox</h2>
+                  <span className="rounded border-2 border-foreground bg-card px-1.5 text-[10px] font-black uppercase text-foreground">
+                    {(overview.webmentions ?? []).filter((mention) => mention.status === 'pending').length} pending
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  An inbound link had to prove it points at a page here before it reached this queue.
+                </p>
+                {(overview.webmentions ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No webmentions yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {(overview.webmentions ?? []).map((mention) => (
+                      <li key={mention.id} className="rounded-lg border-2 border-foreground bg-secondary p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <a
+                            href={mention.source}
+                            target="_blank"
+                            rel="nofollow noopener ugc"
+                            className="min-w-0 flex-1 truncate text-sm font-bold text-foreground underline decoration-2 underline-offset-2"
+                          >
+                            {mention.title || mention.source}
+                          </a>
+                          <span
+                            className={`rounded border-2 border-foreground px-1.5 text-[10px] font-black uppercase text-[#14110f] ${
+                              mention.status === 'approved'
+                                ? 'bg-green-300'
+                                : mention.status === 'rejected'
+                                  ? 'bg-red-300'
+                                  : 'bg-yellow-200'
+                            }`}
+                          >
+                            {mention.status}
+                          </span>
+                        </div>
+                        <p className="mt-1 font-mono text-[10px] text-muted-foreground break-all">
+                          {mention.author ? `${mention.author} · ` : ''}
+                          {mention.target}
+                        </p>
+                        {mention.excerpt && <p className="mt-1 text-xs text-foreground/90">{mention.excerpt}</p>}
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => void setMentionStatus(mention.id, 'approved')}
+                            className="inline-flex items-center gap-1 rounded border-2 border-foreground bg-green-300 px-2 py-1 text-[10px] font-black uppercase text-[#14110f] cursor-pointer active:translate-y-0.5"
+                          >
+                            <Check className="w-3 h-3" /> Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void setMentionStatus(mention.id, 'rejected')}
+                            className="inline-flex items-center gap-1 rounded border-2 border-foreground bg-card px-2 py-1 text-[10px] font-black uppercase text-foreground cursor-pointer active:translate-y-0.5"
+                          >
+                            <X className="w-3 h-3" /> Reject
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void removeMention(mention.id)}
+                            aria-label={`Delete webmention from ${mention.source}`}
+                            className="ml-auto inline-flex items-center gap-1 rounded border-2 border-foreground bg-red-300 px-2 py-1 text-[10px] font-black uppercase text-[#14110f] cursor-pointer active:translate-y-0.5"
+                          >
+                            <Trash2 className="w-3 h-3" /> Delete
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
