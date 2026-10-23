@@ -20,7 +20,7 @@ const GhostCursor = dynamic(() => import('@/components/effects/ghost-cursor'));
 import { ScrollFades } from '@/components/effects';
 import HeaderBar from '@/components/layout/header-bar';
 import KeyboardHelp from '@/components/layout/keyboard-help';
-import ThemeSync from '@/components/layout/theme-sync';
+import PrefsSync from '@/components/layout/prefs-sync';
 import RouteFocus from '@/components/layout/route-focus';
 import HashLanding from '@/components/layout/hash-landing';
 import VisitTracker from '@/components/layout/visit-tracker';
@@ -51,7 +51,7 @@ export { metadata };
 
 export const viewport: Viewport = {
   themeColor: '#fff7e9',
-  colorScheme: 'light dark',
+  colorScheme: 'light',
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -64,8 +64,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${archivoBlack.variable} antialiased transition-colors duration-500`}>
-        {/* Resolve the stored theme before anything paints — no flash of the
-            wrong theme. Logic mirrors src/lib/prefs.ts. The script also strips
+        {/* Apply stored accents before anything paints. The script also strips
             React's `vt-*` markers: they exist only so its inline streaming
             replay can wrap the first paint in a view transition, and WebKit
             crashes rendering that on narrow, tall pages. Nothing is lost —
@@ -74,7 +73,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{try{var VA=['vt-update','vt-enter','vt-exit','vt-share','vt-name','vt-parent-enter','vt-parent-exit'],VS=function(r){for(var i=0;i<VA.length;i++){var q=r.querySelectorAll?r.querySelectorAll('['+VA[i]+']'):[];for(var j=0;j<q.length;j++)q[j].removeAttribute(VA[i]);}};VS(document);new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes')m.target.removeAttribute(m.attributeName);else for(var j=0;j<m.addedNodes.length;j++){var n=m.addedNodes[j];if(1===n.nodeType||9===n.nodeType)VS(n);}}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:VA});}catch(e){}var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var t=p.theme||'auto';var d=t==='dark'||t==='oled'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=t==='oled'?'oled':(d?'dark':'light');var hx=/^#[0-9a-f]{6}$/i;var c=p.customAccent;var custom=c&&hx.test(c.hex||'')&&hx.test(c.inkLight||'')&&hx.test(c.inkDark||'')&&hx.test(c.foreground||'');if(custom){r.dataset.accent='custom';r.style.setProperty('--accent',c.hex);r.style.setProperty('--accent-ink',d?c.inkDark:c.inkLight);r.style.setProperty('--accent-foreground',c.foreground);}else{r.dataset.accent=p.accent||'orange';}r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';r.dataset.motion=p.reduceMotion===true?'off':'on';r.dataset.readableFont=p.readableFont===true?'on':'off';r.style.setProperty('--reading-scale',String(Math.min(1.4,Math.max(0.9,typeof p.textScale==='number'?p.textScale:1))));r.style.setProperty('--reading-leading',String(Math.min(2,Math.max(1.4,typeof p.lineHeight==='number'?p.lineHeight:1.7))));var a={orange:'#ff7c47',pink:'#ff90e8',blue:'#4cc9f0',green:'#a8e94d',violet:'#b39dfb',yellow:'#ffd93d'};var ms=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<ms.length;i++)ms[i].setAttribute('content',t==='oled'?'#000000':(d?'#1a1613':(custom?c.hex:(a[p.accent]||a.orange))));}catch(e){}})();`,
+            __html: `(function(){try{try{var VA=['vt-update','vt-enter','vt-exit','vt-share','vt-name','vt-parent-enter','vt-parent-exit'],VS=function(r){for(var i=0;i<VA.length;i++){var q=r.querySelectorAll?r.querySelectorAll('['+VA[i]+']'):[];for(var j=0;j<q.length;j++)q[j].removeAttribute(VA[i]);}};VS(document);new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes')m.target.removeAttribute(m.attributeName);else for(var j=0;j<m.addedNodes.length;j++){var n=m.addedNodes[j];if(1===n.nodeType||9===n.nodeType)VS(n);}}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:VA});}catch(e){}var p=JSON.parse(localStorage.getItem('kotree-prefs')||'{}')||{};var r=document.documentElement;r.dataset.theme='light';var hx=/^#[0-9a-f]{6}$/i;var c=p.customAccent;var custom=c&&hx.test(c.hex||'')&&hx.test(c.inkLight||'')&&hx.test(c.foreground||'');if(custom){r.dataset.accent='custom';r.style.setProperty('--accent',c.hex);r.style.setProperty('--accent-ink',c.inkLight);r.style.setProperty('--accent-foreground',c.foreground);}else{r.dataset.accent=p.accent||'orange';}r.dataset.fx=p.fx===false?'off':'on';r.dataset.sound=p.sound===false?'off':'on';r.dataset.motion=p.reduceMotion===true?'off':'on';r.dataset.readableFont=p.readableFont===true?'on':'off';r.style.setProperty('--reading-scale',String(Math.min(1.4,Math.max(0.9,typeof p.textScale==='number'?p.textScale:1))));r.style.setProperty('--reading-leading',String(Math.min(2,Math.max(1.4,typeof p.lineHeight==='number'?p.lineHeight:1.7))));var a={orange:'#ff7c47',pink:'#ff90e8',blue:'#4cc9f0',green:'#a8e94d',violet:'#b39dfb',yellow:'#ffd93d'};var ms=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<ms.length;i++)ms[i].setAttribute('content',custom?c.hex:(a[p.accent]||a.orange));}catch(e){}})();`,
           }}
         />
         {/* Prerender the static pages on hover (moderate eagerness) where the
@@ -156,7 +155,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ErrorReporter />
         <VitalsReporter />
         <PageViewReporter />
-        <ThemeSync />
+        <PrefsSync />
         <RouteFocus />
         <HashLanding />
         <VisitTracker />

@@ -14,7 +14,6 @@ export const COMMAND_NAMES = [
   'open',
   'stats',
   'wrapped',
-  'theme',
   'search',
   'accent',
   'mute',
@@ -35,19 +34,16 @@ export const COMMAND_NAMES = [
   'uses',
 ] as const;
 
-export const THEME_VALUES = ['light', 'dark', 'auto', 'oled'] as const;
-
 // Kept in step with ACCENTS in src/lib/prefs.ts by hand — importing it would
 // break this module's node-testable, import-free promise.
 export const ACCENT_IDS = ['orange', 'pink', 'blue', 'green', 'violet', 'yellow'] as const;
 
 const SUBCOMMANDS: Record<string, readonly string[]> = {
-  theme: THEME_VALUES,
   accent: ACCENT_IDS,
   man: COMMAND_NAMES,
 };
 
-// Completes command names and the first argument of theme/accent/man.
+// Completes command names and the first argument of accent/man.
 // Returns null whenever there is nothing unambiguous to add.
 export function completeCommand(value: string): string | null {
   const raw = value.trimStart();

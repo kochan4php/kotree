@@ -1,18 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CalendarHeart, Bell, Check, Moon, MoonStar, MonitorSmartphone, Settings2, Sparkles, Sun, Type, Volume2, VolumeX, Waves } from 'lucide-react';
-import { ACCENTS, readPrefs, writePrefs, type Prefs, type Theme } from '@/lib/prefs';
+import { CalendarHeart, Bell, Check, Settings2, Sparkles, Sun, Type, Volume2, VolumeX, Waves } from 'lucide-react';
+import { ACCENTS, readPrefs, writePrefs, type Prefs } from '@/lib/prefs';
 import { setDeliveryNotifications } from '@/lib/offline-sync';
 import { deriveAccent } from '@/lib/colour';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
-
-const THEMES: { id: Theme; label: string; icon: typeof Sun }[] = [
-  { id: 'auto', label: 'Auto', icon: MonitorSmartphone },
-  { id: 'light', label: 'Light', icon: Sun },
-  { id: 'dark', label: 'Dark', icon: Moon },
-  { id: 'oled', label: 'OLED', icon: MoonStar },
-];
 
 // Dock button + popover. Non-modal: the page behind stays usable, so no
 // focus trap — Escape and clicking outside close it, focus returns to the
@@ -81,26 +74,6 @@ export default function PrefsPanel() {
           <div className="flex items-center gap-2 mb-3">
             <Settings2 className="w-4 h-4 text-accent-ink" aria-hidden="true" />
             <h2 className="font-display text-sm text-foreground">Preferences</h2>
-          </div>
-
-          {/* Theme */}
-          <div className="mb-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Theme</div>
-            <div className="grid grid-cols-2 gap-1.5">
-              {THEMES.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => patch({ theme: id })}
-                  aria-pressed={prefs.theme === id}
-                  className={`flex flex-col items-center gap-1 rounded-lg border-2 border-foreground px-2 py-2 text-[11px] font-bold transition-all cursor-pointer ${
-                    prefs.theme === id ? 'bg-accent text-accent-foreground shadow-[2px_2px_0_0_var(--foreground)]' : 'bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" aria-hidden="true" />
-                  {label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Accent */}

@@ -102,9 +102,13 @@ test('terminal v3: man pages, accent command, poll and lasting history', async (
   const input = page.getByRole('textbox', { name: 'Terminal command' });
 
   // man prints the manual page
-  await input.fill('man theme');
+  await input.fill('man accent');
   await input.press('Enter');
-  await expect(page.getByText('theme <light|dark|auto|oled> — switch the colour scheme')).toBeVisible();
+  await expect(page.getByText('accent <orange|pink|blue|green|violet|yellow> — recolour the whole site')).toBeVisible();
+
+  await input.fill('theme dark');
+  await input.press('Enter');
+  await expect(page.getByText('Kotree now uses one light colour scheme.')).toBeVisible();
 
   // accent recolours the whole site
   await input.fill('accent pink');

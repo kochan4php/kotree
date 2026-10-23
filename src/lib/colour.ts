@@ -11,9 +11,8 @@ export interface Rgb {
 export interface AccentDerivation {
   /** The picked colour, normalised to lowercase #rrggbb. */
   hex: string;
-  /** Accent text/icons ink per theme — validated against each theme's hardest surface. */
+  /** Accent text/icons ink, validated against the light theme's hardest surface. */
   inkLight: string;
-  inkDark: string;
   /** Text colour for the accent sticker itself (dark ink or cream, best of the two). */
   foreground: string;
 }
@@ -54,9 +53,9 @@ export function contrastRatio(a: string, b: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-// The hardest surface per theme: the prefers-contrast: more variants — that
-// way one derivation holds for every background the accent ink can sit on.
-export const INK_SURFACES = { light: '#ecdcbe', dark: '#3a322a' } as const;
+// The hardest surface is the prefers-contrast: more variant, so one derivation
+// holds for every light background the accent ink can sit on.
+export const INK_SURFACES = { light: '#ecdcbe' } as const;
 
 const mix = (rgb: Rgb, target: number, amount: number): Rgb => ({
   r: rgb.r + (target - rgb.r) * amount,
@@ -64,17 +63,14 @@ const mix = (rgb: Rgb, target: number, amount: number): Rgb => ({
   b: rgb.b + (target - rgb.b) * amount,
 });
 
-// Walk toward black (light theme) or white (dark theme) until AA is met.
-// Black on a cream surface and white on a near-black surface both clear AA
-// comfortably, so the walk always terminates on a compliant colour.
-function inkFor(hex: string, mode: 'light' | 'dark'): string {
+// Walk toward black until AA is met on the light surface.
+function inkFor(hex: string): string {
   const rgb = parseHex(hex)!;
-  const target = mode === 'light' ? 0 : 255;
   for (let step = 0; step <= 40; step++) {
-    const candidate = toHex(mix(rgb, target, step / 40));
-    if (contrastRatio(candidate, INK_SURFACES[mode]) >= 4.5) return candidate;
+    const candidate = toHex(mix(rgb, 0, step / 40));
+    if (contrastRatio(candidate, INK_SURFACES.light) >= 4.5) return candidate;
   }
-  return toHex(mix(rgb, target, 1));
+  return toHex(mix(rgb, 0, 1));
 }
 
 // Prefer the brand inks (near-black or cream); at the luminance crossover
@@ -93,8 +89,7 @@ export function deriveAccent(hex: unknown): AccentDerivation | null {
   const normalized = toHex(rgb);
   return {
     hex: normalized,
-    inkLight: inkFor(normalized, 'light'),
-    inkDark: inkFor(normalized, 'dark'),
+    inkLight: inkFor(normalized),
     foreground: accentForeground(normalized),
   };
 }

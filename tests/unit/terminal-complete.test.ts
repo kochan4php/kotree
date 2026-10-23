@@ -15,10 +15,9 @@ test('ambiguous prefixes extend to the shared prefix or stay put', () => {
   assert.equal(completeCommand(''), null);
 });
 
-test('subcommands complete after theme, accent and man', () => {
-  assert.equal(completeCommand('theme d'), 'theme dark');
+test('subcommands complete after accent and man', () => {
   assert.equal(completeCommand('accent p'), 'accent pink');
-  assert.equal(completeCommand('man th'), 'man theme');
+  assert.equal(completeCommand('man ac'), 'man accent');
   assert.equal(completeCommand('accent blue'), null); // already complete
 });
 

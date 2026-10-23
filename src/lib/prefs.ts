@@ -1,21 +1,18 @@
-// Visitor preferences: theme, accent colour, background effects, sound.
+// Visitor preferences: accent colour, effects, sound and reading comfort.
 // Stored in localStorage and mirrored onto <html> data-attributes, so CSS
 // (and the inline script in the layout, which runs before first paint) can
-// react without a flash of the wrong theme.
+// react without a flash of the wrong accent or effects state.
 
-export type Theme = 'auto' | 'light' | 'dark' | 'oled';
 export type Accent = 'orange' | 'pink' | 'blue' | 'green' | 'violet' | 'yellow';
 
 /** M84: a visitor-picked accent with its inks pre-derived and pre-validated. */
 export interface CustomAccent {
   hex: string;
   inkLight: string;
-  inkDark: string;
   foreground: string;
 }
 
 export interface Prefs {
-  theme: Theme;
   accent: Accent;
   /** M84: free accent colour; null keeps the preset accent. */
   customAccent: CustomAccent | null;
@@ -32,7 +29,7 @@ export interface Prefs {
   soundAlerts: boolean;
   /** G9: tell me when a message queued offline reaches the wall. */
   notify: boolean;
-  /** P9: reading comfort, independent of the theme. 0.9–1.4. */
+  /** P9: reading comfort, independent of the site palette. 0.9–1.4. */
   textScale: number;
   /** P9: note body leading; numbers keep the CSS simple. */
   lineHeight: number;
@@ -43,7 +40,6 @@ export interface Prefs {
 export const PREFS_KEY = 'kotree-prefs';
 
 export const DEFAULT_PREFS: Prefs = {
-  theme: 'auto',
   accent: 'orange',
   customAccent: null,
   fx: true,
@@ -101,7 +97,9 @@ const HEX = /^#[0-9a-f]{6}$/i;
 export function readPrefs(): Prefs {
   if (typeof window === 'undefined') return DEFAULT_PREFS;
   try {
-    const raw = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') as Partial<Prefs>;
+    const raw = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') as Partial<Prefs> & { theme?: unknown };
+    // Ignore the legacy theme key in stored preferences.
+    delete raw.theme;
     const merged = { ...DEFAULT_PREFS, ...raw };
     // Hand-edited storage gets clamped like any other untrusted input
     merged.volume =
@@ -124,10 +122,10 @@ export function readPrefs(): Prefs {
     const custom = merged.customAccent;
     merged.customAccent =
       custom &&
-      [custom.hex, custom.inkLight, custom.inkDark, custom.foreground].every(
+      [custom.hex, custom.inkLight, custom.foreground].every(
         (value) => typeof value === 'string' && HEX.test(value)
       )
-        ? custom
+        ? { hex: custom.hex, inkLight: custom.inkLight, foreground: custom.foreground }
         : null;
     return merged;
   } catch {
@@ -135,31 +133,18 @@ export function readPrefs(): Prefs {
   }
 }
 
-export function resolveTheme(theme: Theme): 'light' | 'dark' {
-  if (theme === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return theme === 'light' ? 'light' : 'dark'; // 'oled' is dark, only blacker
-}
-
-const THEME_COLORS = { light: '#fff7e9', dark: '#1a1613', oled: '#000000' } as const;
-
-// K15: the mobile URL bar follows the resolved theme AND the accent — the
-// accent swatch in light mode, the calm dark background at night. The inline
-// bootstrap script in the layout mirrors this mapping before first paint.
+// K15: the mobile URL bar follows the accent. The inline bootstrap script in
+// the layout mirrors this mapping before first paint.
 function themeColor(prefs: Prefs): string {
-  if (prefs.theme === 'oled') return THEME_COLORS.oled;
-  if (resolveTheme(prefs.theme) === 'dark') return THEME_COLORS.dark;
   if (prefs.customAccent) return prefs.customAccent.hex;
-  return ACCENTS.find((accent) => accent.id === prefs.accent)?.swatch ?? THEME_COLORS.light;
+  return ACCENTS.find((accent) => accent.id === prefs.accent)?.swatch ?? '#fff7e9';
 }
 
 export function applyPrefs(prefs: Prefs): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
   const style = root.style;
-  const resolved = resolveTheme(prefs.theme);
-  root.dataset.theme = prefs.theme === 'oled' ? 'oled' : resolved;
+  root.dataset.theme = 'light';
   root.dataset.accent = prefs.customAccent ? 'custom' : prefs.accent;
   root.dataset.fx = prefs.fx ? 'on' : 'off';
   root.dataset.motion = prefs.reduceMotion ? 'off' : 'on';
@@ -169,14 +154,14 @@ export function applyPrefs(prefs: Prefs): void {
   // M84: inline vars beat any preset block; cleared again when a preset is chosen
   if (prefs.customAccent) {
     style.setProperty('--accent', prefs.customAccent.hex);
-    style.setProperty('--accent-ink', resolved === 'dark' ? prefs.customAccent.inkDark : prefs.customAccent.inkLight);
+    style.setProperty('--accent-ink', prefs.customAccent.inkLight);
     style.setProperty('--accent-foreground', prefs.customAccent.foreground);
   } else {
     style.removeProperty('--accent');
     style.removeProperty('--accent-ink');
     style.removeProperty('--accent-foreground');
   }
-  // Keep the browser chrome (mobile URL bar) in step with theme + accent
+  // Keep the browser chrome (mobile URL bar) in step with the accent.
   syncThemeColor(themeColor(prefs));
 }
 
@@ -204,23 +189,5 @@ export function writePrefs(patch: Partial<Prefs>): Prefs {
   }
   applyPrefs(next);
   window.dispatchEvent(new CustomEvent('kotree:prefs', { detail: next }));
-  return next;
-}
-
-// Crossfade the theme change with the native View Transitions API where the
-// browser supports it (skipped under reduced motion).
-export function runViewTransition(update: () => void): void {
-  if (typeof document.startViewTransition === 'function' && !prefersReducedMotion()) {
-    document.startViewTransition(update);
-  } else {
-    update();
-  }
-}
-
-// Cycle auto → light → dark → OLED, wrapped in a native crossfade where supported.
-export function cycleTheme(): Theme {
-  const order: Theme[] = ['auto', 'light', 'dark', 'oled'];
-  const next = order[(order.indexOf(readPrefs().theme) + 1) % order.length];
-  runViewTransition(() => writePrefs({ theme: next }));
   return next;
 }

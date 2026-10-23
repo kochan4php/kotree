@@ -14,7 +14,6 @@ import {
   Laptop,
   Link2,
   MessageSquare,
-  Moon,
   NotebookPen,
   QrCode,
   Search,
@@ -35,7 +34,7 @@ import { trackLinkClick } from '@/lib/track-click';
 import { refreshLinkCounts } from '@/hooks/use-link-counts';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 import EmptyState from '@/components/ui/empty-state';
-import { cycleTheme, readPrefs, writePrefs } from '@/lib/prefs';
+import { readPrefs, writePrefs } from '@/lib/prefs';
 import { clientToken } from '@/lib/csrf-client';
 import { fuzzy } from '@/lib/fuzzy';
 import { pickLucky } from '@/lib/lucky';
@@ -249,18 +248,9 @@ export default function CommandPalette() {
 
   const actionItems: PaletteItem[] = [
     {
-      id: 'action:theme',
-      label: 'Cycle theme',
-      description: 'Auto → light → dark',
-      hint: prefs.theme,
-      icon: Moon,
-      group: 'Actions',
-      run: () => toast.info(`Theme: ${cycleTheme()}`),
-    },
-    {
       id: 'action:prefs',
       label: 'Open preferences',
-      description: 'Theme, accent, effects, sound',
+      description: 'Accent, effects, sound and reading comfort',
       icon: Settings2,
       group: 'Actions',
       run: () => window.dispatchEvent(new Event('kotree:prefs-open')),

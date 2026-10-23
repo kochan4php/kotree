@@ -65,15 +65,9 @@ test('writes: a secret goes up on the wall and comes back from the server', asyn
   await expect(page.locator(`#${id}`)).toBeVisible({ timeout: 10000 });
 });
 
-test('the theme sticks, and a wrong address still lands somewhere useful', async ({ page }) => {
+test('a wrong address still lands somewhere useful', async ({ page }) => {
   await page.goto('/');
   await waitHydrated(page);
-
-  await palette(page, 'cycle');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.reload();
-  await waitHydrated(page);
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 
   await page.goto('/definitely-not-a-page');
   await expect(page.getByRole('heading', { name: 'Sanctuary Lost' })).toBeVisible();

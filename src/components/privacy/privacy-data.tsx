@@ -124,7 +124,7 @@ export default function PrivacyData() {
       </div>
 
       <p className="text-xs font-medium leading-relaxed text-muted-foreground">
-        The download covers the server copy. Everything else — theme, shelf, drafts, queued messages —
+        The download covers the server copy. Everything else — accent, shelf, drafts, queued messages —
         lives in this browser alone and goes when you clear its site data.
       </p>
     </div>

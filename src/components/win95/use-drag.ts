@@ -117,12 +117,14 @@ export function useDrag({ setWindows, isActive, bringToFront }: UseDragOptions) 
     };
   }, [isActive, setWindows]);
 
-  const handlePointerDown = (e: React.PointerEvent, id: string, w: WindowState) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>, id: string, w: WindowState) => {
     // The title bar contains the window buttons; a press on one of them must
     // not start a drag (pointer-up would then snap and remember a position).
     if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return;
     bringToFront(id);
     if (w.isMaximized) return;
+    // Keep receiving moves when the cursor leaves the title bar/window.
+    e.currentTarget.setPointerCapture(e.pointerId);
     draggingId.current = id;
     dragOffset.current = { x: e.clientX - w.x, y: e.clientY - w.y };
     dragPos.current = { x: w.x, y: w.y };

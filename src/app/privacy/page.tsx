@@ -78,7 +78,7 @@ export default function PrivacyPage() {
           <div className="relative z-10">
             <h2 className="text-lg font-black tracking-tight text-foreground">Stored in your browser</h2>
             <p className="mt-3 text-sm text-muted-foreground font-medium leading-relaxed">
-              Your theme, accent and sound choices, the last changelog version you have seen, guestbook reactions
+              Your accent and sound choices, the last changelog version you have seen, guestbook reactions
               and games, best scores, small progress markers for secrets you have found, and any guestbook message
               queued while offline. All of it lives in <code className="font-mono text-xs">localStorage</code> and
               is cleared by your browser&apos;s site-data settings. The only cookies are the CSRF token used to

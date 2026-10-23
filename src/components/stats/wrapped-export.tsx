@@ -18,7 +18,7 @@ interface WrappedExportProps {
 
 // The recap as one image, drawn on a canvas by hand: no library, no round-trip
 // to a server, and the colours and fonts are read from the page's own computed
-// style — so the card wears whichever theme and accent the reader has chosen.
+// style — so the card uses the site's light palette and current accent.
 const W = 1080;
 const H = 1620;
 
@@ -127,7 +127,7 @@ export default function WrappedExport({
         y += 190;
       }
 
-      // G6: the QR keeps the cream palette whatever the theme — scanners need
+      // G6: the QR keeps the cream palette for readability — scanners need
       // contrast more than they need style. Drawn at twice its size so the
       // modules stay crisp, and a QR that will not draw never costs the image.
       const qrSvg = qrRef.current?.querySelector('svg');

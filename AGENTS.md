@@ -18,8 +18,8 @@ sails on against a broken build.
 - **British English, plain words** in `CHANGELOG.md`, docs, UI copy and commit
   bodies. `/changelog` renders `CHANGELOG.md`; draft with `pnpm changelog:draft`,
   then a human rewrites the bullets into sentences.
-- **The look stays**: neobrutalist, contrast never below WCAG AA (dark and OLED
-  palettes included), ambient effects behind the `fx` preference, behind
+- **The look stays**: neobrutalist, contrast never below WCAG AA in the light
+  palette, ambient effects behind the `fx` preference, behind
   `prefersReducedMotion()`, and skipped on `save-data`.
 - **An ADR per non-obvious trade** in `docs/decisions/` (copy the shape of 0004),
   plus a line in `docs/architecture.md` when the map changes.

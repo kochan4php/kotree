@@ -1,10 +1,10 @@
 import type { SocialLink } from '@/interfaces';
-import { readPrefs, writePrefs, type Accent, type Theme } from '@/lib/prefs';
+import { readPrefs, writePrefs, type Accent } from '@/lib/prefs';
 import { SECRETS, discoverSecret, discoveredSecrets } from '@/lib/secrets';
 import { pickLucky } from '@/lib/lucky';
-import { ACCENT_IDS, COMMAND_NAMES, THEME_VALUES } from './complete';
+import { ACCENT_IDS, COMMAND_NAMES } from './complete';
 
-export { COMMAND_NAMES, THEME_VALUES } from './complete';
+export { COMMAND_NAMES } from './complete';
 
 export const INITIAL_HISTORY: { type: 'user' | 'bot'; text: string }[] = [
   { type: 'bot', text: 'Initializing Kochan AI Clone v1.0.0...' },
@@ -19,12 +19,11 @@ export const RESPONSES: Record<string, string> = {
   neofetch: '',
   ls: "To see all links, type 'ls'. To open one, type 'open <name>'.",
   clear: '',
-  help: `Available commands: ${COMMAND_NAMES.join(', ')} · theme <light|dark|auto|oled> · man <command>`,
+  help: `Available commands: ${COMMAND_NAMES.join(', ')} · man <command>`,
 };
 
 // M49: manual pages — `man <command>` prints these
 export const MAN: Record<string, string> = {
-  theme: 'theme <light|dark|auto|oled> — switch the colour scheme',
   accent: `accent <${ACCENT_IDS.join('|')}> — recolour the whole site`,
   mute: 'mute — silence the little synth (unmute brings it back)',
   unmute: 'unmute — bring the sounds back',
@@ -74,7 +73,7 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
 
   switch (name) {
     case 'neofetch': {
-      const { theme, accent } = readPrefs();
+      const { accent } = readPrefs();
       return {
         reply: [
           'kochan@kotree',
@@ -82,7 +81,7 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
           'OS: Kotree — a link-in-bio (Next.js)',
           `Host: ${location.host}`,
           `Screen: ${screen.width}x${screen.height}`,
-          `Theme: ${theme} · accent ${accent}`,
+          `Appearance: light · accent ${accent}`,
           `Secrets found: ${discoveredSecrets().length}/${SECRETS.length}`,
         ].join('\n'),
       };
@@ -108,13 +107,9 @@ export function runCommand(cmd: string, links: SocialLink[]): CommandResult {
       if (arg) return { reply: 'Usage: wrapped [year]' };
       return { reply: 'Opening Kotree Wrapped...', navigate: '/wrapped' };
     }
-    case 'theme': {
-      if ((THEME_VALUES as readonly string[]).includes(arg)) {
-        writePrefs({ theme: arg as Theme });
-        return { reply: `Theme set to ${arg}.` };
-      }
-      return { reply: 'Usage: theme light | dark | auto | oled' };
-    }
+    // Older terminal histories can still contain this removed command.
+    case 'theme':
+      return { reply: 'Kotree now uses one light colour scheme.' };
     case 'accent': {
       if ((ACCENT_IDS as readonly string[]).includes(arg)) {
         writePrefs({ accent: arg as Accent });

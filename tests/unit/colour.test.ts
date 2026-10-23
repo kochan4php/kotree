@@ -1,6 +1,6 @@
 // M84: the free accent picker validates before it stores — these tests pin the
 // maths (WCAG pairs) and fuzz the guarantee (every derivable accent clears AA
-// on both themes, for real, before anything reaches the DOM).
+// on the light surface, for real, before anything reaches the DOM).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { INK_SURFACES, accentForeground, contrastRatio, deriveAccent, parseHex } from '../../src/lib/colour.ts';
@@ -27,7 +27,7 @@ test('contrastRatio matches the WCAG reference pairs', () => {
   assert.equal(contrastRatio('nope', '#ffffff'), 0);
 });
 
-test('every derived accent clears AA on both themes (deterministic fuzz)', () => {
+test('every derived accent clears AA on the light surface (deterministic fuzz)', () => {
   let state = 20261018;
   const rand = () => (state = (state * 1664525 + 1013904223) >>> 0) / 2 ** 32;
   const hex = (value: number) => value.toString(16).padStart(2, '0');
@@ -40,10 +40,6 @@ test('every derived accent clears AA on both themes (deterministic fuzz)', () =>
     assert.ok(
       contrastRatio(derived.inkLight, INK_SURFACES.light) >= 4.5,
       `light ink ${derived.inkLight} for ${input}`
-    );
-    assert.ok(
-      contrastRatio(derived.inkDark, INK_SURFACES.dark) >= 4.5,
-      `dark ink ${derived.inkDark} for ${input}`
     );
     assert.ok(contrastRatio(derived.foreground, derived.hex) >= 4.5, `foreground for ${input}`);
   }

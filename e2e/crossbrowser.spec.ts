@@ -31,8 +31,8 @@ test('command palette opens, finds a command and closes @crossbrowser @mobile', 
     await expect(search).toBeVisible({ timeout: 2000 });
   }).toPass({ timeout: 20000 });
 
-  await search.fill('theme');
-  await expect(page.getByText('Cycle theme')).toBeVisible();
+  await search.fill('offline');
+  await expect(page.getByText('Offline, on purpose')).toBeVisible();
 
   await page.keyboard.press('Escape');
   await expect(search).toHaveCount(0);

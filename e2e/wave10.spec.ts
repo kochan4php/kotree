@@ -26,37 +26,6 @@ const token = (page: Page, name: string) =>
     name
   );
 
-// M83: OLED is a real theme, not a filter — true black paper, same AA ink.
-test('M83: OLED renders true black and keeps muted ink at AA', async ({ page }) => {
-  await withPrefs(page, { theme: 'oled' });
-  const html = page.locator('html');
-  await expect(html).toHaveAttribute('data-theme', 'oled');
-
-  const [background, muted, mutedInk, foreground] = await Promise.all([
-    token(page, '--background'),
-    token(page, '--muted'),
-    token(page, '--muted-foreground'),
-    token(page, '--foreground'),
-  ]);
-  // The minifier may shorten #000000 to #000 — accept both spellings of black
-  expect(background).toMatch(/^#000(000)?$/);
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(0, 0, 0)');
-  expect(contrastRatio(mutedInk, muted)).toBeGreaterThanOrEqual(4.5);
-  expect(contrastRatio(mutedInk, background)).toBeGreaterThanOrEqual(4.5);
-  expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
-});
-
-test('M83: the preferences panel offers OLED and the choice sticks', async ({ page }) => {
-  await page.goto('/');
-  await waitHydrated(page);
-  await page.getByRole('button', { name: 'Preferences' }).click();
-  await page.getByRole('button', { name: 'OLED' }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'oled');
-  await page.reload();
-  await waitHydrated(page);
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'oled');
-});
-
 // M84: a free accent colour is derived (inks included) and AA-checked before
 // it ever reaches the DOM.
 test('M84: a custom accent applies with contrast-safe ink', async ({ page }) => {
@@ -83,12 +52,6 @@ test('M84: a custom accent applies with contrast-safe ink', async ({ page }) => 
   }).toPass();
 });
 
-test('M84: dark theme swaps to the dark ink of the same accent', async ({ page }) => {
-  const derived = deriveAccent('#7c3aed')!;
-  await withPrefs(page, { theme: 'dark', customAccent: derived });
-  expect(await token(page, '--accent-ink')).toBe(derived.inkDark);
-});
-
 test('M84: the panel offers the colour input and Reset returns to a preset', async ({ page }) => {
   const derived = deriveAccent('#0f766e')!;
   await withPrefs(page, { customAccent: derived });
@@ -102,21 +65,17 @@ test('M84: the panel offers the colour input and Reset returns to a preset', asy
   await expect(html).toHaveAttribute('data-theme', 'light');
 });
 
-// M85: favicons serve, come in a variant per colour scheme, and the Windows
-// tile metadata is in the document.
-test('M85: both SVG favicons serve and the tile meta is present', async ({ page, request }) => {
+// M85: the light SVG favicon and Windows tile metadata are in the document.
+test('M85: the light SVG favicon serves and the tile meta is present', async ({ page, request }) => {
   await page.goto('/');
   const icons = await page
     .locator('link[rel="icon"]')
-    .evaluateAll((nodes) => nodes.map((node) => ({ href: node.getAttribute('href'), media: node.getAttribute('media') })));
-  expect(icons.some((icon) => icon.href === '/icon.svg' && icon.media?.includes('prefers-color-scheme: light'))).toBe(true);
-  expect(icons.some((icon) => icon.href === '/icon-dark.svg' && icon.media?.includes('prefers-color-scheme: dark'))).toBe(true);
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('href')));
+  expect(icons).toContain('/icon.svg');
 
-  for (const href of ['/icon.svg', '/icon-dark.svg']) {
-    const res = await request.get(href);
-    expect(res.status(), href).toBe(200);
-    expect(res.headers()['content-type'], href).toContain('image/svg+xml');
-  }
+  const res = await request.get('/icon.svg');
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/svg+xml');
 
   await expect(page.locator('meta[name="msapplication-TileColor"]')).toHaveAttribute('content', '#14110f');
   await expect(page.locator('meta[name="msapplication-TileImage"]')).toHaveAttribute('content', '/icons/icon-144x144.png');

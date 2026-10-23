@@ -38,11 +38,8 @@ export default function GlobalError({
     <html lang="en">
       <head>
         <style>{`
-          :root { color-scheme: light dark; }
+          :root { color-scheme: light; }
           .kt-ge { --ink: #14110f; --paper: #fff7e9; --card: #ffffff; }
-          @media (prefers-color-scheme: dark) {
-            .kt-ge { --ink: #f4efe8; --paper: #1a1613; --card: #241f1a; }
-          }
         `}</style>
       </head>
       <body

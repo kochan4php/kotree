@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 // R43: feature-level coverage for the interactions added in 3.2.0 —
-// theme persistence, palette keyboard flow, the offline guestbook queue,
+// light-only appearance, palette keyboard flow, the offline guestbook queue,
 // permalinks and the smart 404.
 
 const ENTRY = {
@@ -26,28 +26,23 @@ async function waitHydrated(page: Page) {
   await page.waitForTimeout(swConfirmed ? 300 : 2500);
 }
 
-test('command palette keyboard: cycling the theme sticks across reloads', async ({ page }) => {
+test('legacy dark preference and dark system setting remain light-only', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.addInitScript(() => localStorage.setItem('kotree-prefs', JSON.stringify({ theme: 'dark' })));
   await page.goto('/');
   await waitHydrated(page);
 
-  // auto -> light
-  await page.getByRole('button', { name: 'Search links' }).click();
-  await page.getByRole('textbox', { name: 'Search links' }).fill('cycle');
-  await page.waitForTimeout(300);
-  await page.keyboard.press('Enter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.getByRole('button', { name: 'Preferences' }).click();
+  await expect(page.getByText('Theme', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Auto', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Light', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Dark', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'OLED', exact: true })).toHaveCount(0);
 
-  // light -> dark
-  await page.getByRole('button', { name: 'Search links' }).click();
-  await page.getByRole('textbox', { name: 'Search links' }).fill('cycle');
-  await page.waitForTimeout(300);
-  await page.keyboard.press('Enter');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-
-  // The choice is remembered
   await page.reload();
   await waitHydrated(page);
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
 test('command palette keyboard: typing then Enter navigates', async ({ page }) => {

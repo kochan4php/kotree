@@ -58,15 +58,11 @@ for (const { name, path } of PAGES) {
   });
 }
 
-// R32: dark mode + reduced motion across three viewports. Colour-scheme
-// emulation flips the auto theme; reduced motion also disables the looping
-// effects, so this covers both preference paths.
-test.describe('dark + reduced motion', () => {
-  test.use({ colorScheme: 'dark' });
-
+// R32: reduced motion across three viewports also disables looping effects.
+test.describe('reduced motion', () => {
   for (const width of [390, 1100, 1920]) {
     for (const { name, path } of PAGES) {
-      test(`a11y: ${name} at ${width}px (dark, reduced motion)`, async ({ page }) => {
+      test(`a11y: ${name} at ${width}px (reduced motion)`, async ({ page }) => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.setViewportSize({ width, height: 900 });
         await page.goto(path);
@@ -107,8 +103,6 @@ test.describe('reflow', () => {
 // K36: Windows High Contrast. Structure must survive when fills flatten: cards
 // keep their border, focus stays visible, and nothing scrolls sideways.
 test.describe('forced colors', () => {
-  test.use({ colorScheme: 'dark' });
-
   for (const { name, path } of [
     { name: 'home', path: '/' },
     { name: 'guestbook', path: '/guestbook' },

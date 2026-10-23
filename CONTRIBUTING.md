@@ -54,7 +54,7 @@ renders. British spelling, no jargon.
   built-ins and what is already installed — see
   [ADR 0003](docs/decisions/0003-features-are-built-on-the-platform.md).
 - **Contrast never drops below WCAG AA**, including the neobrutalist chips and
-  the dark/OLED palettes.
+  the light palette.
 - **Motion and data**: ambient effects sit behind the `fx` preference, respect
   `prefers-reduced-motion` and skip themselves on `save-data` connections.
 - **Visual baselines are Windows-only** (`*-win32.png`). Inspect the diff, then

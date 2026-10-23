@@ -44,8 +44,8 @@ export default function KitchenSinkPage() {
               Kitchen sink
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              The shared pieces, in every state worth checking. Dressed for light, OLED and forced
-              colours by the theme switch — and every pair here is already held to AA.
+              The shared pieces, in every state worth checking. Dressed for light and forced
+              colours — and every pair here is already held to AA.
             </p>
           </div>
         </Card>

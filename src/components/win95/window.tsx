@@ -9,7 +9,7 @@ interface Win95WindowProps {
   onMinimize: (id: string) => void;
   onMaximize: (id: string) => void;
   onClose: (id: string) => void;
-  onPointerDown: (e: React.PointerEvent, id: string, w: WindowState) => void;
+  onPointerDown: (e: React.PointerEvent<HTMLDivElement>, id: string, w: WindowState) => void;
   onNudge: (id: string, dx: number, dy: number) => void;
   setWindowRef: (id: string) => (el: HTMLDivElement | null) => void;
 }

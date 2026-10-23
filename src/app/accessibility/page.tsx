@@ -43,7 +43,7 @@ export default function AccessibilityPage() {
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground font-medium list-disc pl-5">
               <li>
                 <strong className="text-foreground">Automatic audits</strong> — every page runs through axe in
-                light, dark, high-contrast and reduced-motion modes; the command palette, terminal, QR dialog and
+                light, high-contrast and reduced-motion modes; the command palette, terminal, QR dialog and
                 preferences panel are audited too.
               </li>
               <li>
@@ -70,7 +70,7 @@ export default function AccessibilityPage() {
               </li>
               <li>
                 <strong className="text-foreground">Comfortable targets</strong> — every button and link is at least
-                24&nbsp;×&nbsp;24&nbsp;px; contrast stays at AA or better in both themes.
+                24&nbsp;×&nbsp;24&nbsp;px; contrast stays at AA or better in the light colour scheme.
               </li>
               <li>
                 <strong className="text-foreground">Screen readers</strong> — one main landmark, one first-level
@@ -85,8 +85,8 @@ export default function AccessibilityPage() {
             <h2 className="text-lg font-black tracking-tight text-foreground">Make it yours</h2>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground font-medium list-disc pl-5">
               <li>
-                The preferences panel (the gear in the dock) switches theme, accent, background effects, sound and{' '}
-                <strong className="text-foreground">Reduce motion</strong> — the last one stops every animation
+                The preferences panel (the gear in the dock) changes accent, background effects, sound and reading comfort.
+                {' '}<strong className="text-foreground">Reduce motion</strong> stops every animation
                 even when your system is happy with motion.
               </li>
               <li>

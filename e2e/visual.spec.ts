@@ -2,12 +2,13 @@ import { test, expect, type Page } from '@playwright/test';
 
 // R1: pixel regression for home, changelog and the 404 page at five widths.
 // Deterministic by construction: preferences frozen (light, no effects), the
-// clock fixed, APIs stubbed, animations disabled, content-visibility forced
+// timezone and clock fixed, APIs stubbed, animations disabled, content-visibility forced
 // visible so below-the-fold blocks always render into the capture.
 //
 // Baselines are win32-only — font rasterisation differs per OS, so other
 // platforms skip rather than report false diffs.
 test.skip(process.platform !== 'win32', 'visual baselines were captured on win32');
+test.use({ timezoneId: 'Asia/Bangkok' });
 
 const VIEWPORTS = [
   { width: 390, height: 844 },
@@ -26,19 +27,15 @@ const PAGES = [
 async function freeze(
   page: Page,
   path: string,
-  theme: 'light' | 'dark' | 'oled' = 'light',
   extraPrefs: Record<string, unknown> = {}
 ) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(
-    ({ selected, extra }) => {
-      localStorage.setItem(
-        'kotree-prefs',
-        JSON.stringify({ theme: selected, accent: 'orange', fx: false, sound: false, ...extra })
-      );
-    },
-    { selected: theme, extra: extraPrefs }
-  );
+  await page.addInitScript((extra) => {
+    localStorage.setItem(
+      'kotree-prefs',
+      JSON.stringify({ accent: 'orange', fx: false, sound: false, ...extra })
+    );
+  }, extraPrefs);
   await page.route('**/api/guestbook?*', (route) => route.fulfill({ json: [] }));
   // M44: the guestbook renders the poll card — pin its data so the baseline
   // never depends on whatever question is live in the local database
@@ -82,26 +79,18 @@ for (const { name, path } of PAGES) {
   }
 }
 
-// K38/K48: dark scheme at two widths, plus the guestbook and a note detail.
-// I2: OLED joins the set — it is a third resolved theme (pure black), not a
-// variant of dark, so it needs its own pixels. /stats and /wrapped are not
-// here on purpose: both are rendered from live counters, so a baseline would
-// encode one afternoon of numbers. The a11y and smoke suites cover them.
+// The guestbook and a note detail join the base pages. /stats and /wrapped are
+// not here because their live counters would encode one afternoon of numbers.
 const EXTRA_PAGES = [
-  { name: 'home-dark', path: '/', theme: 'dark' as const, widths: [1100, 1440] },
-  { name: 'home-oled', path: '/', theme: 'oled' as const, widths: [1440] },
-  { name: 'guestbook', path: '/guestbook', theme: 'light' as const, widths: [1440] },
-  { name: 'guestbook-dark', path: '/guestbook', theme: 'dark' as const, widths: [1440] },
-  { name: 'note-detail', path: '/notes/2026-10-12-offline-first', theme: 'light' as const, widths: [1440] },
-  { name: 'note-detail-dark', path: '/notes/2026-10-12-offline-first', theme: 'dark' as const, widths: [1440] },
-  { name: 'note-detail-oled', path: '/notes/2026-10-12-offline-first', theme: 'oled' as const, widths: [1440] },
+  { name: 'guestbook', path: '/guestbook', widths: [1440] },
+  { name: 'note-detail', path: '/notes/2026-10-12-offline-first', widths: [1440] },
 ];
 
-for (const { name, path, theme, widths } of EXTRA_PAGES) {
+for (const { name, path, widths } of EXTRA_PAGES) {
   for (const width of widths) {
     test(`visual: ${name} at ${width}x900`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await freeze(page, path, theme);
+      await freeze(page, path);
       await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
     });
   }
@@ -184,6 +173,6 @@ test('visual: forced colors at 1440x900', async ({ page }) => {
 
 test('visual: reduced motion keeps home calm at 1440x900', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await freeze(page, '/', 'light', { reduceMotion: true });
+  await freeze(page, '/', { reduceMotion: true });
   await expect(page).toHaveScreenshot({ fullPage: true, animations: 'disabled' });
 });

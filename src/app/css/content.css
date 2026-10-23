@@ -158,7 +158,7 @@
   padding: 0 0.06em;
 }
 
-/* P9: reading comfort is separate from the site theme. The values are set on
+/* P9: reading comfort is separate from the site palette. The values are set on
    <html> before paint; these selectors only touch note bodies. */
 .e-content p,
 .e-content li,
