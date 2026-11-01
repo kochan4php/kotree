@@ -34,9 +34,9 @@
   "dependencies": {
     "clsx": "2.1.1",
     "idb-keyval": "6.3.0",
-    "lucide-react": "1.60.0",
+    "lucide-react": "1.64.0",
     "mongodb": "7.7.0",
-    "next": "16.4.2",
+    "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-qr-code": "2.2.0",
@@ -46,16 +46,16 @@
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
     "@netlify/edge-functions": "4.0.3",
-    "@netlify/plugin-nextjs": "5.16.4",
+    "@netlify/plugin-nextjs": "5.16.5",
     "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "4.3.3",
-    "@types/node": "26.6.5",
+    "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@types/three": "0.186.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.13.0",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.3",
     "tailwindcss": "4.3.3",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   }
