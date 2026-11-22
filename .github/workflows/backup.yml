@@ -9,7 +9,7 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Export production data
         env:
           SITE_URL: ${{ vars.SITE_URL }}
@@ -24,7 +24,7 @@ jobs:
             "$SITE_URL/api/admin/export" \
             -o "backups/kotree-backup-$(date +%F).json"
           wc -c backups/*.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: hashFiles('backups/*.json') != ''
         with:
           name: kotree-backup-${{ github.run_id }}

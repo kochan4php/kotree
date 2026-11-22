@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Smoke
         env:
           SMOKE_URL: ${{ github.event.deployment_status.environment_url }}
         run: node scripts/smoke.mjs "$SMOKE_URL"
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - name: Install preview check dependencies
         run: pnpm install --frozen-lockfile
       - name: Install Chromium
